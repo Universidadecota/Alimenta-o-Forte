@@ -21,7 +21,7 @@ export default function AuthGate({children}:{children:ReactNode}){
   e.preventDefault();if(!supabase)return;
   setBusy(true);setMessage("");
   try{
-   if(mode==="reset"){const {error}=await supabase.auth.resetPasswordForEmail(email);if(error)throw error;setMessage("Se o e-mail estiver cadastrado, você receberá instruções de recuperação.");}
+   if(mode==="reset"){const {error}=await supabase!.auth.resetPasswordForEmail(email);if(error)throw error;setMessage("Se o e-mail estiver cadastrado, você receberá instruções de recuperação.");}
    else if(mode==="signup"){const {error}=await supabase.auth.signUp({email,password});if(error)throw error;setMessage("Cadastro recebido. Verifique seu e-mail se a confirmação estiver habilitada.");}
    else {const {error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;}
   }catch(err){setMessage(err instanceof Error?err.message:"Não foi possível completar a operação.");}finally{setBusy(false);}
