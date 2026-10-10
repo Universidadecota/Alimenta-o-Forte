@@ -15,7 +15,7 @@ const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings
 },{} as Plan);
 export async function loadRecipes():Promise<Meal[]>{
  if(!supabase)return [];
- const {data,error}=await supabase.from("recipes").select("id,title,category,prep_minutes,servings,description,instructions,image_url,owner_user_id,recipe_ingredients(name,quantity,unit)").order("title");
+ const {data,error}=await supabase.from("recipes").select("id,title,category,prep_minutes,servings,description,instructions,image_url,owner_user_id,published,recipe_ingredients(name,quantity,unit)").order("title");
  if(error)throw error;
  return (data||[]).filter(r=>!!toSlot[r.category]&&(r.published || r.owner_user_id)).map(r=>({
   id:r.id,title:r.title,category:toSlot[r.category],minutes:r.prep_minutes,servings:r.servings,description:r.description,instructions:r.instructions,imageUrl:r.image_url,ownerId:r.owner_user_id,
