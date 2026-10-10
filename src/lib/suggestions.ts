@@ -1,4 +1,4 @@
-import {type Meal,type Slot,type Plan,slots,dateKey} from "./planner";
+import {type Meal,type Plan,slots,dateKey} from "./planner";
 export type FoodPreferences={goal:string|null;liked_foods:string[];disliked_foods:string[];allergies:string[];household_size:number;cooking_minutes:number};
 export const defaultPreferences:FoodPreferences={goal:null,liked_foods:[],disliked_foods:[],allergies:[],household_size:1,cooking_minutes:40};
 const normal=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
