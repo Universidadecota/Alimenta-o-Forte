@@ -1,9 +1,13 @@
+import PublicLanding from "./PublicLanding";
+import Onboarding from "./Onboarding";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
 import { Leaf, LogOut, Mail, Lock, UserRound } from "lucide-react";
 export default function AuthGate({children}:{children:ReactNode}){
  const [session,setSession]=useState<Session|null>(null);
+ const [showAuth,setShowAuth]=useState(false);
+ const [onboarding,setOnboarding]=useState<"checking"|"needed"|"done">("checking");
  const [loading,setLoading]=useState(!!supabase);
  const [email,setEmail]=useState("");
  const [password,setPassword]=useState("");
@@ -17,6 +21,7 @@ export default function AuthGate({children}:{children:ReactNode}){
   const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>setSession(session));
   return ()=>subscription.unsubscribe();
  },[]);
+ useEffect(()=>{if(!session){setOnboarding("checking");return;}let alive=true;setOnboarding("checking");const client=supabase;if(!client)return;void client.from("user_preferences").select("onboarding_completed_at").eq("user_id",session.user.id).maybeSingle().then(({data,error})=>{if(!alive)return;setOnboarding(error?"done":data?.onboarding_completed_at?"done":"needed");});return()=>{alive=false;};},[session?.user.id]);
  async function submit(e:FormEvent){
   e.preventDefault();if(!supabase)return;
   setBusy(true);setMessage("");
@@ -28,9 +33,12 @@ export default function AuthGate({children}:{children:ReactNode}){
  }
  if(!supabase)return <><div className="demo-banner">Ambiente de demonstração — configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para habilitar autenticação.</div>{children}</>;
  if(loading)return <div className="auth-center">Carregando Costa&Costa...</div>;
+ if(session&&onboarding==="checking")return <div className="auth-center">Preparando sua experiência Costa&Costa...</div>;
+ if(session&&onboarding==="needed")return <Onboarding userId={session.user.id} onDone={()=>setOnboarding("done")}/>;
  if(session)return <><div className="session-bar"><span>Conectado como {session.user.email}</span><button type="button" onClick={()=>void supabase?.auth.signOut()}><LogOut size={15}/> Sair</button></div>{children}</>;
+ if(!showAuth)return <PublicLanding onAuth={next=>{setMode(next);setShowAuth(true);setMessage("");}}/>;
  return <div className="auth-center"><form className="auth-card" onSubmit={submit}>
- <div className="auth-logo"><Leaf size={25}/></div><h1>Costa&Costa</h1><p>Sua alimentação. Seu ritmo. Sua evolução.</p>
+ <button className="auth-back-home" type="button" onClick={()=>setShowAuth(false)}>← Voltar para o início</button><div className="auth-logo"><Leaf size={25}/></div><h1>Costa&Costa</h1><p>Sua alimentação. Seu ritmo. Sua evolução.</p>
  <h2>{mode==="signup"?"Crie sua conta":mode==="reset"?"Recuperar senha":"Entre na sua conta"}</h2>
  <label><Mail size={16}/> E-mail<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@exemplo.com"/></label>
  {mode!=="reset"&&<label><Lock size={16}/> Senha<input type="password" required minLength={6} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Sua senha"/></label>}
