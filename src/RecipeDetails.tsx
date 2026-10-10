@@ -5,7 +5,7 @@ import type { Meal } from "./lib/planner";
 type Props={recipe:Meal;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean};
 export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
  const [servings,setServings]=useState(recipe.servings);
- const steps=recipe.instructions?.split(/\n+/).map(s=>s.trim()).filter(Boolean)??[];
+ const steps=recipe.instructions?.split(/(?:\\n|\r?\n)+/).map(s=>s.trim()).filter(Boolean)??[];
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> Voltar às receitas</button>
   <div className="recipe-detail-head">
