@@ -1,3 +1,4 @@
+import {consolidateShopping} from "./lib/shopping";
 import {proposeWeek,defaultPreferences,type FoodPreferences} from "./lib/suggestions";
 import EdvCollection from "./EdvCollection";
 import PersonalRecipeForm from "./PersonalRecipeForm";
@@ -76,7 +77,7 @@ export default function App(){
   }catch(err){setError(err instanceof Error?err.message:"Não foi possível gerar a semana.");try{setPlan(await loadWeek(userId,weekStart));}catch{setError("Falha ao recarregar o cardápio. Atualize a página.");}}
   finally{setSaving(false);}
  };
- const shopping=useMemo(()=>{const result=new Map<string,{name:string;quantity:number;unit:string}>();days.forEach(d=>slots.forEach(s=>{const meal=recipes.find(r=>r.id===plan[dateKey(d)]?.[s]?.id);meal?.ingredients.forEach(item=>{const k=item.name+"|"+item.unit;const prev=result.get(k);result.set(k,{...item,quantity:(prev?.quantity||0)+item.quantity*(plan[dateKey(d)]?.[s]?.servings??1)/meal.servings});});}));return [...result.values()].sort((a,b)=>a.name.localeCompare(b.name));},[days.map(dateKey).join("|"),plan]);
+ const shopping=useMemo(()=>consolidateShopping(days,plan,recipes),[days.map(dateKey).join("|"),plan,recipes]);
  const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Coleção EDV",Leaf],["Compras",ShoppingBasket]] as const;
  return <div className="shell"><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav>{nav.map(([name,Icon])=><button className={page===name?"active":""} key={name} onClick={()=>setPage(name)}><Icon size={19}/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1>{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div><div className="avatar">C&C</div></header><div className="notice"><Leaf size={15}/> Ambiente de testes · Receitas demonstrativas em revisão editorial e nutricional.</div>
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
