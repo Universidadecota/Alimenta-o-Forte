@@ -1,5 +1,6 @@
+import RecipeImage from "./RecipeImage";
 import { useState } from "react";
-import { ArrowLeft, ChefHat, Clock3, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
 
 type Props={recipe:Meal;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean};
@@ -9,7 +10,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> Voltar às receitas</button>
   <div className="recipe-detail-head">
-   <div className="detail-symbol">{recipe.imageUrl?<img className="recipe-photo" src={recipe.imageUrl} alt={recipe.title}/>:<ChefHat size={56}/>}</div>
+   <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} large/></div>
    <div><span className="eyebrow">{recipe.category}</span><h2>{recipe.title}</h2>
     <p>{recipe.description || "Receita demonstrativa em revisão editorial e nutricional."}</p>
     <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.minutes} minutos</span><span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span></div>
