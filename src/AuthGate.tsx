@@ -28,7 +28,7 @@ export default function AuthGate({children}:{children:ReactNode}){
  }
  if(!supabase)return <><div className="demo-banner">Ambiente de demonstração — configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para habilitar autenticação.</div>{children}</>;
  if(loading)return <div className="auth-center">Carregando Costa&Costa...</div>;
- if(session)return <><div className="session-bar"><span>Conectado como {session.user.email}</span><button type="button" onClick={()=>supabase.auth.signOut()}><LogOut size={15}/> Sair</button></div>{children}</>;
+ if(session)return <><div className="session-bar"><span>Conectado como {session.user.email}</span><button type="button" onClick={()=>void supabase?.auth.signOut()}><LogOut size={15}/> Sair</button></div>{children}</>;
  return <div className="auth-center"><form className="auth-card" onSubmit={submit}>
  <div className="auth-logo"><Leaf size={25}/></div><h1>Costa&Costa</h1><p>Sua alimentação. Seu ritmo. Sua evolução.</p>
  <h2>{mode==="signup"?"Crie sua conta":mode==="reset"?"Recuperar senha":"Entre na sua conta"}</h2>
