@@ -1,12 +1,7 @@
+-- Complements foundation_profiles_v1. Apply with Supabase migration name fundacao_comercial_rest.
 -- Fundação Costa&Costa. Receitas são publicadas apenas pelo backend administrativo.
 
 create extension if not exists pgcrypto;
-create table public.profiles (
- id uuid primary key references auth.users(id) on delete cascade,
- display_name text check (char_length(display_name)<=120),
- created_at timestamptz not null default now(),
- updated_at timestamptz not null default now()
-);
 create table public.user_preferences (
  user_id uuid primary key references auth.users(id) on delete cascade,
  disliked_foods text[] not null default '{}',
@@ -91,7 +86,6 @@ create index meal_plans_user_week_idx on public.meal_plans(user_id,week_start);
 create index shopping_items_user_idx on public.shopping_list_items(user_id,shopping_list_id);
 create index recipe_ingredients_recipe_idx on public.recipe_ingredients(recipe_id,position);
 
-alter table public.profiles enable row level security;
 alter table public.user_preferences enable row level security;
 alter table public.recipes enable row level security;
 alter table public.recipe_ingredients enable row level security;
@@ -102,10 +96,6 @@ alter table public.shopping_list_items enable row level security;
 alter table public.subscription_plans enable row level security;
 alter table public.user_entitlements enable row level security;
 
-create policy "profiles_select_own" on public.profiles for select to authenticated using (id=(select auth.uid()));
-create policy "profiles_insert_own" on public.profiles for insert to authenticated with check (id=(select auth.uid()));
-create policy "profiles_update_own" on public.profiles for update to authenticated using(id=(select auth.uid())) with check(id=(select auth.uid()));
-create policy "profiles_delete_own" on public.profiles for delete to authenticated using(id=(select auth.uid()));
 
 create policy "preferences_select_own" on public.user_preferences for select to authenticated using(user_id=(select auth.uid()));
 create policy "preferences_insert_own" on public.user_preferences for insert to authenticated with check(user_id=(select auth.uid()));
