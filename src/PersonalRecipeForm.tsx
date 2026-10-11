@@ -13,7 +13,7 @@ export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
  const [minutes,setMinutes]=useState(recipe?.minutes??25);
  const [servings,setServings]=useState(recipe?.servings??1);
  const [ingredients,setIngredients]=useState<Ingredient[]>(recipe?.ingredients.map(v=>({...v}))??[{name:"",quantity:1,unit:"g"}]);
- const [photo,setPhoto]=useState<File|null>(null);const [preview,setPreview]=useState<string|null>(null);const [removePhoto,setRemovePhoto]=useState(false);const [photoAi,setPhotoAi]=useState(false);
+ const [photo,setPhoto]=useState<File|null>(null);const [preview,setPreview]=useState<string|null>(null);const [removePhoto,setRemovePhoto]=useState(false);const [photoAi,setPhotoAi]=useState(recipe?.imageIsAi??false);
  useEffect(()=>{if(!photo){setPreview(null);return;}const url=URL.createObjectURL(photo);setPreview(url);return()=>URL.revokeObjectURL(url);},[photo]);
  const [busy,setBusy]=useState(false);const [error,setError]=useState("");
  const onPick=(file?:File)=>{if(!file)return;if(!file.type.startsWith("image/")||file.size>12*1024*1024){setError("Selecione uma imagem de até 12 MB.");return;}setPhoto(file);setRemovePhoto(false);setError("");};
@@ -38,11 +38,11 @@ export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
    if(blob.size>2097152)throw new Error("A imagem otimizada excede 2 MB.");
    const key=uid+"/"+id+"/"+crypto.randomUUID()+".webp";const {error:uploadError}=await supabase.storage.from("personal-recipe-images").upload(key,blob,{contentType:"image/webp",upsert:false});if(uploadError)throw uploadError;nextUrl="personal-recipe-images/"+key;
   }else if(removePhoto)nextUrl=null;
-  if(nextUrl!==undefined){const {error:linkError}=await supabase.from("recipes").update({url:nextUrl,image_is_ai:nextUrl===null?false:photoAi}).eq("id",id).eq("owner_user_id",uid);if(linkError)throw linkError;
-   if(existing?.url?.startsWith("personal-recipe-images/"+uid+"/"))await supabase.storage.from("personal-recipe-images").remove([existing.url.slice("personal-recipe-images/".length)]);
+  if(nextUrl!==undefined || photoAi!==(recipe?.imageIsAi??false)){const fields=nextUrl===undefined?{image_is_ai:photoAi}:{url:nextUrl,image_is_ai:nextUrl===null?false:photoAi};const {error:linkError}=await supabase.from("recipes").update(fields).eq("id",id).eq("owner_user_id",uid);if(linkError)throw linkError;
+   if(nextUrl!==undefined&&existing?.url?.startsWith("personal-recipe-images/"+uid+"/"))await supabase.storage.from("personal-recipe-images").remove([existing.url.slice("personal-recipe-images/".length)]);
   }
   await onSaved();
- }catch(e){setError(e instanceof Error?e.message:"Erro ao salvar receita.");}
+ }catch(e){setError(e && typeof e==="object" && "message" in e ? String(e.message) : "Erro ao salvar receita.");}
  finally{setBusy(false);}
  };
  return <section className="personal-recipe"><button className="secondary" type="button" onClick={onBack}><ArrowLeft size={16}/> Voltar</button>
@@ -54,7 +54,7 @@ export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
  <h3>Ingredientes</h3>{ingredients.map((item,i)=><div className="ingredient-edit" key={i}><input aria-label={"Ingrediente "+(i+1)} required maxLength={140} placeholder="Ingrediente" value={item.name} onChange={e=>change(i,"name",e.target.value)}/><input aria-label={"Quantidade "+(i+1)} type="number" min=".001" max="100000" step=".001" required value={item.quantity} onChange={e=>change(i,"quantity",Number(e.target.value))}/><select aria-label={"Unidade "+(i+1)} value={item.unit} onChange={e=>change(i,"unit",e.target.value)}>{["g","kg","ml","l","un"].map(x=><option key={x}>{x}</option>)}</select><button type="button" aria-label={"Excluir ingrediente "+(i+1)} disabled={ingredients.length===1} onClick={()=>setIngredients(a=>a.filter((_,j)=>j!==i))}><Trash2 size={16}/></button></div>)}
  <button type="button" className="secondary" disabled={ingredients.length>=40} onClick={()=>setIngredients(a=>[...a,{name:"",quantity:1,unit:"g"}])}><Plus size={16}/> Ingrediente</button>
  <label>Modo de preparo (uma etapa por linha)<textarea rows={6} maxLength={10000} value={instructions} onChange={e=>setInstructions(e.target.value)} placeholder="Descreva as etapas do preparo..."/></label>
- <div className="photo-editor"><h3>Fotografia da receita</h3><label>Escolher fotografia (até 12 MB)<input type="file" accept="image/*" onChange={e=>onPick(e.target.files?.[0])}/></label>{(preview||(!removePhoto&&recipe?.imageUrl))&&<img className="photo-editor-preview" src={preview??recipe?.imageUrl??""} alt="Pré-visualização da fotografia da receita"/>}<label className="photo-editor-check"><input type="checkbox" checked={photoAi} onChange={e=>setPhotoAi(e.target.checked)}/> Fotografia ilustrativa gerada por IA</label>{(preview||recipe?.imageUrl)&&<button className="secondary" type="button" onClick={()=>{setPhoto(null);setRemovePhoto(true);}}>Remover fotografia</button>}<p className="detail-note">A imagem será otimizada em WebP e armazenada de forma privada. Use imagens próprias ou autorizadas.</p></div>
+ <div className="photo-editor"><h3>Fotografia da receita</h3><label>Escolher fotografia (até 12 MB)<input type="file" accept="image/*" onChange={e=>onPick(e.target.files?.[0])}/></label>{(preview||(!removePhoto&&recipe?.imageUrl))&&<img className="photo-editor-preview" src={preview??recipe?.imageUrl??""} alt="Pré-visualização da fotografia da receita"/>}<label className="photo-editor-check"><input type="checkbox" checked={photoAi} onChange={e=>setPhotoAi(e.target.checked)}/> Fotografia ilustrativa gerada por IA</label>{(preview||(!removePhoto&&recipe?.imageUrl))&&<button className="secondary" type="button" onClick={()=>{setPhoto(null);setRemovePhoto(true);}}>Remover fotografia</button>}<p className="detail-note">A imagem será otimizada em WebP e armazenada de forma privada. Use imagens próprias ou autorizadas.</p></div>
  {error&&<div className="notice" role="alert">{error}</div>}<button type="submit" className="primary" disabled={busy||!supabase}>{busy?"Salvando...":"Salvar receita"}</button>
  </form></section>;
 }
