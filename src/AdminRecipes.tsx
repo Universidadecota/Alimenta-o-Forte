@@ -11,7 +11,6 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
  const choose=(r:Row)=>{setPreviewOpen(false);setPhotoConfirm(null);setFile(null);setRemovePhoto(false);setEditing(r.id);setForm({...r,url:r.url??"",description:r.description??"",instructions:r.instructions??"",recipe_ingredients:r.recipe_ingredients.length?r.recipe_ingredients.map(i=>({...i})):initial.recipe_ingredients});setError("");};
  const save=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;setBusy(true);setError("");try{let uploadedKey:string|null=null;let nextUrl=removePhoto?"":form.url;
  if(file){
-  if(!window.confirm("Confirmar envio e substituição da fotografia desta receita?")){setBusy(false);return;}
   if(!file.type.startsWith("image/")||file.size>12*1024*1024)throw new Error("Selecione uma imagem de até 12 MB.");
   const bitmap=await createImageBitmap(file);const factor=Math.min(1,1200/Math.max(bitmap.width,bitmap.height));const canvas=document.createElement("canvas");canvas.width=Math.round(bitmap.width*factor);canvas.height=Math.round(bitmap.height*factor);const context=canvas.getContext("2d");if(!context)throw new Error("Não foi possível processar a imagem.");context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();
   const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error("Não foi possível converter para WebP.")),"image/webp",.83));if(blob.size>2097152)throw new Error("A imagem processada excede 2 MB.");
