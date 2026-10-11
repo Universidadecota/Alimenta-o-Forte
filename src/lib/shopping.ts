@@ -1,6 +1,7 @@
 import {type Meal,type Plan,type Slot,dateKey,slots} from "./planner";
 const aliases:Record<string,{base:string;factor:number}>={g:{base:"g",factor:1},kg:{base:"g",factor:1000},ml:{base:"ml",factor:1},l:{base:"ml",factor:1000},un:{base:"un",factor:1}};
 const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLocaleLowerCase("pt-BR").replace(/\s+/g," ");
+export const formatUnit=(unit:string)=>unit==="colher_cha"?"colher de chá":unit;
 export type ShoppingItem={name:string;quantity:number;unit:string};
 export function consolidateShopping(days:Date[],plan:Plan,recipes:Meal[]):ShoppingItem[]{
  const byId=new Map(recipes.map(r=>[r.id,r]));
