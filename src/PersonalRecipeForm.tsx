@@ -2,8 +2,8 @@ import {useState,useEffect,type FormEvent} from "react";
 import {Plus, Trash2, ArrowLeft} from "lucide-react";
 import type {Meal,Slot,Ingredient} from "./lib/planner";
 import {supabase} from "./lib/supabase";
-const categories:Slot[]=["Café da manhã","Almoço","Jantar"];
-const codes:Record<Slot,string>={"Café da manhã":"breakfast","Almoço":"lunch","Jantar":"dinner"};
+const categories:Slot[]=["Café da manhã","Almoço","Jantar","Lanche"];
+const codes:Record<Slot,string>={"Café da manhã":"breakfast","Almoço":"lunch","Jantar":"dinner","Lanche":"snack"};
 type Props={recipe:Meal|null;onBack:()=>void;onSaved:()=>Promise<void>};
 export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
  const [title,setTitle]=useState(recipe?.title??"");
