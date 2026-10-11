@@ -38,7 +38,7 @@ export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
    if(blob.size>2097152)throw new Error("A imagem otimizada excede 2 MB.");
    const key=uid+"/"+id+"/"+crypto.randomUUID()+".webp";const {error:uploadError}=await supabase.storage.from("personal-recipe-images").upload(key,blob,{contentType:"image/webp",upsert:false});if(uploadError)throw uploadError;nextUrl="personal-recipe-images/"+key;
   }else if(removePhoto)nextUrl=null;
-  if(nextUrl!==undefined){const {error:linkError}=await supabase.from("recipes").update({url:nextUrl}).eq("id",id).eq("owner_user_id",uid);if(linkError)throw linkError;
+  if(nextUrl!==undefined){const {error:linkError}=await supabase.from("recipes").update({url:nextUrl,image_is_ai:nextUrl===null?false:photoAi}).eq("id",id).eq("owner_user_id",uid);if(linkError)throw linkError;
    if(existing?.url?.startsWith("personal-recipe-images/"+uid+"/"))await supabase.storage.from("personal-recipe-images").remove([existing.url.slice("personal-recipe-images/".length)]);
   }
   await onSaved();
