@@ -1,4 +1,4 @@
-import {type Meal,type Plan,slots,dateKey} from "./planner";
+import {type Meal,type Plan,requiredSlots,dateKey} from "./planner";
 export type FoodPreferences={goal:string|null;liked_foods:string[];disliked_foods:string[];allergies:string[];household_size:number;cooking_minutes:number};
 export const defaultPreferences:FoodPreferences={goal:null,liked_foods:[],disliked_foods:[],allergies:[],household_size:1,cooking_minutes:40};
 const normal=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -12,7 +12,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Pl
  if(prefs.allergies.length)throw new Error("Há alergias/intolerâncias cadastradas, mas as receitas ainda não têm dados verificados de alérgenos. Por segurança, a sugestão automática está desabilitada. Consulte os ingredientes e um profissional qualificado.");
  const servings=Math.max(1,Math.min(20,Math.trunc(prefs.household_size)||1));
  const result:Plan={};
- for(const slot of slots){
+ for(const slot of requiredSlots){
   const available=recipes.filter(r=>r.category===slot&&r.ingredients.length>0&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
   const candidates=withinTime.length?withinTime:available;
