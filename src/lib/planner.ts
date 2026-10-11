@@ -1,13 +1,13 @@
 import { supabase } from "./supabase";
 
-export type Slot = "Café da manhã" | "Almoço" | "Jantar";
+export type Slot = "Café da manhã" | "Almoço" | "Jantar" | "Lanche";
 export type Ingredient = {name:string;quantity:number;unit:string};
 export type Meal = {id:string;title:string;category:Slot;ingredients:Ingredient[];minutes:number;servings:number;description:string|null;instructions:string|null;imageUrl:string|null;ownerId:string|null;imageIsAi:boolean};
 export type PlannedMeal = {id:string;servings:number};
 export type Plan = Record<string,Partial<Record<Slot,PlannedMeal>>>;
 export const slots:Slot[]=["Café da manhã","Almoço","Jantar"];
-const fromSlot:Record<Slot,string>={"Café da manhã":"breakfast","Almoço":"lunch","Jantar":"dinner"};
-const toSlot:Record<string,Slot>={breakfast:"Café da manhã",lunch:"Almoço",dinner:"Jantar"};
+const fromSlot:Record<Slot,string>={"Café da manhã":"breakfast","Almoço":"lunch","Jantar":"dinner","Lanche":"snack"};
+const toSlot:Record<string,Slot>={breakfast:"Café da manhã",lunch:"Almoço",dinner:"Jantar",snack:"Lanche"};
 export const dateKey=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
 export function startOfWeek(date:Date){const d=new Date(date);d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
 const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings:number}>):Plan=>rows.reduce((all,row)=>{
