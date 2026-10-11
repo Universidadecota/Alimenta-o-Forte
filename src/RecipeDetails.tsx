@@ -10,7 +10,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> Voltar às receitas</button>
   <div className="recipe-detail-head">
-   <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} large/></div>
+   <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} isAi={recipe.imageIsAi} large/></div>
    <div><span className="eyebrow">{recipe.category}</span><h2>{recipe.title}</h2>
     <p>{recipe.description || "Receita demonstrativa em revisão editorial e nutricional."}</p>
     <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.minutes} minutos</span><span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span></div>
