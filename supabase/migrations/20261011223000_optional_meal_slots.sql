@@ -1,0 +1,2 @@
+alter table public.planned_meals drop constraint if exists planned_meals_slot_check;
+alter table public.planned_meals add constraint planned_meals_slot_check check (slot=any(array['breakfast','lunch','dinner','morning_snack','afternoon_snack','supper']));
