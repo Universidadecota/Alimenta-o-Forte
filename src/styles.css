@@ -43,3 +43,5 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .recipe-lightbox-caption span{font-size:11px;color:#65766b}
 @media(max-width:600px){.recipe-lightbox-caption{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 16px}}
 @media(prefers-reduced-motion:reduce){.recipe-image-zoom .recipe-photo{transition:none}.recipe-image-zoom:hover .recipe-photo{transform:none}}
+
+.photo-editor{display:grid;gap:14px;border:1px solid #e0e8dc;padding:18px;border-radius:14px;background:#f8faf5}.photo-editor-preview{width:min(100%,430px);max-height:300px;object-fit:cover;border-radius:12px}.photo-editor-check{display:flex!important;align-items:center;gap:9px}.photo-editor-check input{width:auto!important}.photo-editor .secondary{justify-self:start}
