@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 
 export type Slot = "Café da manhã" | "Almoço" | "Jantar";
 export type Ingredient = {name:string;quantity:number;unit:string};
-export type Meal = {id:string;title:string;category:Slot;ingredients:Ingredient[];minutes:number;servings:number;description:string|null;instructions:string|null;imageUrl:string|null;ownerId:string|null};
+export type Meal = {id:string;title:string;category:Slot;ingredients:Ingredient[];minutes:number;servings:number;description:string|null;instructions:string|null;imageUrl:string|null;ownerId:string|null;imageIsAi:boolean};
 export type PlannedMeal = {id:string;servings:number};
 export type Plan = Record<string,Partial<Record<Slot,PlannedMeal>>>;
 export const slots:Slot[]=["Café da manhã","Almoço","Jantar"];
@@ -15,13 +15,13 @@ const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings
 },{} as Plan);
 export async function loadRecipes():Promise<Meal[]>{
  if(!supabase)return [];
- const {data,error}=await supabase.from("recipes").select("id,title,category,prep_minutes,servings,description,instructions,url,owner_user_id,published,recipe_ingredients(name,quantity,unit)").order("title");
+ const {data,error}=await supabase.from("recipes").select("id,title,category,prep_minutes,servings,description,instructions,url,owner_user_id,published,image_is_ai,recipe_ingredients(name,quantity,unit)").order("title");
  if(error)throw error;
  const ownPaths=(data||[]).filter(r=>r.owner_user_id&&r.url?.startsWith("personal-recipe-images/")).map(r=>r.url!.slice("personal-recipe-images/".length));
  const signed=new Map<string,string>();
  if(ownPaths.length){const {data:links}=await supabase.storage.from("personal-recipe-images").createSignedUrls(ownPaths,3600);links?.forEach((link,i)=>{if(link.signedUrl)signed.set(ownPaths[i],link.signedUrl);});}
  return (data||[]).filter(r=>!!toSlot[r.category]&&(r.published || r.owner_user_id)).map(r=>({
-  id:r.id,title:r.title,category:toSlot[r.category],minutes:r.prep_minutes,servings:r.servings,description:r.description,instructions:r.instructions,imageUrl:r.url?.startsWith("personal-recipe-images/")?(signed.get(r.url.slice("personal-recipe-images/".length))??null):r.url,ownerId:r.owner_user_id,
+  id:r.id,title:r.title,category:toSlot[r.category],minutes:r.prep_minutes,servings:r.servings,description:r.description,instructions:r.instructions,imageUrl:r.url?.startsWith("personal-recipe-images/")?(signed.get(r.url.slice("personal-recipe-images/".length))??null):r.url,ownerId:r.owner_user_id,imageIsAi:r.owner_user_id?Boolean(r.image_is_ai):true,
   ingredients:(r.recipe_ingredients||[]).map(i=>({name:i.name,quantity:Number(i.quantity),unit:i.unit}))
  }));
 }
