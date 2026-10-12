@@ -28,3 +28,10 @@
 - Problema detectado: substituição manual resetava o número de porções para 1. Corrigido no commit `59842f8` para preservar as porções da refeição substituída; **a correção ainda exige teste de persistência no localhost**.
 
 **Situação:** bloqueio automático e alerta/consentimento manual homologados nos cenários locais executados. Não equivale à certificação de segurança alimentar. A seleção manual e as refeições anteriores podem conter alérgenos; o PR permanece sem autorização de merge ou aplicação de migrações no Supabase de produção.
+
+## Homologação de porções — 12/10/2026
+
+- Usuário testou a substituição manual de uma refeição planejada com **2 porções**, confirmou o alerta de alergia e observou a nova receita com **2 porções**.
+- Após atualizar o navegador, a nova receita continuou com **2 porções**, conforme capturas fornecidas.
+- Resultado do cenário funcional local: **aprovado**. Correção implementada no commit `59842f8`.
+- O cardápio permaneceu visualmente com 3 refeições em cada um dos 7 dias. Este resultado não é certificação de segurança alimentar e não autoriza merge nem aplicação de migrações em produção.
