@@ -54,7 +54,7 @@ export default function App(){
   return ()=>{alive=false;};
  },[userId,weekStart]);
  const update=async(key:string,slot:Slot,id:string,servings=1)=>{
-  if(id && preferences.allergies.length && !confirm("Atenção: você cadastrou alergias/intolerâncias ("+preferences.allergies.join(", ")+"). Esta receita não foi validada como segura para seu perfil, inclusive quanto à contaminação cruzada. Confira ingredientes, rótulos e preparo. Deseja adicioná-la manualmente mesmo assim?"))return;
+  if(id && id!==plan[key]?.[slot]?.id && preferences.allergies.length && !confirm("Atenção: você cadastrou alergias/intolerâncias ("+preferences.allergies.join(", ")+"). Esta receita não foi validada como segura para seu perfil, inclusive quanto à contaminação cruzada. Confira ingredientes, rótulos e preparo. Deseja adicioná-la manualmente mesmo assim?"))return;
   if(supabase && (!userId||loading||saving))return;
   setError("");setSaving(true);
   try{
