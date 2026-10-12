@@ -16,6 +16,8 @@
 - [ ] Não permite verificar sem revisor, data, evidência ou análise de contato cruzado.
 - [ ] Confirma ausência de alterações em receitas, cardápios e lista de compras.
 - [ ] Confirma que o bloqueio da sugestão automática continua vigente.
-- [ ] Avaliar invalidação de revisões após edição de ingredientes antes da fase pública.
+- [ ] Validar o gatilho que invalida avaliações após alterações de ingredientes, instruções, descrição, título e porções.
+- [ ] Validar que somente receitas oficiais recebem avaliação e que o revisor é atribuído pela sessão autenticada.
+- [ ] Testar migrações base e complementar em sequência e verificar rollback em ambiente isolado.
 
 **Importante:** Não aplicar diretamente em produção sem homologação e autorização explícita para executar migração.
