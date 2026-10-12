@@ -53,7 +53,7 @@ export default function App(){
   void loadWeek(userId,weekStart).then(data=>{if(alive)setPlan(data);}).catch(err=>{if(alive)setError(err instanceof Error?err.message:"Erro ao carregar cardápio.");}).finally(()=>{if(alive)setLoading(false);});
   return ()=>{alive=false;};
  },[userId,weekStart]);
- const update=async(key:string,slot:Slot,id:string,servings=1)=>{
+ const update=async(key:string,slot:Slot,id:string,servings=plan[key]?.[slot]?.servings??preferences.household_size)=>{
   if(id && id!==plan[key]?.[slot]?.id && preferences.allergies.length && !confirm("Atenção: você cadastrou alergias/intolerâncias ("+preferences.allergies.join(", ")+"). Esta receita não foi validada como segura para seu perfil, inclusive quanto à contaminação cruzada. Confira ingredientes, rótulos e preparo. Deseja adicioná-la manualmente mesmo assim?"))return;
   if(supabase && (!userId||loading||saving))return;
   setError("");setSaving(true);
