@@ -21,3 +21,23 @@
 - [ ] Testar migrações base e complementar em sequência e verificar rollback em ambiente isolado.
 
 **Importante:** Não aplicar diretamente em produção sem homologação e autorização explícita para executar migração.
+
+## Revisão final do PR #16 — 12/10/2026
+
+**Conclusão: NÃO LIBERAR PARA PRODUÇÃO NESTA ETAPA.** Não realizar merge do PR, deploy ou aplicação manual de migrações até resolver e validar as pendências abaixo.
+
+### Cenários aprovados no PostgreSQL local
+- RLS e isolamento entre usuário comum e administrador; proteção da identidade do revisor.
+- Revisão incompleta rejeitada; revisão válida com auditoria; invalidação após mudança de ingredientes e de título.
+- Bloqueio de sugestão automática em perfil de teste com alergia a leite; 21 refeições preexistentes preservadas.
+- Confirmação explícita antes de seleção manual, aviso de risco e manutenção das porções após atualização de página.
+
+### Pendências e riscos identificados na revisão do código
+1. **Compatibilidade de schema:** o PR inclui alteração em `20261011200000_private_recipe_image_path_check.sql` que renomeia `image_url` para `url` em instalações novas. Revisar o esquema efetivo remoto e eventual histórico de migrações antes de qualquer implantação; a execução local bem-sucedida não garante compatibilidade remota.
+2. **Limite da revisão de alérgenos:** o registro `verified` depende de evidências e contato cruzado informado, mas não representa certificação de ausência de alérgenos. Alterações de fornecedor/origem não são detectáveis pelo schema/trigger atual.
+3. **Alterações de receita:** os gatilhos reagem a ingredientes, instruções, descrição, título e porções. Revisar também alterações em outros atributos ou dependências que possam modificar risco alimentar, especialmente fornecedor e substituições de ingredientes fora dos fluxos previstos.
+4. **Experiência com plano anterior:** as refeições anteriormente planejadas permanecem disponíveis, mesmo após cadastro de alergia; mostrar alerta não garante prevenção de consumo. Manter comunicação clara e avaliar reforços no detalhe da receita e lista de compras.
+5. **Regressões:** executar smoke end-to-end de autenticação, cadastro e edição de receitas oficiais/pessoais, planejamento manual, lista de compras, imagens e operações administrativas em ambiente isolado.
+6. **Implantação:** elaborar inventário de migrações já aplicadas no remoto (somente leitura), verificar dependências, plano de backup/rollback e executar em homologação antes de produção.
+
+**Não há autorização técnica de liberar recomendações automáticas para pessoas com alergias.** Permanecer com bloqueio por padrão.
