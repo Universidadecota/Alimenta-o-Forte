@@ -68,14 +68,15 @@ export default function App(){
  };
  const generate=async()=>{
   if(!supabase||!userId||loading||saving)return;
-  if(!confirm("Substituir as refeições desta semana pelas sugestões? As escolhas atuais serão alteradas."))return;
   setSaving(true);setError("");
   try{
    const {data,error:prefError}=await supabase.from("user_preferences").select("goal,liked_foods,disliked_foods,allergies,household_size,cooking_minutes").eq("user_id",userId).maybeSingle();
    if(prefError)throw prefError;
    const prefs:FoodPreferences={...defaultPreferences,...(data??{})};
    setPreferences(prefs);
+   if(prefs.allergies.length){setError("Não é possível sugerir uma semana automaticamente: sua conta possui alergias ou intolerâncias cadastradas, e as receitas ainda não têm informações verificadas de alérgenos. Para sua segurança, escolha as refeições manualmente após conferir os ingredientes e eventuais riscos de contaminação cruzada.");return;}
    const proposal=proposeWeek(recipes,prefs,days);
+   if(!confirm("Substituir as refeições desta semana pelas sugestões? As escolhas atuais serão alteradas."))return;
    for(const d of days){const key=dateKey(d);for(const slot of slots){const item=proposal[key]?.[slot];if(item)await saveMeal(userId,weekStart,key,slot,item.id,item.servings);}}
    setPlan(await loadWeek(userId,weekStart));
   }catch(err){setError(err instanceof Error?err.message:"Não foi possível gerar a semana.");try{setPlan(await loadWeek(userId,weekStart));}catch{setError("Falha ao recarregar o cardápio. Atualize a página.");}}
