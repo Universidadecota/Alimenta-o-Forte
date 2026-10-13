@@ -13,10 +13,10 @@
 ## Regressão a realizar EXCLUSIVAMENTE no ambiente local
 
 - [ ] Confirmar login e isolamento de sessão usando usuários de teste.
-- [ ] Cadastrar/editar/arquivar receita pessoal, incluindo visualização e imagem privada.
-- [ ] Criar/editar/publicar receita oficial com usuário administrador fictício e conferir imagem pública.
+- [x] Cadastro, edição, imagem WebP em bucket privado (configuração verificada), arquivamento e restauração de receita pessoal — homologados localmente. Isolamento da imagem entre usuários ainda pendente.
+- [x] Criar receita oficial como rascunho, pré-visualizar, publicar e despublicar com administrador fictício — homologado visualmente no local. Edição de receita oficial e upload de imagem pública ainda pendentes.
 - [ ] Montar cardápio manual, navegar semanas, ajustar porções e confirmar persistência após atualizar o navegador.
-- [ ] Confirmar totalização da lista de compras em função das porções.
+- [x] Lista de compras consolidada e proporcionalidade validada ao alterar almoço de 2 para 3 porções e retornar a 2: arroz 640→720→640 g; feijão 800→900→800 g; frango 2160→2310→2160 g; alface 400→450→400 g. Demais ingredientes permaneceram constantes.
 - [x] Bloqueio de sugestão automática para perfil com alergia a leite — observado; 21 refeições preservadas, confirmado por SQL local.
 - [x] Aviso de risco no cardápio e confirmação de seleção manual — observado.
 - [x] Preservação das 2 porções ao substituir receita manualmente — confirmado visualmente após recarga.
