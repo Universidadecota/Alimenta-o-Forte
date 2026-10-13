@@ -12,12 +12,31 @@ import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Pl
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
  const [isAdmin,setIsAdmin]=useState(false);
+ const [archivedOpen,setArchivedOpen]=useState(false);
+ const [archivedRecipes,setArchivedRecipes]=useState<Array<{recipe_id:string;recipe_title:string;archived_on:string}>>([]);
+ const [archivedLoading,setArchivedLoading]=useState(false);
  const [editingId,setEditingId]=useState<string|null>(null);const [recipeForm,setRecipeForm]=useState(false);const [detailId,setDetailId]=useState<string|null>(null); const [recipes,setRecipes]=useState<Meal[]>([]); const [userId,setUserId]=useState<string|null>(null); const [loading,setLoading]=useState(!!supabase); const [saving,setSaving]=useState(false);const [error,setError]=useState("");
  const [preferences,setPreferences]=useState<FoodPreferences>(defaultPreferences);
  const [page,setPage]=useState("Início"); const [week,setWeek]=useState(()=>startOfWeek(new Date())); const [selected,setSelected]=useState(()=>dateKey(new Date())); const [plan,setPlan]=useState<Plan>(safeLoad);const [done,setDone]=useState<string[]>([]);
  const days=Array.from({length:7},(_,i)=>{const d=new Date(week);d.setDate(week.getDate()+i);return d;});
  const weekStart=dateKey(week);
  const reloadRecipes=async()=>{const data=await loadRecipes();setRecipes(data);setRecipeForm(false);setEditingId(null);setDetailId(null);};
+ const loadArchived=async()=>{
+  if(!supabase)return;
+  setArchivedLoading(true);setError("");
+  try{const {data,error}=await supabase.rpc("cc_list_archived_personal_recipes");if(error)throw error;setArchivedRecipes(data??[]);setArchivedOpen(true);}
+  catch(err){setError(err instanceof Error?err.message:"Não foi possível consultar receitas arquivadas.");}
+  finally{setArchivedLoading(false);}
+ };
+ const restoreArchived=async(recipeId:string)=>{
+  if(!supabase||saving)return;
+  if(!confirm("Restaurar esta receita à sua biblioteca pessoal?"))return;
+  setSaving(true);setError("");
+  try{const {error}=await supabase.rpc("cc_restore_personal_recipe",{p_recipe_id:recipeId});if(error)throw error;
+   await reloadRecipes();await loadArchived();
+  }catch(err){setError(err instanceof Error?err.message:"Não foi possível restaurar a receita.");}
+  finally{setSaving(false);}
+ };
  const archiveRecipe=async(recipe:Meal)=>{
  if(!supabase||!userId||recipe.ownerId!==userId)return;
  if(!confirm("Arquivar esta receita pessoal? Ela deixará de aparecer na biblioteca."))return;
@@ -94,7 +113,7 @@ export default function App(){
  {page==="Administração"&&isAdmin&&<AdminRecipes onRefresh={reloadRecipes}/> }
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
  {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} onClose={()=>setDetailId(null)} canAdd={!saving&&!loading} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;setPage("Cardápio");setDetailId(null);void update(selected,recipe.category,recipe.id,servings);}}/>:null}
- {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas oficiais demonstrativas e receitas particulares da sua conta.</span></div><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div><div className="recipe-grid">{recipes.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":"Receita demonstrativa"} · {r.category} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>{setPage("Cardápio");void update(selected,r.category,r.id)}}><Plus size={16}/> Adicionar ao dia selecionado</button></div></article>)}</div></>}
+ {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas oficiais demonstrativas e receitas particulares da sua conta.</span></div><div className="toolbar-actions"><button className="secondary" disabled={archivedLoading||saving} onClick={()=>archivedOpen?setArchivedOpen(false):void loadArchived()}>{archivedLoading?"Consultando...":archivedOpen?"Ocultar arquivadas":"Minhas arquivadas"}</button><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div></div>{archivedOpen&&<section className="notice" aria-label="Minhas receitas arquivadas"><div><strong>Minhas receitas arquivadas</strong><p>Somente suas receitas pessoais aparecem aqui. Restaurar devolve a receita à biblioteca, sem alterar a fotografia ou os ingredientes.</p>{archivedRecipes.length===0?<p>Nenhuma receita arquivada.</p>:archivedRecipes.map(item=><div key={item.recipe_id} className="row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginTop:12}}><span>{item.recipe_title}</span><button className="secondary" disabled={saving||archivedLoading} onClick={()=>void restoreArchived(item.recipe_id)}>Restaurar</button></div>)}</div></section>}<div className="recipe-grid">{recipes.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":"Receita demonstrativa"} · {r.category} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>{setPage("Cardápio");void update(selected,r.category,r.id)}}><Plus size={16}/> Adicionar ao dia selecionado</button></div></article>)}</div></>}
  {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Somatório dos ingredientes da semana {fmt(days[0])} a {fmt(days[6])}</span></div></div><div className="shopping-list">{shopping.length===0?<div className="empty">Ainda não há ingredientes. Planeje suas refeições primeiro.</div>:shopping.map(item=>{const k=item.name+"|"+item.unit;return <button key={k} className={done.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>setDone(prev=>prev.includes(k)?prev.filter(v=>v!==k):[...prev,k])}><span className="checkmark">{done.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{item.quantity} {formatUnit(item.unit)}</strong></button>;})}</div>{shopping.length>0&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText(shopping.map(x=>x.name+": "+x.quantity+" "+formatUnit(x.unit)).join("\n"))}>Copiar lista</button>}</>}
  </main><div className="mobile-nav">{nav.map(([name,Icon])=><button key={name} className={page===name?"active":""} onClick={()=>setPage(name)}><Icon size={21}/><small>{name}</small></button>)}</div></div>;
 }
