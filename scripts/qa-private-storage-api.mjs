@@ -5,7 +5,7 @@
  * Creates two temporary auth users and an image object, deletes all in finally.
  * Never prints credentials. Does not require existing user password.
  */
-import { execFileSync } from "node:child_process";
+import { execSync } from "node:child_process";
 import { randomUUID, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
@@ -14,8 +14,7 @@ if(process.env.VITE_SUPABASE_URL && !["http://127.0.0.1:54321","http://localhost
  throw new Error("Ambiente nao local detectado; teste cancelado.");
 
 function localConfig(){
- const cmd=process.platform==="win32"?"npx.cmd":"npx";
- const out=execFileSync(cmd,["supabase","status","-o","env"],{encoding:"utf8",stdio:["ignore","pipe","pipe"],timeout:60000});
+ const out=execSync("npx supabase status -o env",{encoding:"utf8",stdio:["ignore","pipe","pipe"],timeout:60000});
  const env={};
  for(const line of out.split(/\r?\n/)){
   const found=line.match(/^([A-Z_]+)=(.*)$/);
