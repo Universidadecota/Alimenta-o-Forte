@@ -14,26 +14,24 @@ if(process.env.VITE_SUPABASE_URL && !["http://127.0.0.1:54321","http://localhost
  throw new Error("Ambiente nao local detectado; teste cancelado.");
 
 function localConfig(){
- // Recupera apenas chaves do container Kong do Supabase LOCAL.
- // Evita dependencia de npx e nao imprime credenciais.
- let names;
+ let out;
  try {
-  names=execFileSync("docker",["ps","--format","{{.Names}}"],{encoding:"utf8",timeout:15000}).trim().split(/\r?\n/);
+  out=execFileSync("npx.cmd",["--no-install","supabase","status","-o","env"],{
+   encoding:"utf8",timeout:120000,windowsHide:true
+  });
  } catch {
-  throw new Error("Docker indisponivel. Confira se o Supabase local esta iniciado.");
+  throw new Error("Nao foi possivel consultar o Supabase CLI local.");
  }
- const kong=names.find(name=>name==="supabase_kong_Alimenta-o-Forte");
- if(!kong) throw new Error("Container Supabase local Kong nao encontrado. Confira se o ambiente local esta ativo.");
- let env;
- try {
-  const raw=execFileSync("docker",["inspect","--format","{{json .Config.Env}}",kong],{encoding:"utf8",timeout:15000});
-  env=Object.fromEntries(JSON.parse(raw).map(item=>{const i=item.indexOf("=");return [item.slice(0,i),item.slice(i+1)];}));
- } catch {
-  throw new Error("Falha ao consultar configuracao do Kong local.");
+ const env={};
+ for(const line of out.split(/\r?\n/)){
+  const found=line.match(/^([A-Z_]+)=(.*)$/);
+  if(found)env[found[1]]=found[2].replace(/^["']|["']$/g,"");
  }
- const publicKey=env.SUPABASE_ANON_KEY||env.ANON_KEY;
- const adminKey=env.SUPABASE_SERVICE_KEY||env.SERVICE_ROLE_KEY;
- if(!publicKey||!adminKey)throw new Error("Nao foram encontradas as chaves locais no container Kong. Pare e envie esta mensagem (sem chaves).");
+ if(env.API_URL && !["http://127.0.0.1:54321","http://localhost:54321"].includes(env.API_URL))
+  throw new Error("API_URL fora do localhost.");
+ const publicKey=env.ANON_KEY||env.PUBLISHABLE_KEY;
+ const adminKey=env.SERVICE_ROLE_KEY||env.SECRET_KEY;
+ if(!publicKey||!adminKey)throw new Error("Chaves locais nao encontradas.");
  return {publicKey,adminKey};
 }
 const {publicKey,adminKey}=localConfig();
