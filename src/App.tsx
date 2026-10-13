@@ -26,7 +26,7 @@ export default function App(){
  const {count,error:usageError}=await supabase.from("planned_meals").select("id",{count:"exact",head:true}).eq("user_id",userId).eq("recipe_id",recipe.id);
  if(usageError)throw usageError;
  if((count??0)>0)throw new Error("Esta receita já está em um cardápio. Remova-a dos dias planejados antes de arquivar.");
- const {error:archiveError}=await supabase.from("recipes").update({archived_at:new Date().toISOString()}).eq("id",recipe.id).eq("owner_user_id",userId);
+ const {error:archiveError}=await supabase.rpc("cc_archive_personal_recipe",{p_recipe_id:recipe.id});
  if(archiveError)throw archiveError;
  await reloadRecipes();
  }catch(err){setError(err instanceof Error?err.message:"Não foi possível arquivar.");}finally{setSaving(false);}
