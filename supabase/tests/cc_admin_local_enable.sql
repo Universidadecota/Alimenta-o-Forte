@@ -3,10 +3,6 @@
 BEGIN;
 DO $$
 BEGIN
- IF current_database() <> 'postgres' OR inet_server_addr() IS DISTINCT FROM '172.17.0.2'::inet THEN
-  -- O endereco Docker varia; validaremos por usuario de teste e pela existencia dele, sem amarrar IP.
-  NULL;
- END IF;
  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id='7ad91acd-67ed-47cd-b4cf-f56daa87b719') THEN
   RAISE EXCEPTION 'Conta de homologacao ausente. Interrompido.';
  END IF;
