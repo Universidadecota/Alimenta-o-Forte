@@ -5,7 +5,7 @@
  * Creates two temporary auth users and an image object, deletes all in finally.
  * Never prints credentials. Does not require existing user password.
  */
-import { execFileSync } from "node:child_process";
+import { execSync } from "node:child_process";
 import { randomUUID, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,7 +16,7 @@ if(process.env.VITE_SUPABASE_URL && !["http://127.0.0.1:54321","http://localhost
 function localConfig(){
  let out;
  try {
-  out=execFileSync("npx.cmd",["--no-install","supabase","status","-o","env"],{
+  out=execSync("npx --no-install supabase status -o env",{
    encoding:"utf8",timeout:120000,windowsHide:true
   });
  } catch {
