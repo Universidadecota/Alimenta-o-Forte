@@ -5,7 +5,9 @@
  * Creates two temporary auth users and an image object, deletes all in finally.
  * Never prints credentials. Does not require existing user password.
  */
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { randomUUID, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
@@ -14,7 +16,14 @@ if(process.env.VITE_SUPABASE_URL && !["http://127.0.0.1:54321","http://localhost
  throw new Error("Ambiente nao local detectado; teste cancelado.");
 
 function localConfig(){
- const out=execSync("npx supabase status -o env",{encoding:"utf8",stdio:["ignore","pipe","pipe"],timeout:60000});
+ const binary=join(process.cwd(),"node_modules","supabase","bin",process.platform==="win32"?"supabase.exe":"supabase");
+ if(!existsSync(binary))throw new Error("Supabase CLI local nao encontrado. Execute npm install e tente novamente.");
+ let out;
+ try {
+  out=execFileSync(binary,["status","-o","env"],{encoding:"utf8",stdio:["ignore","pipe","pipe"],timeout:120000});
+ } catch {
+  throw new Error("Falha ao consultar Supabase local. Confira Docker e execute .\\\\node_modules\\\\supabase\\\\bin\\\\supabase.exe status -o env; nao compartilhe as chaves exibidas.");
+ }
  const env={};
  for(const line of out.split(/\r?\n/)){
   const found=line.match(/^([A-Z_]+)=(.*)$/);
