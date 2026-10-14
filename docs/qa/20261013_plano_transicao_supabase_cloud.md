@@ -149,6 +149,14 @@ Na interface da conta principal, o usuário marcou `Alface` na lista de Compras 
 
 **Pendente:** testar desmarcar e persistir desmarcação; separação entre duas semanas e duas contas; ajuste de porções sem perder marcação; teste RLS de escrita cruzada por API; build após a correção CSS e eventual resolução do PR #16 antes do merge. Não confundir teste de tela única com aprovação integral para comercialização.
 
+## Homologação de desmarcação persistente e recompilação (14/10/2026)
+
+O proprietário sincronizou a branch após a correção CSS do commit `1566b4a`. O comando `npm run build` completou com sucesso (`tsc -b && vite build`, 1635 módulos, sem avisos de PostCSS). A correção de posição do `@import` está validada localmente.
+
+Na conta principal, a marcação de `Alface — 150 g`, semana 12 a 18/10/2026, foi desfeita. Duas capturas exibem a lista com Alface, Arroz, Feijão e Peito de frango todos desmarcados, preservando as quantidades 150/240/300/450 g. Consulta direta de leitura ao Supabase Cloud confirmou que a lista da semana existe, mas possui `marked_items=0` e `alface_markers=0`.
+
+**Resultado:** marcação e desmarcação salvas, recarregamento e recálculo existentes em caso simples, e build sem avisos aprovados. **Ainda pendente:** separação entre contas e semanas, persistência da marcação ao modificar as porções, RLS cruzado de escrita por API e verificação de cópia da lista. Não há merge nem deploy de produção.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
