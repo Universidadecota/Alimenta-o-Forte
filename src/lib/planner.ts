@@ -52,3 +52,45 @@ export async function removeMeal(userId:string,weekStart:string,day:string,slot:
  const deleted=await supabase.from("planned_meals").delete().eq("user_id",userId).eq("meal_plan_id",data.id).eq("meal_date",day).eq("slot",fromSlot[slot]);
  if(deleted.error)throw deleted.error;
 }
+
+// Deslocamento atomico: a RPC realiza toda a movimentacao na mesma transacao.
+// A origem e o destino esperados protegem contra abas com cardapio desatualizado.
+export async function moveMeal(
+  userId: string,
+  weekStart: string,
+  sourceDay: string,
+  destinationDay: string,
+  slot: Slot,
+  source: PlannedMeal,
+  destination: PlannedMeal | undefined,
+): Promise<void> {
+  if (!supabase) throw new Error("Supabase indisponível.");
+  if (!["Café da manhã", "Almoço", "Jantar"].includes(slot)) {
+    throw new Error("Refeição não compatível com este planejador.");
+  }
+  if (sourceDay === destinationDay || !source.id
+      || !Number.isInteger(source.servings) || source.servings < 1 || source.servings > 20) {
+    throw new Error("Origem ou destino inválido.");
+  }
+  for (const day of [sourceDay, destinationDay]) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)
+        || dateKey(startOfWeek(new Date(day + "T12:00:00"))) !== weekStart) {
+      throw new Error("A transferência deve permanecer na mesma semana.");
+    }
+  }
+  const { data, error: authError } = await supabase.auth.getUser();
+  if (authError || data.user?.id !== userId) {
+    throw new Error("Sessão alterada. Entre novamente antes de mover a refeição.");
+  }
+  const { error } = await supabase.rpc("cc_move_planned_meal", {
+    p_week_start: weekStart,
+    p_source_date: sourceDay,
+    p_destination_date: destinationDay,
+    p_slot: fromSlot[slot],
+    p_expected_source_recipe: source.id,
+    p_expected_source_servings: source.servings,
+    p_expected_destination_recipe: destination?.id ?? null,
+    p_expected_destination_servings: destination?.servings ?? null,
+  });
+  if (error) throw error;
+}
