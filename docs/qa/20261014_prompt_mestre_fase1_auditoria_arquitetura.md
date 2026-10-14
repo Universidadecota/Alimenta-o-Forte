@@ -200,3 +200,16 @@ Os registros dos testes foram inseridos apenas em uma transação com `ROLLBACK`
 
 **Testes manuais ainda necessários:** usar um almoço existente para mover a terça-feira vazia, confirmar origem vazia/destino com as mesmas porções e persistência após `Ctrl + Shift + R`; depois testar **Cancelar** quando o destino está ocupado, sem alterar os dias; checar recálculo da lista simples de compras. Se desejar preservar o estado inicial do cardápio, pode mover de volta com confirmação. Evitar alterações nas refeições de outros dias.
 
+
+## Refinamento de UX — ações contextuais no planejador
+
+**Motivação:** após testar a transferência de quarta 14/10 para terça 13/10, o proprietário confirmou a mudança: **terça 13 tem 1/3 refeições, almoço com 3 porções; quarta 14 tem 0/3**, e compilou `3c68650` no Windows com sucesso. Apesar do comportamento funcional, avaliou que o seletor e os botões Copiar/Mover visíveis permanentemente tinham aparência pouco profissional. Solicitou visual mais limpo e ações reveladas ao passar o mouse sobre a refeição.
+
+**Ajuste implementado na branch:**
+- `src/CopyMealAction.tsx` mantém as mesmas operações `onCopy` e `onMove`, sem alterar chamadas ao Supabase, porções ou confirmações;
+- Desktop com mouse: dois ícones discretos aparecem ao passar o cursor sobre a linha de refeição ou ao dar foco via teclado, com rótulo acessível e `title`;
+- Toque/celular: um único ícone de três pontos, sempre acessível, abre as opções Copiar e Mover;
+- Ao escolher a ação, formulário compacto revela apenas a escolha do dia, o botão Continuar e texto explicativo. Exige selecionar explicitamente um dia de destino. O botão Fechar/Escape cancela a ação na interface, sem alterar o cardápio;
+- `src/styles.css` remove o bloco antigo de botões permanentes e adiciona comportamento responsivo e foco de teclado. Avisos de alergias, confirmação pré-gravação e operação transacional do banco continuam preservados.
+
+**Estado:** commits de componente `c2c5acb` e CSS `93c524e`; status Vercel **success** em `93c524e`. **Ainda faltam** `npm run build` no Windows, inspeção visual no computador e em modo mobile/touch, e verificação de interação. Não movimentar de novo refeições reais apenas para validar a aparência. PR #16 permanece sem merge.
