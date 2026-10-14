@@ -133,16 +133,28 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  background:#eaf1e8;color:#183f35
 }
 .cc-meal-mobile-trigger{display:none}
-.cc-meal-mobile-menu{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0 3px}
+.meal-list:has(.cc-meal-actions.is-open){
+ overflow:visible;position:relative;z-index:3
+}
+.meal-row:has(.cc-meal-actions.is-open){
+ position:relative;z-index:4
+}
+.cc-meal-mobile-menu{
+ position:absolute;top:41px;right:0;z-index:11;
+ display:flex;flex-direction:column;gap:4px;margin:0;padding:6px;
+ width:min(230px,100%);border:1px solid #e0e8e0;border-radius:12px;
+ background:white;box-shadow:0 14px 32px #183f3522
+}
 .cc-meal-mobile-menu button{
  display:inline-flex;align-items:center;gap:8px;background:#f1f5ef;color:#183f35;
  border:1px solid #e1e9df;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:650;
  min-height:40px
 }
 .cc-meal-action-editor{
- max-width:490px;width:100%;margin:13px 0 3px;padding:15px;
- border:1px solid #dfe9df;border-radius:13px;background:#f8faf6;
- box-shadow:0 4px 14px #183f3508
+ position:absolute;top:41px;right:0;z-index:10;
+ width:min(390px,100%);margin:0;padding:14px;
+ border:1px solid #dfe9df;border-radius:13px;background:#fff;
+ box-shadow:0 16px 36px #183f3524
 }
 .cc-meal-action-title{display:flex;align-items:center;gap:8px;color:#183f35;margin-bottom:12px}
 .cc-meal-action-title strong{font-size:13px;flex:1}
@@ -172,13 +184,15 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .cc-meal-desktop-buttons{display:none}
  .cc-meal-mobile-trigger{display:grid}
  .cc-meal-quick-actions{opacity:1;pointer-events:auto;transform:none;box-shadow:none}
- .cc-meal-mobile-menu button{flex:1 1 125px}
+ .cc-meal-mobile-menu button{flex:1 1 auto;width:100%;justify-content:flex-start}
 }
 @media(max-width:700px){
  .meal-row{flex-wrap:wrap}
  .meal-row>select{width:100%;margin-left:0;font-size:13px}
  .cc-meal-action-fields{grid-template-columns:minmax(0,1fr)}
  .cc-meal-action-confirm{width:100%;white-space:normal}
- .cc-meal-action-editor{padding:12px}
+ .cc-meal-action-editor{padding:12px;width:100%;max-width:100%}
+ .cc-meal-mobile-menu{width:min(225px,100%)}
+ .cc-meal-action-fields select{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.cc-meal-quick-actions{transition:none}}
