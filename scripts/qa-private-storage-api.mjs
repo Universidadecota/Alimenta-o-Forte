@@ -1,6 +1,7 @@
 /**
  * Costa&Costa: homologacao de RLS do Storage pela API HTTP REAL, somente LOCAL.
- * Executar no PowerShell:\n * npx --no-install supabase status -o env | node scripts/qa-private-storage-api.mjs
+ * Executar no PowerShell:
+ * npx --no-install supabase status -o env | node scripts/qa-private-storage-api.mjs
  *
  * Emite 2 JWTs de teste com o JWT_SECRET do Supabase CLI local. Nao cria usuarios
  * no auth.users nem executa admin.createUser (que apresentou HTTP 504).
