@@ -25,9 +25,9 @@
 
 ## Teste de isolamento via API Storage (preparado, aguardando execução local)
 
-- Script: `scripts/qa-private-storage-api.mjs`. Executar `node scripts/qa-private-storage-api.mjs` **apenas** no Supabase CLI local (URL obrigatória `http://127.0.0.1:54321`).
+- Script: `scripts/qa-private-storage-api.mjs`. Executar no PowerShell `npx --no-install supabase status -o env | node scripts/qa-private-storage-api.mjs` **apenas** no Supabase CLI local (URL obrigatória `http://127.0.0.1:54321`).
 - Versão anterior do teste parava em `admin.auth.admin.createUser()` com HTTP 504 (`context deadline exceeded`), apesar de o container Auth aparecer saudável e da consulta de `pg_stat_activity` não mostrar bloqueio persistente. A causa do timeout do GoTrue **não foi determinada**.
-- Nova estratégia: dois JWTs efêmeros assinados com `JWT_SECRET` **local**, com role `authenticated` e identificadores fictícios, sem criar usuários em `auth.users`. Testa autorização da API Storage: upload próprio, download próprio, proibição de acesso público, download/listagem/upload/exclusão cruzados e verificação de limpeza do arquivo QA. Não fornece autenticação pelo login GoTrue nem prova isolamento em sessões reais.
+- Nova estratégia: Supabase CLI consultado fora do Node, com a saída entregue por pipe (stdin) sem imprimir chaves, e dois JWTs efêmeros assinados com `JWT_SECRET` **local**, com role `authenticated` e identificadores fictícios, sem criar usuários em `auth.users`. Testa autorização da API Storage: upload próprio, download próprio, proibição de acesso público, download/listagem/upload/exclusão cruzados e verificação de limpeza do arquivo QA. Não fornece autenticação pelo login GoTrue nem prova isolamento em sessões reais.
 - O script deve mostrar `APROVADO` somente quando todas as verificações ocorrerem; `INFRA` significa falha de ambiente, `ISOLAMENTO` significa comportamento inesperado. Não imprimir chaves, JWTs, tokens ou valores de `supabase status -o env`.
 - **Pendente:** executar o script no Docker do usuário, revisar seu resultado e posteriormente testar duas contas reais com login e acesso cruzado às receitas pessoais. Nunca executar no Supabase remoto.
 
