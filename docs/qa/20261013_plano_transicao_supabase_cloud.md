@@ -60,6 +60,26 @@ O proprietário autorizou expressamente a primeira migração de revisão de ale
 
 **Nenhuma nova migração aplicada nesta rodada de homologação.** O banco segue com 24 versões, inclusive `20261014004533` e `20261014004626`, já instaladas na etapa anterior.
 
+## Implantação das RPCs de receitas pessoais (14/10/2026 UTC)
+
+O proprietário concordou em avançar diretamente no Supabase Cloud principal, dispensando o Docker local. Após confrontar `public.recipes`, `public.planned_meals`, constraints, RLS e ausência prévia de RPCs com os scripts da branch, foram aplicadas as duas migrações **sem alterar schema de tabelas ou dados persistidos**:
+
+| Versão Supabase Cloud | Nome registrado | Arquivo GitHub |
+|---|---|---|
+| `20261014005651` | `cc_archive_personal_recipe_cloud` | `supabase/migrations/20261013010000_cc_archive_personal_recipe_rpc.sql` |
+| `20261014005708` | `cc_restore_personal_recipes_cloud` | `supabase/migrations/20261013011000_cc_restore_personal_recipes.sql` |
+
+**Estrutura verificada:** `cc_archive_personal_recipe(uuid)`, `cc_list_archived_personal_recipes()` e `cc_restore_personal_recipe(uuid)` presentes como `SECURITY DEFINER` com `search_path` vazio; `EXECUTE` concedido a `authenticated`, negado a `anon`. As funções conferem `auth.uid()` e a propriedade da receita; o arquivamento impede receitas já referenciadas por refeições planejadas.
+
+**Testes SQL em transações `BEGIN ... ROLLBACK` no Cloud:**
+- Proprietário fictício (reutilizando a identidade de um usuário existente apenas como contexto de sessão simulado) arquivou uma receita **temporária**, listou-a e restaurou-a; depois ela voltou à lista ativa e saiu da lista de arquivadas.
+- Identidade diferente foi impedida de arquivar e restaurar e obteve lista de arquivadas vazia.
+- Uma receita temporária referenciada por refeição planejada temporariamente alterada não pôde ser arquivada; nenhuma refeição persistida foi modificada.
+- Verificação final após rollback: 9 receitas, 30 ingredientes, 21 refeições planejadas, 5 imagens privadas, 0 avaliações de alérgenos, 0 receitas `[QA-TEMP]`.
+- Total de migrações Supabase Cloud após a operação: **26**. Nenhuma alteração no PR #16 além desta documentação; PR permanece sem merge.
+
+**Limites e pendências:** esses testes validam permissões e comportamento no PostgreSQL, **não** sessões reais de Auth pela API nem a UI. Próximo passo: configurar o frontend de desenvolvimento para as credenciais **públicas** do projeto Supabase Cloud (sem nunca expor `service_role`/secret), realizar testes end-to-end com contas de QA e conferir isolamento via Storage REST. Se a UI ainda aponta para `127.0.0.1:54321`, encerrar o Docker torna esses recursos indisponíveis até reconfigurar o frontend. O projeto usa ambiente de produção para testes por decisão do proprietário: evitar modificar dados de outros usuários; usar QA identificado, reversão e verificações.
+
 ## Estado atual
 
-Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. Aguardar próximo ciclo de homologação de segurança e, depois, avaliar separadamente RPCs de arquivamento/restauração, reconciliação da história de migrações e os requisitos remanescentes da Fase 1.
+Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. Continuam pendentes testes pela aplicação/API, reconciliação do histórico de migrações e demais requisitos da Fase 1.
