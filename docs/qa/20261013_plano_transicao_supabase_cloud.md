@@ -41,6 +41,25 @@ O proprietário autorizou expressamente a primeira migração de revisão de ale
 
 **Reversão planejada (não executada):** caso haja regressão, avaliar desabilitar pontualmente os gatilhos de invalidação e restaurar o comportamento anterior, com autorização expressa e testes; remoção da tabela exigiria avaliação dos registros existentes e aprovação específica. Nunca executar `db push` automático, pois os nomes e versões das migrações do GitHub não coincidem com o histórico do Cloud.
 
+## Homologação transacional no Supabase Cloud principal
+
+**Método:** SQL via Supabase conectado, com transações explícitas `BEGIN ... ROLLBACK` e `SET LOCAL ROLE authenticated` + `request.jwt.claim.sub` fictício ou identidade administrativa já autorizada. Nenhuma conta nova foi criada, e todos os dados temporários foram revertidos. Este método testa políticas RLS e gatilhos dentro do PostgreSQL; **não substitui testes de autenticação e Storage/API/browser em sessões reais**.
+
+| Cenário | Resultado |
+|---|---|
+| Sessão autenticada comum tenta ler avaliação temporária | 0 linhas visíveis; aprovado |
+| Sessão autenticada comum tenta inserir avaliação | RLS bloqueou (`insufficient_privilege`); aprovado |
+| Sessão administrativa registra revisão verificada válida | Aceita; `reviewed_by=auth.uid()` e `reviewed_at` preenchidos pelo trigger |
+| Sessão administrativa tenta verificar revisão sem evidências/contato cruzado | Check constraint rejeitou; aprovado |
+| Nova avaliação para receita pessoal fictícia | Trigger rejeitou; aprovado |
+| Alteração de ingredientes de receita fictícia verificada | Status passou a `pending`, revisor/data limpos |
+| Alteração do título de receita fictícia reverificada | Status passou a `pending`, revisor/data limpos |
+| Verificação de persistência após os testes | 9 receitas, 30 ingredientes, 21 refeições planejadas, 0 avaliações e 0 receitas `[QA-TEMP]` remanescentes |
+
+**Pendências reais:** testar via API/cliente com sessões distintas e identidade administrativa; validar o painel de revisão editorial quando for implementado; revisar riscos de alérgenos e fornecedor e não liberar recomendações automáticas para quem declarou alergias; conciliar migrações com a branch antes do deploy.
+
+**Nenhuma nova migração aplicada nesta rodada de homologação.** O banco segue com 24 versões, inclusive `20261014004533` e `20261014004626`, já instaladas na etapa anterior.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. Aguardar próximo ciclo de homologação de segurança e, depois, avaliar separadamente RPCs de arquivamento/restauração, reconciliação da história de migrações e os requisitos remanescentes da Fase 1.
