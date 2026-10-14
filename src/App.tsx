@@ -1,6 +1,7 @@
 import AdminRecipes from "./AdminRecipes";
 import RecipeImage from "./RecipeImage";
-import {consolidateShopping,formatUnit} from "./lib/shopping";
+import {consolidateShopping,formatUnit,type ShoppingItem} from "./lib/shopping";
+import {purchaseKey,loadPurchasedKeys,savePurchasedItem} from "./lib/shoppingProgress";
 import {proposeWeek,defaultPreferences,type FoodPreferences} from "./lib/suggestions";
 import EdvCollection from "./EdvCollection";
 import PersonalRecipeForm from "./PersonalRecipeForm";
@@ -18,6 +19,8 @@ export default function App(){
  const [editingId,setEditingId]=useState<string|null>(null);const [recipeForm,setRecipeForm]=useState(false);const [detailId,setDetailId]=useState<string|null>(null); const [recipes,setRecipes]=useState<Meal[]>([]); const [userId,setUserId]=useState<string|null>(null); const [loading,setLoading]=useState(!!supabase); const [saving,setSaving]=useState(false);const [error,setError]=useState("");
  const [preferences,setPreferences]=useState<FoodPreferences>(defaultPreferences);
  const [page,setPage]=useState("Início"); const [week,setWeek]=useState(()=>startOfWeek(new Date())); const [selected,setSelected]=useState(()=>dateKey(new Date())); const [plan,setPlan]=useState<Plan>(safeLoad);const [done,setDone]=useState<string[]>([]);
+ const [purchased,setPurchased]=useState<{scope:string;keys:string[];loaded:boolean}>({scope:"",keys:[],loaded:false});
+ const [purchasing,setPurchasing]=useState<string|null>(null);
  const days=Array.from({length:7},(_,i)=>{const d=new Date(week);d.setDate(week.getDate()+i);return d;});
  const weekStart=dateKey(week);
  const reloadRecipes=async()=>{const data=await loadRecipes();setRecipes(data);setRecipeForm(false);setEditingId(null);setDetailId(null);};
@@ -72,6 +75,19 @@ export default function App(){
   void loadWeek(userId,weekStart).then(data=>{if(alive)setPlan(data);}).catch(err=>{if(alive)setError(err instanceof Error?err.message:"Erro ao carregar cardápio.");}).finally(()=>{if(alive)setLoading(false);});
   return ()=>{alive=false;};
  },[userId,weekStart]);
+ // Cada entrada na tela de Compras recarrega as marcacoes do servidor.
+ // Nao reutilizar marcacoes entre contas ou semanas.
+ useEffect(()=>{
+  if(!supabase||!userId||page!=="Compras")return;
+  let active=true;
+  const scope=userId+"|"+weekStart;
+  setPurchased({scope,keys:[],loaded:false});
+  void loadPurchasedKeys(userId,weekStart)
+   .then(keys=>{if(active)setPurchased({scope,keys,loaded:true});})
+   .catch(err=>{if(active)setError(err instanceof Error?err.message:"Nao foi possivel carregar os itens comprados.");});
+  return ()=>{active=false;};
+ },[page,userId,weekStart]);
+ useEffect(()=>{if(!supabase)setDone([]);},[weekStart]);
  const update=async(key:string,slot:Slot,id:string,servings=plan[key]?.[slot]?.servings??preferences.household_size)=>{
   if(id && id!==plan[key]?.[slot]?.id && preferences.allergies.length && !confirm("Atenção: você cadastrou alergias/intolerâncias ("+preferences.allergies.join(", ")+"). Esta receita não foi validada como segura para seu perfil, inclusive quanto à contaminação cruzada. Confira ingredientes, rótulos e preparo. Deseja adicioná-la manualmente mesmo assim?"))return;
   if(supabase && (!userId||loading||saving))return;
@@ -104,6 +120,23 @@ export default function App(){
  };
  const plannedCount=days.reduce((n,d)=>n+slots.filter(slot=>Boolean(plan[dateKey(d)]?.[slot]?.id)).length,0);
  const shopping=useMemo(()=>consolidateShopping(days,plan,recipes),[days.map(dateKey).join("|"),plan,recipes]);
+ const purchasedScope=(userId??"")+"|"+weekStart;
+ const purchasedLoaded=!supabase||(purchased.scope===purchasedScope&&purchased.loaded);
+ const purchasedKeys=supabase?(purchasedLoaded?purchased.keys:[]):done;
+ const togglePurchased=async(item:ShoppingItem)=>{
+  const key=purchaseKey(item);
+  if(!supabase){setDone(prev=>prev.includes(key)?prev.filter(v=>v!==key):[...prev,key]);return;}
+  if(!userId||!purchasedLoaded||purchasing||loading)return;
+  const purchasedBefore=purchasedKeys.includes(key);
+  setPurchasing(key);setError("");
+  try{
+   await savePurchasedItem(userId,weekStart,item,!purchasedBefore);
+   setPurchased(prev=>prev.scope===purchasedScope
+    ?{...prev,keys:purchasedBefore?prev.keys.filter(v=>v!==key):[...prev.keys,key]}
+    :prev);
+  }catch(err){setError(err instanceof Error?err.message:"Nao foi possivel salvar o item comprado.");}
+  finally{setPurchasing(null);}
+ };
  const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Coleção EDV",Leaf],["Compras",ShoppingBasket],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
  return <div className="shell"><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav>{nav.map(([name,Icon])=><button className={page===name?"active":""} key={name} onClick={()=>setPage(name)}><Icon size={19}/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1>{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div><div className="avatar">C&C</div></header><div className="notice"><Leaf size={15}/> Ambiente de testes · Receitas demonstrativas em revisão editorial e nutricional.</div>
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
@@ -114,6 +147,6 @@ export default function App(){
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
  {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} onClose={()=>setDetailId(null)} canAdd={!saving&&!loading} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;setPage("Cardápio");setDetailId(null);void update(selected,recipe.category,recipe.id,servings);}}/>:null}
  {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas oficiais demonstrativas e receitas particulares da sua conta.</span></div><div className="toolbar-actions"><button className="secondary" disabled={archivedLoading||saving} onClick={()=>archivedOpen?setArchivedOpen(false):void loadArchived()}>{archivedLoading?"Consultando...":archivedOpen?"Ocultar arquivadas":"Minhas arquivadas"}</button><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div></div>{archivedOpen&&<section className="notice" aria-label="Minhas receitas arquivadas"><div><strong>Minhas receitas arquivadas</strong><p>Somente suas receitas pessoais aparecem aqui. Restaurar devolve a receita à biblioteca, sem alterar a fotografia ou os ingredientes.</p>{archivedRecipes.length===0?<p>Nenhuma receita arquivada.</p>:archivedRecipes.map(item=><div key={item.recipe_id} className="row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginTop:12}}><span>{item.recipe_title}</span><button className="secondary" disabled={saving||archivedLoading} onClick={()=>void restoreArchived(item.recipe_id)}>Restaurar</button></div>)}</div></section>}<div className="recipe-grid">{recipes.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":"Receita demonstrativa"} · {r.category} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>{setPage("Cardápio");void update(selected,r.category,r.id)}}><Plus size={16}/> Adicionar ao dia selecionado</button></div></article>)}</div></>}
- {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Somatório dos ingredientes da semana {fmt(days[0])} a {fmt(days[6])}</span></div></div><div className="shopping-list">{shopping.length===0?<div className="empty">Ainda não há ingredientes. Planeje suas refeições primeiro.</div>:shopping.map(item=>{const k=item.name+"|"+item.unit;return <button key={k} className={done.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>setDone(prev=>prev.includes(k)?prev.filter(v=>v!==k):[...prev,k])}><span className="checkmark">{done.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{item.quantity} {formatUnit(item.unit)}</strong></button>;})}</div>{shopping.length>0&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText(shopping.map(x=>x.name+": "+x.quantity+" "+formatUnit(x.unit)).join("\n"))}>Copiar lista</button>}</>}
+ {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Somatório dos ingredientes da semana {fmt(days[0])} a {fmt(days[6])}</span></div></div>{!purchasedLoaded&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0?<div className="empty">Ainda não há ingredientes. Planeje suas refeições primeiro.</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{item.quantity} {formatUnit(item.unit)}</strong></button>;})}</div>{shopping.length>0&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText(shopping.map(x=>x.name+": "+x.quantity+" "+formatUnit(x.unit)).join("\n"))}>Copiar lista</button>}</>}
  </main><div className="mobile-nav">{nav.map(([name,Icon])=><button key={name} className={page===name?"active":""} onClick={()=>setPage(name)}><Icon size={21}/><small>{name}</small></button>)}</div></div>;
 }
