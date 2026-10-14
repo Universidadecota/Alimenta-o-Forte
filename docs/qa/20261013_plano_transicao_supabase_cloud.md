@@ -4,7 +4,7 @@
 
 **Limites operacionais:** mudanças graduais, preferencialmente aditivas; não desativar RLS; não fazer `db push` automático; não resetar o banco; não mesclar o PR #16 sem sua compatibilidade ter sido validada. Antes de cada mudança de esquema, identificar impacto, dependências, reversão e critério de aceite. Não interpretar a existência declarada de backup como comprovação de teste de restauração.
 
-## Inventário observado, somente leitura
+## Inventário inicial observado, somente leitura (antes da implantação)
 
 - Supabase `ACTIVE_HEALTHY`; 22 migrações registradas na produção, versões divergentes das migrações versionadas do repositório.
 - 12 tabelas no schema público, com RLS ativo; 25 policies públicas e 5 policies em `storage.objects`.
@@ -24,6 +24,23 @@
 5. Testar receitas pessoais, imagens, publicação admin, troca de refeições, porções e compras contra o schema principal, antes de qualquer deploy/merge de frontend.
 6. Documentar SQL aplicado, versões, verificação pós-migração, reversão e resultados dos critérios da Fase 1 do Prompt Mestre.
 
-## Estado
+## Implantação autorizada e realizada no Cloud principal (14/10/2026 UTC)
 
-Esta documentação registra o plano e inventário **sem executar DDL nem alterar dados no Supabase Cloud**. As migrações e testes ainda requerem validação antes de execução.
+O proprietário autorizou expressamente a primeira migração de revisão de alergênicos diretamente no projeto principal, preservando os dados existentes. Foram aplicados **somente** os dois arquivos SQL de revisão editorial/guard já validados no ambiente local. Nenhum outro módulo foi migrado.
+
+| Supabase Cloud — versão aplicada | Nome registrado | Origem no GitHub |
+|---|---|---|
+| `20261014004533` | `cc_recipe_allergen_reviews_fase1_base` | `supabase/migrations/20261012010000_cc_recipe_allergen_reviews.sql` |
+| `20261014004626` | `cc_allergen_review_integrity_guard` | `supabase/migrations/20261012011000_cc_allergen_review_guard.sql` |
+
+**Validações remotas de leitura após aplicar:** `public.cc_recipe_allergen_reviews` existe com RLS ativo; três políticas de uso administrativo (`SELECT`, `INSERT`, `UPDATE`) e nenhuma política `DELETE`; `anon` sem `SELECT` e `authenticated` sem privilégio de `DELETE`. Os gatilhos `cc_allergen_review_guard_trigger` (tabela de avaliações), `cc_allergen_ingredients_invalidate` (ingredientes) e `cc_allergen_recipe_invalidate` (receitas) estão habilitados. As duas funções `SECURITY DEFINER` de invalidação não concedem execução a `anon` nem `authenticated`. A função de guarda é `SECURITY INVOKER`, e só funciona no contexto de trigger. Não foram inseridas avaliações.
+
+**Contagens antes e depois:** 9 receitas, 30 ingredientes, 21 refeições planejadas; 0 avaliações de alergênicos após a implantação. As 22 migrações anteriores foram preservadas, totalizando 24 versões no Cloud após esta operação.
+
+**Limitações:** verificação estrutural e de permissões concluída; testes de comportamento com sessão autenticada, tentativa de escrita por não administrador, revisão verificada e invalidação efetiva ainda **pendentes no Cloud**. A estrutura `verified` é revisão editorial e **não certifica segurança alimentar**; sugestões automáticas continuam proibidas no frontend para perfis com alergias. Não houve merge do PR #16 nem publicação do frontend.
+
+**Reversão planejada (não executada):** caso haja regressão, avaliar desabilitar pontualmente os gatilhos de invalidação e restaurar o comportamento anterior, com autorização expressa e testes; remoção da tabela exigiria avaliação dos registros existentes e aprovação específica. Nunca executar `db push` automático, pois os nomes e versões das migrações do GitHub não coincidem com o histórico do Cloud.
+
+## Estado atual
+
+Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. Aguardar próximo ciclo de homologação de segurança e, depois, avaliar separadamente RPCs de arquivamento/restauração, reconciliação da história de migrações e os requisitos remanescentes da Fase 1.
