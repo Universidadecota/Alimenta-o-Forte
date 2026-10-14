@@ -221,6 +221,16 @@ Foi executado teste **SQL transacional no Supabase Cloud principal** usando duas
 
 **Limitação:** validação dos bloqueios de escrita no PostgreSQL com papéis/sessões simulados; as tentativas de escrita com dois navegadores reais usando a API REST não foram realizadas. A leitura cruzada pela API com duas contas reais já foi validada separadamente. **Último teste funcional pendente para compras:** alterar as porções da refeição mantendo o item marcado, recarregar e verificar persistência e quantidade calculada; após isso, testar fluxo de cópia se necessário.
 
+## Teste de alteração de porções após compra — inconclusivo quanto à marcação (14/10/2026)
+
+O usuário alterou a única refeição planejada na semana 12–18/10 de **3 para 2 porções**. Duas capturas da tela Compras, uma após atualização, mostram quantidades **corretas**: alface 100 g, arroz 160 g, feijão 200 g, peito de frango 300 g. Contudo, a Alface aparece **desmarcada**.
+
+**Evidência de produção somente de leitura:** a lista semanal ainda existe, mas não há item em `shopping_list_items` após o teste. Nos logs REST do Supabase houve `POST /rest/v1/planned_meals` 200 às **17:42:25Z** (mudança da refeição), seguido de `GET /rest/v1/shopping_lists` 200 às 17:42:42Z, `GET /rest/v1/shopping_list_items` 200 às 17:42:43Z e **`DELETE /rest/v1/shopping_list_items` 204 às 17:42:50Z**. Houve nova leitura às 17:44:55Z.
+
+O código da branch mostrou que `update()` para alterar porções chama `saveMeal()` e **não** chama `savePurchasedItem()` nem `delete()`; a exclusão do marcador ocorre no caminho de `togglePurchased()`/`savePurchasedItem(...,false)`, que é acionado pelo botão de item em Compras. Portanto foi emitido um pedido de desmarcação, mas **não sabemos se foi um clique intencional, involuntário ou outro acionamento**: não atribuir a causa sem confirmar. A quantidade proporcional está aprovada; persistência da marcação após mudar porções **ainda não**.
+
+**Próximo passo recomendado:** confirmar se houve clique adicional na Alface após alterar porções e executar teste isolado com a marcação persistida, alterando de 2 para 3 porções **sem tocar no checkbox**, antes de decidir por mudança de código. Nenhuma modificação no banco foi necessária.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
