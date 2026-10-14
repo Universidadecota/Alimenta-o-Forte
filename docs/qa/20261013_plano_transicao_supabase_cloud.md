@@ -211,6 +211,16 @@ Junto à homologação imediatamente anterior de `shopping_lists` (zero listas d
 
 **Pendente:** tentar operações de escrita cruzada em ambiente controlado, sem colocar em risco a lista real do proprietário, e depois validar alteração de porções após marcação. Não realizar merge do PR #16 até concluir as regressões.
 
+## Homologação de isolamento de gravação em compras (14/10/2026)
+
+Foi executado teste **SQL transacional no Supabase Cloud principal** usando duas identidades reais somente como contexto `auth.uid()` simulado, `SET LOCAL ROLE authenticated`, e registros de QA temporários exclusivamente em `shopping_lists` e `shopping_list_items`. Todas as alterações foram revertidas por `ROLLBACK`.
+
+**Resultado:** as cinco verificações retornaram `true`: segunda conta não consegue (1) atualizar a marcação da primeira; (2) excluir o item da primeira; (3) alterar sua lista semanal; (4) inserir item atribuindo indevidamente `user_id` da primeira; (5) inserir item com `user_id` próprio vinculado à lista da primeira, bloqueado pela composição de RLS/FK. Os registros de QA usados para testar criação e escrita foram fictícios e não se confundiram com a lista real do proprietário.
+
+**Verificação após ROLLBACK:** 1 lista real e 1 item real em Compras, `qa_lists_left=0`, `qa_items_left=0`, 9 receitas e 22 refeições planejadas. Nenhum dado real foi editado pelos testes.
+
+**Limitação:** validação dos bloqueios de escrita no PostgreSQL com papéis/sessões simulados; as tentativas de escrita com dois navegadores reais usando a API REST não foram realizadas. A leitura cruzada pela API com duas contas reais já foi validada separadamente. **Último teste funcional pendente para compras:** alterar as porções da refeição mantendo o item marcado, recarregar e verificar persistência e quantidade calculada; após isso, testar fluxo de cópia se necessário.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
