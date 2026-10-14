@@ -187,6 +187,14 @@ Consulta somente de leitura ao Supabase Cloud confirmou, na semana iniciada em `
 
 **Limitações restantes:** separar dados entre duas sessões de usuários distintos; mudar o número de porções após marcar o ingrediente e verificar manutenção da marcação; testar isolamento de escrita via API. Esses casos ainda não são considerados homologados.
 
+## Diagnóstico do primeiro teste entre contas — sessão anônima ainda era principal (14/10/2026)
+
+O teste de leitura `shopping_lists` e `shopping_list_items` na janela anônima retornou 1 lista e 1 item marcado de Alface, inicialmente levantando suspeita de acesso cruzado. A leitura administrativa no Cloud confirmou que a lista e o item pertencem à conta principal e que as policies existentes exigem `user_id=auth.uid()`.
+
+**Teste de identificação da sessão no próprio navegador:** `Sessão é conta principal=true`, `Sessão é segunda conta=false`, `Listas visíveis=1`, `Lista pertence à sessão=true`, `Erro na consulta=Nenhum`.
+
+**Conclusão:** não foi demonstrado vazamento de compras. A janela anônima estava autenticada na **conta principal**; os resultados anteriores não testaram acesso cruzado. Corrigir o procedimento: sair explicitamente da sessão naquela janela, autenticar com a segunda conta, conferir qual identidade está ativa sem expor tokens e só então repetir a consulta somente de leitura. **Isolamento de compras entre contas continua pendente; não afirmar aprovação nem falha de RLS.**
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
