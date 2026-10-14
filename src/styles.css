@@ -98,3 +98,10 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .dashboard-section-heading .secondary{width:100%}
  .dashboard-meal-card{padding:17px}
 }
+
+/* Sessao integrada ao cabecalho, sem elemento flutuante sobre conteudos */
+.cc-account-controls{display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:0}
+.cc-account-email{font-size:11px;color:#557364;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-account-controls button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 12px;border:1px solid #d9e5d8;border-radius:10px;background:#e7eee5;color:#183f35;font-size:12px;font-weight:700;white-space:nowrap}
+.cc-account-controls button:hover{background:#dce8da}
+@media(max-width:650px){.shell main>header{align-items:flex-start;gap:11px;flex-wrap:wrap}.cc-account-controls{width:100%;justify-content:flex-end}.cc-account-email{max-width:min(52vw,230px)}}
