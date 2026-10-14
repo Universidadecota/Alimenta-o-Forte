@@ -195,6 +195,14 @@ O teste de leitura `shopping_lists` e `shopping_list_items` na janela anônima r
 
 **Conclusão:** não foi demonstrado vazamento de compras. A janela anônima estava autenticada na **conta principal**; os resultados anteriores não testaram acesso cruzado. Corrigir o procedimento: sair explicitamente da sessão naquela janela, autenticar com a segunda conta, conferir qual identidade está ativa sem expor tokens e só então repetir a consulta somente de leitura. **Isolamento de compras entre contas continua pendente; não afirmar aprovação nem falha de RLS.**
 
+## Homologação de isolamento de listas com a segunda conta real (14/10/2026)
+
+Após sair da sessão principal e entrar explicitamente com a segunda conta na janela anônima, o proprietário executou consulta pela API Supabase na tabela `shopping_lists` filtrada pela semana iniciada em `2026-10-12`. O resultado do cliente foi: `Sessão é conta principal=false`, `Sessão é segunda conta=true`, `Listas visíveis=0`, `Lista pertence à sessão=false`, `Erro na consulta=Nenhum`.
+
+**Aprovado:** a segunda conta autenticada não visualizou a lista semanal que pertence à conta principal. A confusão anterior foi explicada por sessão da conta principal ainda ativa e não constitui falha demonstrada de RLS.
+
+**Pendente:** verificar também `shopping_list_items` com essa segunda sessão real; posteriormente testar tentativas de escrita cruzada por API com dados de QA seguros. Não interpretar o teste de `shopping_lists` como aprovação automática dessas ações.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
