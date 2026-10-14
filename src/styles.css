@@ -51,38 +51,3 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-editor-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 0}.cc-editor-actions button{padding:12px 17px;border:0;border-radius:12px;background:#194437;color:#fff;cursor:pointer;font-weight:650}.cc-editor-actions button.secondary{color:#194437;background:#e7eee4}.cc-editor-overlay{position:fixed;z-index:12000;inset:0;padding:20px;background:rgba(11,31,25,.72);display:grid;place-items:center}.cc-editor-dialog{max-height:90vh;overflow:auto;width:min(100%,680px);padding:26px;background:#fffdf8;border-radius:20px;box-shadow:0 18px 60px #102b2450;color:#163e34}.cc-editor-dialog>img{max-width:100%;max-height:320px;object-fit:contain;border-radius:12px}.cc-editor-dialog ul,.cc-editor-dialog ol{padding-left:24px}.cc-editor-dialog li{margin-bottom:9px}@media(max-width:600px){.cc-editor-dialog{padding:18px}.cc-editor-actions{align-items:stretch}.cc-editor-actions button{flex:1}}
 
 .cc-admin-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.cc-admin-tabs button{border:1px solid #d7e1d5;background:#edf1e9;border-radius:12px;color:#173f34;padding:12px 16px;font-weight:700;cursor:pointer}.cc-admin-tabs button.selected{background:#173f34;color:#fff}.cc-admin-private{background:#fff;border:1px solid #dfe8df;border-radius:18px;padding:24px}.cc-admin-private ul{list-style:none;padding:0;margin:20px 0}.cc-admin-private li{padding:14px 4px;border-bottom:1px solid #e7ece5;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.cc-admin-private li span{font-size:13px;color:#557267}@media(max-width:620px){.cc-admin-tabs button{flex:1}.cc-admin-private{padding:16px}}
-
-
-/* Costa&Costa - compras parciais e saldo pendente */
-.shopping-purchase-row{padding:17px 20px;border-bottom:1px solid #e8ece5;background:#fff}
-.shopping-purchase-row:last-child{border-bottom:0}
-.shopping-purchase-summary{display:flex;align-items:center;gap:14px;min-width:0}
-.shopping-purchase-icon{flex:none;display:grid;place-items:center;width:24px;height:24px;border:1px solid #8fa998;border-radius:7px;background:#fff;color:#44644e;font-weight:700;font-size:13px}
-.shopping-purchase-icon.complete{background:#183f35;border-color:#183f35;color:#fff}
-.shopping-purchase-icon.partial{background:#fff3d9;border-color:#e1bf74;color:#855d1d}
-.shopping-purchase-desc{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
-.shopping-purchase-desc strong{color:#193b31;font-size:15px}
-.shopping-purchase-desc>span{color:#66766b;font-size:12px;line-height:1.45}
-.shopping-purchase-desc .shopping-pending{color:#875b16;font-weight:700}
-.shopping-purchase-desc .shopping-extra{color:#4b7355}
-.shopping-purchase-result{display:flex;align-items:flex-end;gap:5px;flex-direction:column;text-align:right;flex:none}
-.shopping-purchase-result>strong{font-size:14px;color:#173a30}
-.shopping-status{border-radius:18px;background:#eef1eb;color:#57665d;padding:4px 9px;font-size:11px;font-weight:700;white-space:nowrap}
-.shopping-status.partial{background:#fff1d8;color:#855d1d}
-.shopping-status.complete{background:#e3f0e3;color:#235339}
-.shopping-purchase-actions{display:flex;align-items:flex-end;flex-wrap:wrap;gap:9px;margin-top:12px;margin-left:38px}
-.shopping-purchase-actions button{min-height:39px;font-size:12px}
-.shopping-purchase-input{display:flex;flex-direction:column;gap:3px;color:#627467;font-size:11px;font-weight:650}
-.shopping-purchase-input input{width:108px;min-height:39px;padding:8px;border:1px solid #cfdcd0;border-radius:9px;background:white;color:#183f35;font-size:13px}
-.shopping-reset{border:1px solid #dfdfd5;border-radius:9px;background:#fff;color:#6d675f;padding:9px 12px;cursor:pointer}
-.shopping-purchase-actions button:disabled,.shopping-purchase-input input:disabled{opacity:.55;cursor:not-allowed}
-@media(max-width:600px){
- .shopping-purchase-row{padding:14px 12px}
- .shopping-purchase-summary{gap:9px;align-items:flex-start}
- .shopping-purchase-result{align-items:flex-end;max-width:115px}
- .shopping-purchase-result strong{font-size:12px}
- .shopping-status{font-size:10px;white-space:normal;text-align:center}
- .shopping-purchase-actions{margin-left:0}
- .shopping-purchase-actions button{flex:1 1 auto}
- .shopping-purchase-input{flex:0 1 115px}
-}
