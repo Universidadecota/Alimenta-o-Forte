@@ -105,3 +105,19 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-account-controls button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 12px;border:1px solid #d9e5d8;border-radius:10px;background:#e7eee5;color:#183f35;font-size:12px;font-weight:700;white-space:nowrap}
 .cc-account-controls button:hover{background:#dce8da}
 @media(max-width:650px){.shell main>header{align-items:flex-start;gap:11px;flex-wrap:wrap}.cc-account-controls{width:100%;justify-content:flex-end}.cc-account-email{max-width:min(52vw,230px)}}
+
+
+/* Planejador diário: cópia controlada de refeições da mesma semana */
+.cc-copy-meal{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;margin-top:9px}
+.cc-copy-meal label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:#617a68;font-weight:650}
+.meal-row .cc-copy-meal select{width:min(245px,100%);max-width:100%;border:1px solid #d1dfd2;border-radius:9px;padding:8px 10px;background:#fff;color:#234b37;font-size:12px;min-height:37px}
+.cc-copy-meal .secondary{display:inline-flex;gap:7px;align-items:center;justify-content:center;min-height:37px;padding:8px 12px;font-size:12px;white-space:nowrap}
+.cc-copy-meal button:disabled,.cc-copy-meal select:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:700px){
+ .meal-row{flex-wrap:wrap}
+ .meal-row>select{width:100%;margin-left:0;font-size:13px}
+ .cc-copy-meal{align-items:stretch}
+ .cc-copy-meal label{flex:1 1 140px}
+ .meal-row .cc-copy-meal select{width:100%}
+ .cc-copy-meal .secondary{flex:1 1 140px}
+}
