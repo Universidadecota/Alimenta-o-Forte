@@ -107,17 +107,78 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 @media(max-width:650px){.shell main>header{align-items:flex-start;gap:11px;flex-wrap:wrap}.cc-account-controls{width:100%;justify-content:flex-end}.cc-account-email{max-width:min(52vw,230px)}}
 
 
-/* Planejador diário: cópia controlada de refeições da mesma semana */
-.cc-copy-meal{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px;margin-top:9px}
-.cc-copy-meal label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:#617a68;font-weight:650}
-.meal-row .cc-copy-meal select{width:min(245px,100%);max-width:100%;border:1px solid #d1dfd2;border-radius:9px;padding:8px 10px;background:#fff;color:#234b37;font-size:12px;min-height:37px}
-.cc-copy-meal .secondary{display:inline-flex;gap:7px;align-items:center;justify-content:center;min-height:37px;padding:8px 12px;font-size:12px;white-space:nowrap}
-.cc-copy-meal button:disabled,.cc-copy-meal select:disabled{opacity:.55;cursor:not-allowed}
+/* Ações contextuais do cardápio: hover e teclado no desktop, três pontos no touch */
+.meal-info{position:relative}
+.meal-info:has(.cc-meal-actions)>strong{padding-right:100px}
+.cc-meal-actions{width:100%;min-width:0}
+.cc-meal-quick-actions{
+ position:absolute;top:-7px;right:0;z-index:1;display:flex;align-items:center;
+ opacity:0;pointer-events:none;transform:translateY(3px);
+ transition:opacity .16s ease,transform .16s ease;
+ background:#fff;border:1px solid #e1e8df;border-radius:10px;
+ box-shadow:0 3px 12px #183f350d;padding:2px
+}
+.meal-row:hover .cc-meal-quick-actions,
+.meal-row:focus-within .cc-meal-quick-actions,
+.cc-meal-actions.is-open .cc-meal-quick-actions{
+ opacity:1;pointer-events:auto;transform:none
+}
+.cc-meal-desktop-buttons{display:flex;gap:2px}
+.cc-meal-action-icon,.cc-meal-mobile-trigger{
+ border:0;background:transparent;color:#486b57;cursor:pointer;
+ width:34px;height:34px;border-radius:8px;display:grid;place-items:center
+}
+.cc-meal-action-icon:hover,.cc-meal-mobile-trigger:hover,
+.cc-meal-action-icon:focus-visible,.cc-meal-mobile-trigger:focus-visible{
+ background:#eaf1e8;color:#183f35
+}
+.cc-meal-mobile-trigger{display:none}
+.cc-meal-mobile-menu{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0 3px}
+.cc-meal-mobile-menu button{
+ display:inline-flex;align-items:center;gap:8px;background:#f1f5ef;color:#183f35;
+ border:1px solid #e1e9df;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:650;
+ min-height:40px
+}
+.cc-meal-action-editor{
+ max-width:490px;width:100%;margin:13px 0 3px;padding:15px;
+ border:1px solid #dfe9df;border-radius:13px;background:#f8faf6;
+ box-shadow:0 4px 14px #183f3508
+}
+.cc-meal-action-title{display:flex;align-items:center;gap:8px;color:#183f35;margin-bottom:12px}
+.cc-meal-action-title strong{font-size:13px;flex:1}
+.cc-meal-action-close{
+ display:grid;place-items:center;width:30px;height:30px;min-width:30px;
+ border:0;border-radius:8px;background:transparent;color:#6a7a70
+}
+.cc-meal-action-close:hover{background:#e9f0e8}
+.cc-meal-action-fields{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:9px;row-gap:5px;align-items:end}
+.cc-meal-action-fields label{grid-column:1/-1;color:#5c7565;font-size:12px;font-weight:650}
+.meal-row .cc-meal-action-fields select{
+ width:100%;min-width:0;max-width:100%;min-height:40px;padding:8px 10px;
+ border:1px solid #ccdcca;border-radius:9px;background:#fff;color:#183f35;font-size:12px
+}
+.cc-meal-action-confirm{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:40px;padding:8px 12px;background:#183f35;color:#fff;
+ border:0;border-radius:9px;font-weight:700;font-size:12px;white-space:nowrap
+}
+.cc-meal-action-editor p{margin:10px 0 0;font-size:11px;line-height:1.5;color:#698170}
+.cc-meal-actions button:disabled,.cc-meal-actions select:disabled{opacity:.5;cursor:not-allowed}
+.cc-meal-actions button:focus-visible,.cc-meal-actions select:focus-visible{
+ outline:3px solid #e9a66a;outline-offset:2px
+}
+@media(max-width:800px),(hover:none),(pointer:coarse){
+ .meal-info:has(.cc-meal-actions)>strong{padding-right:43px}
+ .cc-meal-desktop-buttons{display:none}
+ .cc-meal-mobile-trigger{display:grid}
+ .cc-meal-quick-actions{opacity:1;pointer-events:auto;transform:none;box-shadow:none}
+ .cc-meal-mobile-menu button{flex:1 1 125px}
+}
 @media(max-width:700px){
  .meal-row{flex-wrap:wrap}
  .meal-row>select{width:100%;margin-left:0;font-size:13px}
- .cc-copy-meal{align-items:stretch}
- .cc-copy-meal label{flex:1 1 140px}
- .meal-row .cc-copy-meal select{width:100%}
- .cc-copy-meal .secondary{flex:1 1 140px}
+ .cc-meal-action-fields{grid-template-columns:minmax(0,1fr)}
+ .cc-meal-action-confirm{width:100%;white-space:normal}
+ .cc-meal-action-editor{padding:12px}
 }
+@media(prefers-reduced-motion:reduce){.cc-meal-quick-actions{transition:none}}
