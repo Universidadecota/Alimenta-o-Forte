@@ -1,13 +1,13 @@
 /**
  * Costa&Costa: homologacao de RLS do Storage pela API HTTP REAL, somente LOCAL.
- * Executar: node scripts/qa-private-storage-api.mjs
+ * Executar no PowerShell:\n * npx --no-install supabase status -o env | node scripts/qa-private-storage-api.mjs
  *
  * Emite 2 JWTs de teste com o JWT_SECRET do Supabase CLI local. Nao cria usuarios
  * no auth.users nem executa admin.createUser (que apresentou HTTP 504).
  * Portanto valida autorizacao JWT/RLS na API, NAO valida login pelo GoTrue.
  * Nao registra tokens nem chaves. Remove os objetos temporarios em finally.
  */
-import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { createHmac, randomUUID } from "node:crypto";
 
 const API = "http://127.0.0.1:54321";
@@ -21,14 +21,19 @@ function localConfig() {
       !["http://127.0.0.1:54321","http://localhost:54321"].includes(process.env.VITE_SUPABASE_URL)) {
     fail("AMBIENTE", "VITE_SUPABASE_URL nao aponta para localhost");
   }
+  // O PowerShell consulta o CLI e envia a saida diretamente por stdin.
+  // Isso evita a chamada npx por execSync (instavel neste Windows).
+  if (process.stdin.isTTY) {
+    fail("USO", "Execute com pipe: npx --no-install supabase status -o env | node scripts/qa-private-storage-api.mjs");
+  }
   let output;
   try {
-    output = execSync("npx --no-install supabase status -o env", {
-      encoding: "utf8", timeout: 120000, windowsHide: true,
-      stdio: ["ignore","pipe","pipe"],
-    });
+    output = readFileSync(0, "utf8");
   } catch {
-    fail("INFRA", "Nao foi possivel consultar o Supabase CLI local");
+    fail("INFRA", "Nao foi possivel ler a saida do CLI via stdin");
+  }
+  if (!output.trim()) {
+    fail("INFRA", "Supabase CLI nao retornou configuracao pela entrada padrao");
   }
   const env = {};
   for (const line of output.split(/\r?\n/)) {
