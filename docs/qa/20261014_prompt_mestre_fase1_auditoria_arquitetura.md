@@ -143,3 +143,11 @@ O proprietário enviou quatro capturas de localhost:5173 após sincronização d
 
 **Não homologado até execução real:** compilar `npm run build` no Windows, navegação no celular, persistência e comportamento de substituir um destino já ocupado. A função **Mover refeição** e operações entre semanas não foram implementadas neste incremento.
 
+
+### Resultado do primeiro teste de cópia — interface e Cloud
+
+**Evidência recebida em 14/10/2026:** o usuário executou `git pull --ff-only` até `c11a885` e compilou `npm run build` com sucesso (`tsc -b && vite build`, 1637 módulos, 34,17 s, sem erros). Na captura de localhost, a **quinta-feira 15/10** tem 1/3 refeições, almoço `[Exemplo] Frango com arroz, feijão e salada`, 35 min, **3 porções**; a quarta 14/10 também aparece com 1/3.
+
+**Conferência somente de leitura diretamente no Supabase Cloud:** a conta principal possui a mesma receita no slot `lunch`, com **3 porções**, em **segunda 12/10, quarta 14/10 e quinta 15/10**. A consulta comprovou que quarta e quinta coexistem e a cópia foi persistida no banco. A segunda-feira também está preenchida; não assumir que foi preenchida por este teste, pois não foi solicitado e a origem não está demonstrada. Nenhum dado foi modificado pela conferência.
+
+**Aceite parcial aprovado:** compilação local, cópia para quinta, preservação da quarta e persistência no banco. **Ainda falta:** repetir visualização após `Ctrl+Shift+R`, testar cancelamento de substituição e conferir consolidação das compras. Não declarar que todas as variações de cópia estão homologadas.
