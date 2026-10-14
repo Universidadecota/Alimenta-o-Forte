@@ -231,6 +231,14 @@ O código da branch mostrou que `update()` para alterar porções chama `saveMea
 
 **Próximo passo recomendado:** confirmar se houve clique adicional na Alface após alterar porções e executar teste isolado com a marcação persistida, alterando de 2 para 3 porções **sem tocar no checkbox**, antes de decidir por mudança de código. Nenhuma modificação no banco foi necessária.
 
+## Esclarecimento do teste de porções e marcação (14/10/2026)
+
+O proprietário confirmou expressamente que **foi ele quem desmarcou** a Alface após alterar o almoço de 3 para 2 porções. Assim, o `DELETE /rest/v1/shopping_list_items` com HTTP 204 observado às 17:42:50Z é compatível com a ação intencional; **não houve demonstração de desmarcação automática ou defeito de persistência**. O recálculo das quatro quantidades para 2 porções permanece aprovado.
+
+Em seguida, o proprietário marcou novamente Alface com a quantidade recalculada de **100 g**, conforme captura. Consulta ao Cloud confirmou `week_start=2026-10-12`, `name=alface`, `quantity=100`, `unit=g`, `completed=true`. A lista pessoal foi preservada e a marcação atual está persistida no banco.
+
+**Pendente somente para este cenário:** com Alface já marcada e persistida a 100 g, alterar o almoço de 2 para 3 porções **sem clicar na marcação**. O resultado esperado na interface é Alface marcada com quantidade calculada de 150 g, inclusive após atualizar a página. Como o modelo persiste a quantidade do instante da marcação, o banco pode continuar armazenando 100 g no marcador; a quantidade exibida deve continuar derivada do cardápio, não do campo `shopping_list_items.quantity`.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
