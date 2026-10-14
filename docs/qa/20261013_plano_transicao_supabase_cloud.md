@@ -179,6 +179,14 @@ Uma consulta SQL somente de leitura ao Supabase Cloud confirmou o registro `shop
 
 A divergência anterior deve permanecer documentada como observação, mas foi superada nesse cenário. **Ainda pendente:** troca de semanas mantendo o marcador, segregação entre as duas contas com sessões reais, mudança de porções após compra e segurança cruzada de escrita da API. Não declarar aprovação dos cenários não executados.
 
+## Homologação da separação semanal de compras — teste final (14/10/2026)
+
+O proprietário manteve `Alface — 150 g` marcada na semana **12–18/10/2026**, navegou pelo Cardápio até a semana **19–25/10/2026**, confirmou que a lista Compras estava vazia e retornou à primeira semana. A captura final exibe a Alface ainda marcada, sem alteração das quantidades dos quatro ingredientes.
+
+Consulta somente de leitura ao Supabase Cloud confirmou, na semana iniciada em `2026-10-12`, o marcador `name=alface`, `quantity=150`, `unit=g`, `completed=true`, `shopping_lists.user_id = shopping_list_items.user_id`. Não há lista semanal criada em `2026-10-19` no escopo dessa consulta. **Resultado aprovado no cenário testado:** isolamento do estado visual entre semanas, retorno da marcação original e persistência efetiva no Cloud.
+
+**Limitações restantes:** separar dados entre duas sessões de usuários distintos; mudar o número de porções após marcar o ingrediente e verificar manutenção da marcação; testar isolamento de escrita via API. Esses casos ainda não são considerados homologados.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
