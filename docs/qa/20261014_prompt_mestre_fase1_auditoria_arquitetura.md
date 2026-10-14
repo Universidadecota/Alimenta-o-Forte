@@ -179,3 +179,24 @@ Captura do aplicativo localhost:5173 na aba **Compras**, semana de 12 a 18/10, m
 O proprietário utilizou **Copiar lista** na aba Compras e colou o conteúdo no **Bloco de Notas do Windows** (`Ctrl+V`). A captura confirma exatamente quatro linhas: `Alface: 450 g`, `Arroz: 720 g`, `Feijão: 900 g`, `Peito de frango: 1350 g`. Acentos preservados, quatro ingredientes sem duplicações, quantidades consistentes com os três almoços planejados. **Aprovado** o caminho copiar→colar neste navegador/ambiente Windows.
 
 Com esta evidência, os testes principais da lista simples de compras (geração, consolidação, ajuste por porções, marcação persistente, isolamento e cópia de texto) estão **aprovados nos cenários demonstrados**. Permanecem no escopo do Prompt Mestre, mas **não foram homologados**: adicionar/remover itens manuais, editar quantidades individualmente, retirar itens disponíveis em casa, compartilhar/exportar PDF/imprimir, converter outras unidades e reutilizar semanas. Evitar afirmar homologação total da seção 5 enquanto tais funcionalidades não estiverem implementadas ou validadas. A decisão de não implementar compras parciais permanece em vigor.
+
+## Planejador diário — mover refeição entre dias, operação atômica
+
+**Implementação na branch de homologação em 14/10/2026:**
+- `src/CopyMealAction.tsx` disponibiliza **Copiar refeição** e **Mover refeição** usando o mesmo seletor de destino, somente para outro dia da mesma semana.
+- `src/App.tsx` exibe um diálogo explícito informando que **mover remove a refeição da origem**. Quando o destino está ocupado, a receita atual aparece no aviso de substituição. Se houver alergias cadastradas, o diálogo inclui alerta de que a receita não foi avaliada como segura.
+- `src/lib/planner.ts` chama a RPC `cc_move_planned_meal`, validando usuário autenticado, semana e porções. Após sucesso o aplicativo recarrega o plano do Supabase. Se a leitura falhar após uma transferência confirmada, orienta recarregar a página.
+- `supabase/migrations/20261014190000_cc_move_planned_meal_atomic.sql` implementa uma única transação PostgreSQL por chamada: valida `auth.uid()` com RLS e `SECURITY INVOKER`, trava o plano e as linhas do período, verifica a origem e a versão previamente exibida do destino, substitui o destino somente após confirmação e atualiza a data da origem. Falhas revertidas pelo banco, sem cópia parcial. A função aceita apenas três slots ativos e destinos dentro da semana corrente; não apaga outros slots ou semanas.
+
+**Aplicação Cloud:** migração remota `20261014212241` — `cc_move_planned_meal_atomic_cloud`. O arquivo versionado e o histórico remoto usam carimbos diferentes; **a reconciliação do histórico permanece pendente antes de qualquer `db push`**.
+
+**Homologação SQL transacional, sem criar dados permanentes:**
+1. Mover para um dia vazio — `PASS`, receita e 3 porções preservadas, origem eliminada.
+2. Mover para um dia com outra receita — `PASS`, somente a origem transferida permanece no destino, sem duplicados.
+3. Origem desatualizada — `PASS`, operação rejeitada.
+4. Outra conta tentando transferir a receita alheia — `PASS`, operação rejeitada por separação de titularidade/RLS.
+
+Os registros dos testes foram inseridos apenas em uma transação com `ROLLBACK`. **Pós-teste:** 24 `planned_meals`, 2 `meal_plans`, 1 marcação de compras e **zero planos temporários de QA**. Permissão de execução apenas para `authenticated`; `anon` não pode executar. Vercel retornou **success** para o commit `470ac28` com a interface e integração, mas a compilação no Windows e os testes de interface **ainda são pendentes**. Não houve merge do PR #16.
+
+**Testes manuais ainda necessários:** usar um almoço existente para mover a terça-feira vazia, confirmar origem vazia/destino com as mesmas porções e persistência após `Ctrl + Shift + R`; depois testar **Cancelar** quando o destino está ocupado, sem alterar os dias; checar recálculo da lista simples de compras. Se desejar preservar o estado inicial do cardápio, pode mover de volta com confirmação. Evitar alterações nas refeições de outros dias.
+
