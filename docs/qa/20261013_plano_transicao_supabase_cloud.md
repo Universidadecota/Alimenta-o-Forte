@@ -90,6 +90,22 @@ Em seguida, a interface exibiu o diálogo de confirmação de restauração; ap�
 
 **Resultado:** ciclo de arquivar, persistir e restaurar aprovado na interface Cloud para a conta testada. **Pendente:** isolamento das fotografias privadas na API com duas sessões de usuários distintos, sem compartilhar tokens em mensagens nem usar chaves administrativas no browser.
 
+## Homologação de isolamento entre sessões reais via Supabase Cloud (14/10/2026)
+
+O proprietário abriu uma janela anônima do Chrome e realizou login com a **segunda conta confirmada** do projeto. Na página Receitas, essa identidade visualizou as receitas oficiais, mas **não** a receita privada `Ovos Mexidos com Bacon` da primeira conta.
+
+Executado no Console dessa sessão, usando apenas a biblioteca `supabase` do frontend (chave pública; sem segredos e sem operações mutáveis), um teste direto das APIs retornou:
+
+| Cenário | Resultado da segunda conta | Aprovação |
+|---|---|---|
+| `public.recipes` com filtro pelo UUID da receita privada | 0 registros, sem erro | Sim |
+| `storage.from("personal-recipe-images").download(path)` | HTTP 400, acesso negado | Sim |
+| `storage.from("personal-recipe-images").createSignedUrl(path, 60)` | HTTP 400, acesso negado | Sim |
+
+**Validação complementar de leitura no Supabase Cloud:** o objeto privado associado a `Ovos Mexidos com Bacon` continua presente em `storage.objects` (`matching_private_photos=1`). Bucket continua com 5 objetos. Portanto, a negação da segunda conta não se explica por ausência do arquivo. Nenhum token de sessão foi divulgado, não houve alteração de dados.
+
+**Escopo aprovado:** isolamento de leitura da receita, download do Storage e emissão de link assinado entre duas sessões reais na API. Ainda não foram executados testes cruzados de listagem de caminhos, upload em pasta alheia ou exclusão, nem teste positivo de download na sessão proprietária durante este ciclo. O 400 é a recusa esperada; não inferir que cada operação do Storage foi testada.
+
 ## Estado atual
 
-Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. Continuam pendentes testes pela aplicação/API, reconciliação do histórico de migrações e demais requisitos da Fase 1.
+Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. Ainda pendem testes complementares de Storage, reconciliação do histórico de migrações e demais requisitos da Fase 1.
