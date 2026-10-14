@@ -80,6 +80,16 @@ O proprietário concordou em avançar diretamente no Supabase Cloud principal, d
 
 **Limites e pendências:** esses testes validam permissões e comportamento no PostgreSQL, **não** sessões reais de Auth pela API nem a UI. Próximo passo: configurar o frontend de desenvolvimento para as credenciais **públicas** do projeto Supabase Cloud (sem nunca expor `service_role`/secret), realizar testes end-to-end com contas de QA e conferir isolamento via Storage REST. Se a UI ainda aponta para `127.0.0.1:54321`, encerrar o Docker torna esses recursos indisponíveis até reconfigurar o frontend. O projeto usa ambiente de produção para testes por decisão do proprietário: evitar modificar dados de outros usuários; usar QA identificado, reversão e verificações.
 
+## Homologação visual de arquivamento/restauração no Supabase Cloud (14/10/2026)
+
+Foi realizado o fluxo real pela interface Vite (`localhost:5173` conectada ao Supabase Cloud), sem Docker, usando a receita pessoal já existente **Ovos Mexidos com Bacon**. O usuário arquivou a receita e a interface exibiu-a em `Minhas arquivadas`, inclusive após atualização. A consulta ao Cloud confirmou `archived_at IS NOT NULL`.
+
+Em seguida, a interface exibiu o diálogo de confirmação de restauração; após confirmar, a receita voltou à biblioteca normal com ações `Editar` e `Arquivar`, e a lista de arquivadas informou `Nenhuma receita arquivada`.
+
+**Consulta de leitura pós-restauração:** receita pessoal `owner_user_id IS NOT NULL`; `archived_at IS NULL`; `published = false`; a receita conserva URL de fotografia e 4 linhas de ingredientes. Contagens gerais: 9 receitas, 21 refeições planejadas, 5 objetos no bucket privado e 0 receitas pessoais arquivadas. Não houve limpeza/destruição de dados.
+
+**Resultado:** ciclo de arquivar, persistir e restaurar aprovado na interface Cloud para a conta testada. **Pendente:** isolamento das fotografias privadas na API com duas sessões de usuários distintos, sem compartilhar tokens em mensagens nem usar chaves administrativas no browser.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. Continuam pendentes testes pela aplicação/API, reconciliação do histórico de migrações e demais requisitos da Fase 1.
