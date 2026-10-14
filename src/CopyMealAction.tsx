@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy } from "lucide-react";
+import { Copy, MoveRight } from "lucide-react";
 import { dateKey, type Slot } from "./lib/planner";
 
 type Props = {
@@ -8,11 +8,12 @@ type Props = {
   weekDays: Date[];
   busy: boolean;
   onCopy: (slot: Slot, destinationDay: string) => Promise<void>;
+  onMove: (slot: Slot, destinationDay: string) => Promise<void>;
 };
 
-// Uma cópia sempre fica na mesma refeição de outro dia da semana.
+// Cópias e movimentações permanecem no mesmo período de outro dia da semana.
 // O componente é recriado ao trocar dia/slot para evitar destino desatualizado.
-export default function CopyMealAction({sourceDay, slot, weekDays, busy, onCopy}: Props) {
+export default function CopyMealAction({sourceDay, slot, weekDays, busy, onCopy, onMove}: Props) {
   const options = weekDays
     .map(day => ({
       key: dateKey(day),
@@ -22,7 +23,7 @@ export default function CopyMealAction({sourceDay, slot, weekDays, busy, onCopy}
   const [destination, setDestination] = useState(options[0]?.key ?? "");
   return <div className="cc-copy-meal">
     <label>
-      Copiar {slot.toLowerCase()} para
+      Copiar ou mover {slot.toLowerCase()} para
       <select
         aria-label={"Dia de destino para copiar " + slot}
         value={destination}
@@ -35,6 +36,10 @@ export default function CopyMealAction({sourceDay, slot, weekDays, busy, onCopy}
     <button type="button" className="secondary" disabled={busy || !destination}
       onClick={() => void onCopy(slot, destination)}>
       <Copy size={15}/> Copiar refeição
+    </button>
+    <button type="button" className="secondary" disabled={busy || !destination}
+      onClick={() => void onMove(slot, destination)}>
+      <MoveRight size={15}/> Mover refeição
     </button>
   </div>;
 }
