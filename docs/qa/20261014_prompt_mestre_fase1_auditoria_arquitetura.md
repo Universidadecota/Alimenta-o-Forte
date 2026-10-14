@@ -222,3 +222,10 @@ O usuário enviou duas capturas do planejador de terça-feira, 13/10, ao testar 
 **Avaliação UX:** a versão anterior já reduzia os controles visíveis, porém o formulário aberto ainda aumentava a altura da linha e deslocava visualmente as refeições. Foi implementado um ajuste de **posicionamento flutuante** (`src/styles.css`, commit `48ba4a2`): formulário e menu de toque posicionados em sobreposição, acompanhados de elevação visual e controle de recorte da lista enquanto abertos. `src/CopyMealAction.tsx` marca o estado `is-open` também no menu de toque (commit `86f8584`). As ações de copiar/mover, confirmação de alergias e transação SQL permanecem inalteradas.
 
 **Status:** Vercel retornou `success` para `48ba4a2`. **Pendente**: `npm run build` no Windows e captura do menu flutuante aberto no navegador; verificar celular e acessibilidade antes de aprovar o novo visual. Não executar nova transferência de refeição para validar um ajuste puramente visual.
+
+
+## Validação visual do popover — desktop (14/10/2026)
+
+O proprietário enviou captura de `localhost:5173` com **Cardápio**, terça-feira 13/10, almoço de frango, e ação **Mover refeição** aberta após as alterações até `7f3b9bc`. O popover é sobreposto ao cartão, **sem aumentar a altura da linha ou deslocar o jantar**. O seletor nativo de destino abriu e listou os demais dias, com o botão de continuar inativo até selecionar um dia. Os ícones de Copiar e Mover aparecem discretos ao lado do almoço.
+
+**Avaliação visual desktop: aprovada no cenário exibido.** Não foram feitos novos movimentos de refeições nem mudanças no banco neste teste; a captura não atesta o comportamento em telas de toque ou o clique fora do popover. Testes mobile, teclado, foco, Escape e saída por clique externo permanecem para a bateria de acessibilidade/responsividade. **Decisão de produto:** não dedicar mais ciclos a este refinamento no desktop antes de avançar nas necessidades essenciais da Fase 1.
