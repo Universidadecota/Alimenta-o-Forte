@@ -1,3 +1,7 @@
+> **DECISÃO REVOGADA EM 14/10/2026 — NÃO IMPLEMENTAR COMPRAS PARCIAIS.** O proprietário determinou voltar à lista de compras simples. Costa&Costa deve apenas calcular ingredientes e quantidades pelas porções escolhidas, deixando o planejamento efetivo das aquisições ao usuário. O frontend `src/App.tsx`, `src/lib/shoppingProgress.ts` e `src/styles.css` foi restaurado ao estado anterior à funcionalidade. A RPC `cc_add_shopping_purchase` foi retirada do Supabase Cloud pela migração compensatória `20261014040000_cc_undo_partial_shopping_rpc.sql`. O histórico das migrações permanece para rastreabilidade, mas a funcionalidade descrita abaixo foi descontinuada. Nenhum registro de compra, receita ou cardápio foi excluído. A checklist simples por semana e usuário continua em uso.
+
+---
+
 # Costa&Costa — Compras parciais e saldo pendente
 **Data:** 14/10/2026 · **Ambiente:** Supabase Cloud principal `gclhailalyrokvmkwllm` · **Branch:** `feat/revisao-alergenos-fase1-12out2026`
 
