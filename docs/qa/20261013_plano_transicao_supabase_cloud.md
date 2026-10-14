@@ -171,6 +171,14 @@ Após `Ctrl+Shift+R`, o usuário confirmou que `Alface` ficou **desmarcada**. A 
 
 **Interpretação cautelosa:** não há evidência de falha da última operação de escrita; também não é correto afirmar que a marcação visual após a navegação estava persistida. Pode haver um estado visual desatualizado ou ausência de nova gravação. Para diagnosticar, marcar Alface uma vez com a aba Compras aberta, aguardar o término de `Salvando marcacao` e verificar **imediatamente** o registro no Cloud antes de navegar. Somente então repetir o teste entre semanas. Não atribuir a causa ao usuário ou ao frontend sem reprodução controlada.
 
+## Repetição controlada da marcação — confirmação de persistência (14/10/2026)
+
+Após a divergência anterior, o usuário marcou novamente `Alface — 150 g` na semana de 12 a 18/10, aguardou o término do salvamento e executou `Ctrl+Shift+R`, sem alternar a semana. A captura após o carregamento mostrou Alface **ainda marcada**.
+
+Uma consulta SQL somente de leitura ao Supabase Cloud confirmou o registro `shopping_lists.week_start=2026-10-12`, `shopping_list_items.name=alface`, `quantity=150`, `unit=g`, `completed=true`. Assim, **a persistência após recarregamento está comprovada novamente por interface e banco em um teste controlado**.
+
+A divergência anterior deve permanecer documentada como observação, mas foi superada nesse cenário. **Ainda pendente:** troca de semanas mantendo o marcador, segregação entre as duas contas com sessões reais, mudança de porções após compra e segurança cruzada de escrita da API. Não declarar aprovação dos cenários não executados.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
