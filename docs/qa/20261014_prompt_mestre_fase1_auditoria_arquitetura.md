@@ -151,3 +151,11 @@ O proprietário enviou quatro capturas de localhost:5173 após sincronização d
 **Conferência somente de leitura diretamente no Supabase Cloud:** a conta principal possui a mesma receita no slot `lunch`, com **3 porções**, em **segunda 12/10, quarta 14/10 e quinta 15/10**. A consulta comprovou que quarta e quinta coexistem e a cópia foi persistida no banco. A segunda-feira também está preenchida; não assumir que foi preenchida por este teste, pois não foi solicitado e a origem não está demonstrada. Nenhum dado foi modificado pela conferência.
 
 **Aceite parcial aprovado:** compilação local, cópia para quinta, preservação da quarta e persistência no banco. **Ainda falta:** repetir visualização após `Ctrl+Shift+R`, testar cancelamento de substituição e conferir consolidação das compras. Não declarar que todas as variações de cópia estão homologadas.
+
+### Persistência após recarregar — cópia quarta para quinta
+
+O proprietário enviou duas capturas adicionais após o teste de atualização da página no localhost:5173. A primeira mostra quarta-feira, 14/10, com o almoço `[Exemplo] Frango com arroz, feijão e salada` e **3 porções**; a segunda mostra quinta-feira, 15/10, com a **mesma receita e 3 porções**. Ambos os dias apresentam 1/3 refeições, e a segunda-feira 12/10 também apresenta 1/3 — informação já existente no Cloud, que deve ser preservada.
+
+**Aceite aprovado:** cópia entre dias da mesma semana com persistência após atualização de página e preservação do dia de origem. Confirmado anteriormente por consulta ao Cloud na mesma conta e agora pela interface recarregada.
+
+**Ainda pendente:** verificar cancelamento do diálogo de confirmação sem gravação; substituição intencional de destino ocupado; consolidação da lista simples com múltiplas refeições; teste responsivo. Não confundir esta aprovação específica com homologação de toda a Fase 1.
