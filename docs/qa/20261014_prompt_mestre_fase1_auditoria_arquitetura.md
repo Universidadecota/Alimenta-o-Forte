@@ -111,3 +111,13 @@ O proprietário compilou `ce43818` no Windows com `npm run build` (TypeScript + 
 **Ajuste após captura:** a antiga barra fixa `session-bar` de `AuthGate.tsx` encobria cartões ao rolar. O controle de conta e o botão Sair foram integrados ao cabeçalho de `App.tsx`, com estilo responsivo em `src/styles.css`; CSS flutuante antigo removido de `src/auth.css`. O botão mantém `supabase.auth.signOut()`. Mudança no GitHub, **ainda sem teste visual local nem build local subsequente**; status Vercel era pendente na última consulta.
 
 **Próximos passos:** `git pull --ff-only`, `npm run build`; confirmar que a conta não sobrepõe o conteúdo ao rolar; clicar em `Ver meu cardápio`, `Lista de compras` e `Ver receita`; testar no celular ou emulado. Não executar merge do PR #16 antes de outras regressões e revisão do histórico de migrações.
+
+## Resultado de homologação visual e regressão do build (14/10/2026)
+
+O proprietário enviou quatro capturas de localhost:5173 após sincronização da branch até `6da5acc`:
+- O Dashboard Início exibe **1/3 refeições hoje** e **1/21 na semana**, com o almoço demonstrativo de frango/arroz/feijão/salada, **35 minutos e 3 porções**.
+- O atalho **Ver receita** abriu o detalhe da receita correta, incluindo ingredientes e preparo.
+- O atalho **Ver meu cardápio** abriu o planejador semanal com quarta-feira 14/10 selecionada e a refeição correspondente.
+- O atalho **Lista de compras** abriu a lista simples de 4 ingredientes, preservando a marcação de Alface 150 g; a barra de sessão deixou de encobrir o conteúdo nas capturas.
+
+**Compilação local encontrou erro de TypeScript TS18047 em `src/App.tsx` (Supabase possivelmente nulo no callback `onClick` da ação Sair).** Isso não é evidência de falha da autenticação em execução; é restrição de nulidade do compilador dentro de closure JSX. Correção aplicada no commit `b19dd6b`: `supabase.auth.signOut()` → `supabase?.auth.signOut()`. Pendente repetir `npm run build` local e validar logout sem regressão. PR #16 ainda sem merge; banco sem alterações nesta etapa.
