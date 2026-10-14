@@ -116,6 +116,29 @@ Depois de alterar para **3 porções**, a tela Compras mostrou os valores espera
 
 **Próxima implementação proposta (não realizada):** persistência por usuário/semana dos itens comprados, usando armazenamento com RLS e sincronização segura, mantendo as quantidades derivadas do cardápio. Alterações de esquema no projeto principal dependem de revisão e autorização.
 
+## Persistência das marcações da lista de compras (14/10/2026)
+
+**Autorização:** o proprietário autorizou implementar marcação persistida de itens comprados por conta e semana, com aplicação controlada no Supabase principal, sem Docker.
+
+**Análise prévia:** `shopping_lists` e `shopping_list_items` tinham 0 registros no Cloud. Ambas já possuíam RLS `ALL` por `auth.uid()` e FK composta `(user_id,shopping_list_id)`. A lista exibida no frontend é derivada de receitas do cardápio, mas as marcações anteriores existiam somente em `useState`, perdendo-se ao recarregar.
+
+**Nova migração aplicada no projeto principal:**
+- `20261014130147` — `cc_shopping_purchase_persistence_cloud`, arquivo versionado `supabase/migrations/20261014020000_cc_shopping_purchase_persistence.sql`.
+- Amplia a restrição `shopping_list_items_unit_check` para `g,kg,ml,l,un,lata,colher_cha,fatia,pitada`, compatível com o editor de receitas.
+- Cria índice único `cc_shopping_checked_item_unique` em `(shopping_list_id,name,unit)` para inserir/atualizar marcações sem duplicar.
+- Não modifica recipes, planned_meals, fotografias ou as policies RLS existentes. O Cloud agora registra 27 migrações.
+
+**Frontend implementado na branch do PR #16, sem merge:** `src/lib/shoppingProgress.ts` e `src/App.tsx`.
+- Usa o Supabase conectado com chave pública e sessão autenticada, sem service_role no frontend.
+- Ao abrir Compras, carrega as marcações do usuário/semana; ao marcar, cria/atualiza um item identificado pelo nome normalizado e unidade; ao desmarcar, remove apenas o marcador do usuário.
+- Quantidades exibidas **continuam calculadas dinamicamente** pelo cardápio atual. A quantidade gravada no marcador registra a quantidade **no instante em que foi marcada**, não deve ser considerada fonte canônica para totais. Caso as porções mudem, a quantidade exibida é atualizada e a marcação continua associada ao ingrediente da mesma semana.
+- O aplicativo bloqueia interações durante carregamento e gravação, mantém os estados separados por identidade/semana, sinaliza erros e recarrega a lista ao entrar na página.
+- Somente ingredientes que estejam marcados são persistidos; os demais são sempre calculados a partir do cardápio.
+
+**Validações realizadas:** DDL aplicado com sucesso. Índice único confirmado; RLS permaneceu ativo; permissões SQL de `authenticated` incluem SELECT/INSERT/UPDATE/DELETE nas duas tabelas. Leitura pós-migração: 0 listas e 0 itens, 9 receitas. Um teste transacional confirmou a aceitação de `colher_cha`, o upsert sem duplicidade e a ocultação de listas/itens de outra identidade simulada; a verificação de tentativa de escrita cruzada foi **inconclusiva** e não deve ser considerada aprovada. Uma tentativa adicional de testá-la diretamente foi bloqueada pela ferramenta; nenhuma alteração de teste foi persistida.
+
+**Ainda pendente de aceite:** `npm run build` no PC do proprietário; teste pela interface com duas contas reais; checkbox marcada permanecendo após F5, desmarcação persistida, separação entre semanas e contas, consistência do cálculo após alterar porções, e cópia da lista. Não afirmar homologação funcional ou merge/deploy antes desses resultados. RLS cruzada de escrita deverá ser verificada com a API em um teste separado, sem dados de outros usuários.
+
 ## Estado atual
 
-Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. Ainda pendem testes complementares de Storage, reconciliação do histórico de migrações e demais requisitos da Fase 1.
+Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, ainda aguardando compilação/teste E2E. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
