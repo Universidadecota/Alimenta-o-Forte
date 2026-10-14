@@ -203,6 +203,14 @@ Após sair da sessão principal e entrar explicitamente com a segunda conta na j
 
 **Pendente:** verificar também `shopping_list_items` com essa segunda sessão real; posteriormente testar tentativas de escrita cruzada por API com dados de QA seguros. Não interpretar o teste de `shopping_lists` como aprovação automática dessas ações.
 
+## Homologação de isolamento de itens com segunda conta real (14/10/2026)
+
+Na janela anônima já autenticada como **segunda conta**, o proprietário executou uma consulta API PostgREST à tabela `shopping_list_items` filtrando `name = 'alface'`, cujos registros de compra do período pertencem à primeira conta. A consulta obteve **0 registros, sem erro**, e o teste retornou `Aprovado: true`.
+
+Junto à homologação imediatamente anterior de `shopping_lists` (zero listas de outra conta), a **segregação de leitura das duas tabelas com duas sessões autenticadas está aprovada para os cenários testados**. Não houve alteração de dados neste teste.
+
+**Pendente:** tentar operações de escrita cruzada em ambiente controlado, sem colocar em risco a lista real do proprietário, e depois validar alteração de porções após marcação. Não realizar merge do PR #16 até concluir as regressões.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
