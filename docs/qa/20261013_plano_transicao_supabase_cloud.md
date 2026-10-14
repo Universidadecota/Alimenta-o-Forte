@@ -106,6 +106,16 @@ Executado no Console dessa sessão, usando apenas a biblioteca `supabase` do fro
 
 **Escopo aprovado:** isolamento de leitura da receita, download do Storage e emissão de link assinado entre duas sessões reais na API. Ainda não foram executados testes cruzados de listagem de caminhos, upload em pasta alheia ou exclusão, nem teste positivo de download na sessão proprietária durante este ciclo. O 400 é a recusa esperada; não inferir que cada operação do Storage foi testada.
 
+## Homologação de porções e lista de compras (14/10/2026)
+
+Na conta principal, com alergia à soja cadastrada, o usuário confirmou o aviso de que a seleção manual **não representa segurança alimentar** e adicionou apenas uma refeição na quarta-feira, 14/10: `[Exemplo] Frango com arroz, feijão e salada`, inicialmente com 2 porções. A interface Compras mostrou quatro itens: alface 100 g, arroz 160 g, feijão 200 g e peito de frango 300 g. Consulta de leitura ao Supabase Cloud confirmou `planned_meals.servings=2` e quantidades-base na receita de 1 porção: 50 g, 80 g, 100 g e 150 g, respectivamente.
+
+Depois de alterar para **3 porções**, a tela Compras mostrou os valores esperados: alface 150 g, arroz 240 g, feijão 300 g e peito de frango 450 g. Uma nova consulta ao Supabase Cloud confirmou `planned_meals.servings=3` para o mesmo almoço e o cálculo proporcional de todos os ingredientes. **A persistência no PostgreSQL e o recálculo estão aprovados.** A captura não comprova, isoladamente, que houve recarregamento forçado do navegador após a alteração, portanto essa verificação visual permanece adicional.
+
+**Pendência revelada pela revisão do código:** em `src/App.tsx`, o estado `done` das caixas de `Compras` é apenas `useState<string[]>([])`, com `setDone` sem chamada de persistência. Assim, **os itens marcados como comprados são perdidos após recarregar a página** e não são sincronizados entre dispositivos. As tabelas existentes `shopping_lists` e `shopping_list_items` já possuem `completed` e RLS por usuário, mas a lista de compras atual é derivada dinamicamente e **não utiliza essas tabelas**. O `CHECK` de unidade em `shopping_list_items` aceita somente `g,kg,ml,l,un`, enquanto o editor de receitas aceita também `lata,colher_cha,fatia,pitada`: qualquer implementação de persistência deve reconciliar unidades e garantir isolamento por usuário/semana sem perda de estado ao recalcular porções.
+
+**Próxima implementação proposta (não realizada):** persistência por usuário/semana dos itens comprados, usando armazenamento com RLS e sincronização segura, mantendo as quantidades derivadas do cardápio. Alterações de esquema no projeto principal dependem de revisão e autorização.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. Ainda pendem testes complementares de Storage, reconciliação do histórico de migrações e demais requisitos da Fase 1.
