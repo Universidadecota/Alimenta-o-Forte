@@ -165,6 +165,12 @@ O usuário apresentou três capturas com (i) Alface 150 g marcada em Compras da 
 
 **Próximo teste não destrutivo:** na conta principal, executar recarregamento forçado (Ctrl+Shift+R), reabrir Compras da semana 12–18/10 e observar se Alface continua marcada; consultar de novo `shopping_list_items` logo após. Se estiver desmarcada, marcar novamente, aguardar conclusão da gravação e conferir persistência no banco e após novo recarregamento. Não avançar ao teste de segunda conta enquanto houver divergência. Nenhum dado foi alterado pelas consultas.
 
+### Evidência adicional após recarga forçada
+
+Após `Ctrl+Shift+R`, o usuário confirmou que `Alface` ficou **desmarcada**. A consulta Cloud mostrou 1 lista semanal pertencente à conta principal e 0 itens persistidos. O histórico de requisições REST nos logs do Supabase registrou um `DELETE /rest/v1/shopping_list_items` com HTTP 204 por volta de **10h56 (horário de Brasília)**, relacionado ao teste anterior de desmarcação; no período consultado até cerca de 11h50, **não apareceu nova gravação de item**. A consulta `GET /shopping_list_items` no recarregamento respondeu HTTP 200.
+
+**Interpretação cautelosa:** não há evidência de falha da última operação de escrita; também não é correto afirmar que a marcação visual após a navegação estava persistida. Pode haver um estado visual desatualizado ou ausência de nova gravação. Para diagnosticar, marcar Alface uma vez com a aba Compras aberta, aguardar o término de `Salvando marcacao` e verificar **imediatamente** o registro no Cloud antes de navegar. Somente então repetir o teste entre semanas. Não atribuir a causa ao usuário ou ao frontend sem reprodução controlada.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
