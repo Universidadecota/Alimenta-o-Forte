@@ -159,3 +159,11 @@ O proprietário enviou duas capturas adicionais após o teste de atualização d
 **Aceite aprovado:** cópia entre dias da mesma semana com persistência após atualização de página e preservação do dia de origem. Confirmado anteriormente por consulta ao Cloud na mesma conta e agora pela interface recarregada.
 
 **Ainda pendente:** verificar cancelamento do diálogo de confirmação sem gravação; substituição intencional de destino ocupado; consolidação da lista simples com múltiplas refeições; teste responsivo. Não confundir esta aprovação específica com homologação de toda a Fase 1.
+
+### Cancelamento da cópia — homologação por interface e Cloud (14/10/2026)
+
+O proprietário selecionou **quarta-feira 14/10** como origem, escolheu **terça-feira 13/10** como destino e acionou **Copiar refeição**. A primeira captura mostra o diálogo de confirmação detalhando receita, **3 porções**, destino correto e alerta sobre **alergia/intolerância à soja, sem validação de ausência de contaminação cruzada**. O usuário cancelou; na segunda captura terça-feira permaneceu com **0/3 refeições** e almoço sem receita.
+
+**Conferência read-only no Supabase Cloud:** para a conta principal, a semana 12–18/10 continua contendo somente os almoços de **segunda 12, quarta 14 e quinta 15**, todos com a receita demonstrativa de frango/arroz/feijão/salada, **3 porções**. Não existe almoço planejado para terça 13. **Aprovado:** cancelamento não grava no destino nem remove a origem. O aviso de alergia está presente, mas não comprova segurança alimentar.
+
+**Próximo teste sugerido:** consolidar a lista de ingredientes da semana com 3 ocorrências da receita × 3 porções, sem modificar refeições nem marcações. Quantidades teóricas: Alface 450 g, Arroz 720 g, Feijão 900 g, Peito de frango 1350 g (assumindo 50, 80, 100 e 150 g por porção na receita demonstrativa). A conclusão depende da conferência da interface.
