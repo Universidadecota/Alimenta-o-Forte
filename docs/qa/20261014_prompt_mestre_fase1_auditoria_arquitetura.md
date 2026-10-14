@@ -101,3 +101,13 @@ O `index.html` inclui metadados mobile e tema; `vite.config.ts` usa Vite básico
 7. **Reconciliação das migrações + auditoria final do PR #16** antes de qualquer merge e ativação comercial.
 
 **Limites:** Fase 2 e 3 permanecem futuras, salvo decisão expressa do usuário. Não introduzir funcionalidades de marketplace nem compras parciais.
+
+## Validação visual do Início e correção de sobreposição (14/10/2026)
+
+O proprietário compilou `ce43818` no Windows com `npm run build` (TypeScript + Vite, 1636 módulos e nenhum erro). Duas capturas do navegador na conta principal mostram data **quarta-feira, 14 de outubro**, objetivo **Comer melhor**, **1/3 refeições planejadas hoje**, **1/21 na semana**, almoço `[Exemplo] Frango com arroz, feijão e salada`, preparo de 35 minutos e 3 porções; café da manhã e jantar aparecem corretamente como não planejados. As informações são consistentes com o planejamento testado no Cloud.
+
+**Resultado:** dados do Dashboard e apresentação desktop aprovados visualmente. Links ainda não foram clicados pelo proprietário; navegação funcional e responsividade em celular continuam pendentes.
+
+**Ajuste após captura:** a antiga barra fixa `session-bar` de `AuthGate.tsx` encobria cartões ao rolar. O controle de conta e o botão Sair foram integrados ao cabeçalho de `App.tsx`, com estilo responsivo em `src/styles.css`; CSS flutuante antigo removido de `src/auth.css`. O botão mantém `supabase.auth.signOut()`. Mudança no GitHub, **ainda sem teste visual local nem build local subsequente**; status Vercel era pendente na última consulta.
+
+**Próximos passos:** `git pull --ff-only`, `npm run build`; confirmar que a conta não sobrepõe o conteúdo ao rolar; clicar em `Ver meu cardápio`, `Lista de compras` e `Ver receita`; testar no celular ou emulado. Não executar merge do PR #16 antes de outras regressões e revisão do histórico de migrações.
