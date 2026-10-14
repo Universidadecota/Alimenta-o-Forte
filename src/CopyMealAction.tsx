@@ -60,7 +60,7 @@ export default function CopyMealAction({ sourceDay, slot, weekDays, busy, onCopy
     }
   }
 
-  return <div className={action ? "cc-meal-actions is-open" : "cc-meal-actions"}
+  return <div className={action || mobileOpen ? "cc-meal-actions is-open" : "cc-meal-actions"}
     onKeyDown={event => {
       if (event.key === "Escape") {
         event.stopPropagation();
