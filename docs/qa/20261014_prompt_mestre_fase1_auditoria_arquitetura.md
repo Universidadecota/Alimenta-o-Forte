@@ -167,3 +167,9 @@ O proprietário selecionou **quarta-feira 14/10** como origem, escolheu **terça
 **Conferência read-only no Supabase Cloud:** para a conta principal, a semana 12–18/10 continua contendo somente os almoços de **segunda 12, quarta 14 e quinta 15**, todos com a receita demonstrativa de frango/arroz/feijão/salada, **3 porções**. Não existe almoço planejado para terça 13. **Aprovado:** cancelamento não grava no destino nem remove a origem. O aviso de alergia está presente, mas não comprova segurança alimentar.
 
 **Próximo teste sugerido:** consolidar a lista de ingredientes da semana com 3 ocorrências da receita × 3 porções, sem modificar refeições nem marcações. Quantidades teóricas: Alface 450 g, Arroz 720 g, Feijão 900 g, Peito de frango 1350 g (assumindo 50, 80, 100 e 150 g por porção na receita demonstrativa). A conclusão depende da conferência da interface.
+
+### Compras consolidadas após copiar três almoços — aprovado (14/10/2026)
+
+Captura do aplicativo localhost:5173 na aba **Compras**, semana de 12 a 18/10, mostra **quatro ingredientes distintos**, todos com as quantidades esperadas após a cópia de refeições: **Alface 450 g**, **Arroz 720 g**, **Feijão 900 g**, **Peito de frango 1350 g**. Os três almoços iguais foram confirmados no Cloud na consulta anterior, cada um com 3 porções. O aplicativo preservou a caixa marcada de Alface, e as outras três permaneceram desmarcadas.
+
+**Aprovado no cenário:** soma proporcional de ingredientes de três receitas iguais na mesma semana, consolidação sem duplicar linhas e preservação visual da marcação de comprado após a mudança do planejamento. Não houve mutação de dados para elaborar esta verificação. **Não testado aqui:** botão `Copiar lista`, mescla de unidades diferentes, destinos já ocupados, uso em celular real, acessibilidade e demais requisitos da Fase 1.
