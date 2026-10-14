@@ -213,3 +213,12 @@ Os registros dos testes foram inseridos apenas em uma transação com `ROLLBACK`
 - `src/styles.css` remove o bloco antigo de botões permanentes e adiciona comportamento responsivo e foco de teclado. Avisos de alergias, confirmação pré-gravação e operação transacional do banco continuam preservados.
 
 **Estado:** commits de componente `c2c5acb` e CSS `93c524e`; status Vercel **success** em `93c524e`. **Ainda faltam** `npm run build` no Windows, inspeção visual no computador e em modo mobile/touch, e verificação de interação. Não movimentar de novo refeições reais apenas para validar a aparência. PR #16 permanece sem merge.
+
+
+## Ajuste final do planejador — popover sem deslocamento de layout
+
+O usuário enviou duas capturas do planejador de terça-feira, 13/10, ao testar o novo menu contextual: os ícones **Copiar** e **Mover** apareceram perto da refeição; ao clicar em **Mover**, o painel de seleção do destino foi exibido e a quarta-feira ficou selecionável. Nenhuma confirmação final foi mostrada; não é evidência de nova movimentação.
+
+**Avaliação UX:** a versão anterior já reduzia os controles visíveis, porém o formulário aberto ainda aumentava a altura da linha e deslocava visualmente as refeições. Foi implementado um ajuste de **posicionamento flutuante** (`src/styles.css`, commit `48ba4a2`): formulário e menu de toque posicionados em sobreposição, acompanhados de elevação visual e controle de recorte da lista enquanto abertos. `src/CopyMealAction.tsx` marca o estado `is-open` também no menu de toque (commit `86f8584`). As ações de copiar/mover, confirmação de alergias e transação SQL permanecem inalteradas.
+
+**Status:** Vercel retornou `success` para `48ba4a2`. **Pendente**: `npm run build` no Windows e captura do menu flutuante aberto no navegador; verificar celular e acessibilidade antes de aprovar o novo visual. Não executar nova transferência de refeição para validar um ajuste puramente visual.
