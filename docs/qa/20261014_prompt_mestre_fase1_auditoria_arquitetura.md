@@ -121,3 +121,25 @@ O proprietário enviou quatro capturas de localhost:5173 após sincronização d
 - O atalho **Lista de compras** abriu a lista simples de 4 ingredientes, preservando a marcação de Alface 150 g; a barra de sessão deixou de encobrir o conteúdo nas capturas.
 
 **Compilação local encontrou erro de TypeScript TS18047 em `src/App.tsx` (Supabase possivelmente nulo no callback `onClick` da ação Sair).** Isso não é evidência de falha da autenticação em execução; é restrição de nulidade do compilador dentro de closure JSX. Correção aplicada no commit `b19dd6b`: `supabase.auth.signOut()` → `supabase?.auth.signOut()`. Pendente repetir `npm run build` local e validar logout sem regressão. PR #16 ainda sem merge; banco sem alterações nesta etapa.
+
+## Planejador diário — cópia de refeição na mesma semana (14/10/2026)
+
+**Novo incremento implementado na branch, ainda pendente de homologação local:**
+- `src/CopyMealAction.tsx`: seletor de dia de destino (outro dia da semana atual) e botão **Copiar refeição**, exibido somente quando o período selecionado contém receita.
+- `src/App.tsx`: conserva receita e quantidade de porções na cópia, requer confirmação antes da gravação e informa explicitamente quando o destino já está ocupado. Usa `saveMeal` + `loadWeek` sob usuário autenticado, com o RLS e as validações existentes. O dia de origem não é modificado.
+- Perfis com alergia/intolerância recebem no diálogo o alerta sobre ausência de revisão de segurança da receita. O sistema **não** afirma que a cópia é segura para o perfil.
+- Alterações pendentes bloqueiam temporariamente navegação entre dias/semanas. Atualização do cardápio antes de confirmar a persistência.
+- `src/styles.css`: layout adaptado a celular/desktop.
+- **Sem nova tabela nem migração**. Não modifica a interface simples de compras nem abre funcionalidade de compra parcial.
+
+### Teste manual recomendado
+1. Conta principal, semana 12–18/10: quarta-feira 14/10 possui almoço `[Exemplo] Frango com arroz, feijão e salada` com **3 porções**; quinta-feira 15/10 deve estar vazia antes do teste.
+2. No almoço de quarta, selecionar `quinta-feira, 15 de outubro` em **Copiar almoço para** e clicar **Copiar refeição**.
+3. Conferir confirmação (incluindo alerta de alergia para esta conta), aceitar; ir a quinta 15/10 e verificar o almoço **igual e com 3 porções**.
+4. Voltar a quarta 14/10 e conferir a receita de origem intacta. Recarregar com `Ctrl+Shift+R` e conferir ambos os dias.
+5. Voltar a quarta e repetir a cópia para quinta; **cancelar** a confirmação. Confirmar que a quinta não mudou.
+6. Em Compras, conferir a consolidação proporcional de ambos os dias. **Não desmarcar compras** sem intenção: marcadores continuam sendo semanais e por ingrediente/unidade.
+7. Para restabelecer o estado anterior do teste, selecionar quinta 15/10 e retirar somente o almoço do dia pela caixa de seleção original, com atenção para não alterar quarta.
+
+**Não homologado até execução real:** compilar `npm run build` no Windows, navegação no celular, persistência e comportamento de substituir um destino já ocupado. A função **Mover refeição** e operações entre semanas não foram implementadas neste incremento.
+
