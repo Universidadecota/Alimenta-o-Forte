@@ -157,6 +157,14 @@ Na conta principal, a marcação de `Alface — 150 g`, semana 12 a 18/10/2026, 
 
 **Resultado:** marcação e desmarcação salvas, recarregamento e recálculo existentes em caso simples, e build sem avisos aprovados. **Ainda pendente:** separação entre contas e semanas, persistência da marcação ao modificar as porções, RLS cruzado de escrita por API e verificação de cópia da lista. Não há merge nem deploy de produção.
 
+## Separação semanal — divergência de verificação (14/10/2026)
+
+O usuário apresentou três capturas com (i) Alface 150 g marcada em Compras da semana 12–18/10, (ii) lista vazia na semana 19–25/10, (iii) Alface novamente marcada após retornar à semana 12–18/10. A interface sugere separação por semana.
+
+**Porém, duas consultas de leitura subsequentes no Supabase Cloud principal encontraram** 1 lista de compras persistida, **0 itens** em `shopping_list_items` (e, especificamente, 0 marcadores `alface` para a semana iniciada em 12/10). Os registros do cardápio estavam coerentes: 1 refeição na semana 12–18/10 e nenhuma na 19–25/10. Assim, a separação visual foi observada, mas **persistência pós-retorno não pode ser considerada homologada enquanto o banco não coincidir**. Não assumir causa (estado local momentâneo, alteração posterior, configuração ou concorrência) sem evidências.
+
+**Próximo teste não destrutivo:** na conta principal, executar recarregamento forçado (Ctrl+Shift+R), reabrir Compras da semana 12–18/10 e observar se Alface continua marcada; consultar de novo `shopping_list_items` logo após. Se estiver desmarcada, marcar novamente, aguardar conclusão da gravação e conferir persistência no banco e após novo recarregamento. Não avançar ao teste de segunda conta enquanto houver divergência. Nenhum dado foi alterado pelas consultas.
+
 ## Estado atual
 
 Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
