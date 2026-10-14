@@ -139,6 +139,16 @@ Depois de alterar para **3 porções**, a tela Compras mostrou os valores espera
 
 **Ainda pendente de aceite:** `npm run build` no PC do proprietário; teste pela interface com duas contas reais; checkbox marcada permanecendo após F5, desmarcação persistida, separação entre semanas e contas, consistência do cálculo após alterar porções, e cópia da lista. Não afirmar homologação funcional ou merge/deploy antes desses resultados. RLS cruzada de escrita deverá ser verificada com a API em um teste separado, sem dados de outros usuários.
 
+## Homologação visual da persistência de compra (14/10/2026)
+
+O proprietário executou `git pull --ff-only` na branch `feat/revisao-alergenos-fase1-12out2026` e `npm run build` no Windows. **TypeScript + Vite concluíram com sucesso** (1635 módulos, saída `dist`, sem erro de tipagem). O build exibiu um aviso não bloqueante de PostCSS por `@import` de Google Fonts após regras CSS na linha 14 de `src/styles.css`. Correção efetuada na branch, movendo o import para o começo do CSS (commit `1566b4a`); ainda requer novo build local para comprovar a eliminação do aviso.
+
+Na interface da conta principal, o usuário marcou `Alface` na lista de Compras para a semana de **12 a 18/10/2026**, na qual a receita planejada exige 150 g de alface. Capturas consecutivas mostram `Alface` marcada antes e após atualização de página, enquanto arroz 240 g, feijão 300 g e peito de frango 450 g permaneceram desmarcados.
+
+**Comprovação independente na base do Supabase Cloud (somente leitura):** `shopping_lists.week_start=2026-10-12`; item `shopping_list_items.name=alface`, `unit=g`, `quantity=150`, `completed=true`, associação entre dono da lista e do item correta (`owner_consistent=true`). Portanto **salvamento e recarregamento da marcação aprovados no cenário testado**. Não foi necessário criar dados de QA adicionais.
+
+**Pendente:** testar desmarcar e persistir desmarcação; separação entre duas semanas e duas contas; ajuste de porções sem perder marcação; teste RLS de escrita cruzada por API; build após a correção CSS e eventual resolução do PR #16 antes do merge. Não confundir teste de tela única com aprovação integral para comercialização.
+
 ## Estado atual
 
-Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, ainda aguardando compilação/teste E2E. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
+Primeiro conjunto editorial **implantado e verificado estruturalmente**, sem perda observada nas contagens. As RPCs de arquivamento/restauração foram implantadas e homologadas em SQL. O fluxo de arquivamento/restauração foi aprovado pela interface e o isolamento de leitura/download/link assinado foi aprovado em duas sessões reais. A estrutura de persistência de marcações de compras foi aplicada no Cloud e o frontend preparado no PR #16, com build e a primeira persistência de checkbox aprovados; demais testes E2E ainda pendentes. Permanecem pendentes testes complementares de Storage, reconciliação de migrações e demais requisitos da Fase 1.
