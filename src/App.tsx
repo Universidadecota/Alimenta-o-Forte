@@ -10,7 +10,7 @@ import PersonalRecipeForm from "./PersonalRecipeForm";
 import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
-import { type Meal, type Slot, type Plan, slots, dateKey, startOfWeek, loadRecipes, loadWeek, saveMeal, removeMeal } from "./lib/planner";
+import { type Meal, type Slot, type Plan, slots, dateKey, startOfWeek, loadRecipes, loadWeek, saveMeal, removeMeal, moveMeal } from "./lib/planner";
 import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, RefreshCcw, LogOut } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
@@ -136,6 +136,38 @@ export default function App(){
    }
   }finally{setSaving(false);}
  };
+ const moveSelectedMeal=async(slot:Slot,destinationDay:string)=>{
+  const source=plan[selected]?.[slot];
+  const destination=days.find(day=>dateKey(day)===destinationDay);
+  if(!source||!destination||destinationDay===selected||loading||saving||Boolean(supabase&&!userId))return;
+  const original=recipes.find(recipe=>recipe.id===source.id);
+  if(!original){setError("A receita de origem não está mais disponível.");return;}
+  const existing=plan[destinationDay]?.[slot];
+  const label=destination.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});
+  const displaced=existing?recipes.find(recipe=>recipe.id===existing.id)?.title??"outra refeição":null;
+  const warning=displaced?" ATENÇÃO: a refeição do destino ("+displaced+") será substituída.":" O destino está vazio.";
+  const allergyNotice=preferences.allergies.length
+   ?" Atenção: há alergias/intolerâncias cadastradas ("+preferences.allergies.join(", ")+"). A receita não foi validada para seu perfil nem quanto à contaminação cruzada. Confira ingredientes, rótulos e preparo antes de confirmar.":"";
+  if(!confirm("MOVER "+original.title+" ("+source.servings+" porções) de "+selected+" para "+label+", em "+slot+"? A refeição será REMOVIDA do dia de origem."+warning+allergyNotice))return;
+  setSaving(true);setError("");
+  try{
+   const next:Plan={...plan,[selected]:{...plan[selected],[slot]:undefined},
+    [destinationDay]:{...plan[destinationDay],[slot]:{...source}}};
+   if(supabase){
+    await moveMeal(userId!,weekStart,selected,destinationDay,slot,source,existing);
+    setPlan(next);
+    try{setPlan(await loadWeek(userId!,weekStart));}
+    catch{setError("A transferência foi salva, mas não foi possível recarregar o cardápio. Atualize a página para conferir.");}
+   }else{
+    setPlan(next);
+    localStorage.setItem("cc_demo_plan",JSON.stringify(next));
+   }
+  }catch(err){
+   setError(err instanceof Error?err.message:"Não foi possível mover a refeição. Verifique o cardápio.");
+   if(supabase&&userId)try{setPlan(await loadWeek(userId,weekStart));}
+   catch{setError("Não foi possível confirmar o estado do cardápio. Atualize a página antes de tentar novamente.");}
+  }finally{setSaving(false);}
+ };
  const generate=async()=>{
   if(!supabase||!userId||loading||saving)return;
   setSaving(true);setError("");
@@ -192,7 +224,7 @@ export default function App(){
   onOpenRecipes={()=>{setRecipeForm(false);setDetailId(null);setPage("Receitas");}}
   onViewRecipe={id=>{setRecipeForm(false);setEditingId(null);setDetailId(id);setPage("Receitas");}}
  />}
- {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice" role="alert"><strong>Atenção às alergias/intolerâncias ({preferences.allergies.join(", ")})</strong><span> As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</span></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button className="primary" onClick={()=>void generate()} disabled={loading||saving||recipes.length===0}><RefreshCcw size={16}/> Sugerir semana</button></div></div><div className="week-grid">{days.map(d=><button key={dateKey(d)} className={selected===dateKey(d)?"day selected":"day"} disabled={loading||saving} onClick={()=>setSelected(dateKey(d))}><small>{d.toLocaleDateString("pt-BR",{weekday:"short"})}</small><strong>{d.getDate()}</strong><span>{slots.filter(s=>plan[dateKey(d)]?.[s]?.id).length}/3</span></button>)}</div><div className="meal-list">{slots.map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className="meal-row" key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}</small><strong>{current?.title||"Escolha uma refeição"}</strong><span>{current?current.minutes+" minutos de preparo":"Sem refeição planejada"}</span>{current&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>r.category===slot).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
+ {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice" role="alert"><strong>Atenção às alergias/intolerâncias ({preferences.allergies.join(", ")})</strong><span> As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</span></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button className="primary" onClick={()=>void generate()} disabled={loading||saving||recipes.length===0}><RefreshCcw size={16}/> Sugerir semana</button></div></div><div className="week-grid">{days.map(d=><button key={dateKey(d)} className={selected===dateKey(d)?"day selected":"day"} disabled={loading||saving} onClick={()=>setSelected(dateKey(d))}><small>{d.toLocaleDateString("pt-BR",{weekday:"short"})}</small><strong>{d.getDate()}</strong><span>{slots.filter(s=>plan[dateKey(d)]?.[s]?.id).length}/3</span></button>)}</div><div className="meal-list">{slots.map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className="meal-row" key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}</small><strong>{current?.title||"Escolha uma refeição"}</strong><span>{current?current.minutes+" minutos de preparo":"Sem refeição planejada"}</span>{current&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>r.category===slot).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
  {page==="Coleção EDV"&&<EdvCollection/>}
  {page==="Administração"&&isAdmin&&<AdminRecipes onRefresh={reloadRecipes}/> }
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
