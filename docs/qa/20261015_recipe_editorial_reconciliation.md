@@ -27,3 +27,13 @@ Arquivo versionado: `supabase/migrations/20261015180000_cc_recipe_source_reconci
 5. Documentar qualquer divergência de cálculo antes de promover as alterações.
 
 **Proteções:** PR #16 não mesclado. O histórico remoto de migrações continua diferente do histórico local; reconciliar antes de execução de `db push`, migração automática ou deploy.
+
+## Homologação recebida no Windows — 15/10/2026
+
+**Evidências fornecidas pelo responsável:** saída de `git pull --ff-only` até `d5c3483`, seguida de `npm run build` com `tsc -b && vite build` concluído, Vite 6.4.4, 1.641 módulos e 32,74 segundos, sem erro informado. Duas capturas da interface local (`localhost:5173`) em desktop.
+
+- **Cardápio:** aviso resumido “Alergias/intolerâncias cadastradas: Soja”, com informação essencial visível e controle “Entenda a orientação de segurança”. O estado fechado foi observado; abrir/recolher não foi demonstrado nesta entrega. Layout sem cortes evidentes no desktop. Semana 12–18/10 preservada.
+- **Compras:** Alface 450 g continua marcada; Arroz 720 g, Feijão 900 g, Peito de frango 1.350 g preservados. Chá recalculado para 1 lata de leite de coco, 2 cm de gengibre, 1 colher de chá de cúrcuma, 1 pitada de canela e 1 pitada de pimenta-caiena. Adoçante permanece “a gosto” e manteiga “quantidade não informada · opcional”. Botão “Copiar lista” visível, sem repetição do teste de cópia.
+- **Resultado:** compilação e regressão visual das duas telas demonstradas **aprovadas**. Os testes anteriores de Biblioteca de Alimentos e da navegação não precisam ser repetidos por causa desta alteração.
+
+**Pendências mantidas:** expandir/recolher o aviso no celular a 390 px, conferir no painel administrativo os oito ingredientes do Iogurte Turbo (mantido em rascunho), revisão profissional de nutrição e alergênicos, segurança de sugestões para perfis com alergias, e reconciliação dos históricos local/remoto antes de merge/deploy. **PR #16 continua sem merge.**
