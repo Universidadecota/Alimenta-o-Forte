@@ -421,3 +421,12 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-pilot-source-ingredients{white-space:normal;overflow-wrap:anywhere}
 .cc-pilot-source-ingredients>p:not(.detail-note){line-height:1.65}
 @media(max-width:620px){.cc-recipes-filterbar label{flex-basis:100%}.cc-recipes-filterbar>span{padding-bottom:0}.cc-recipe-pages{justify-content:space-between}}
+
+/* Checklist utilizável do acervo pessoal; medidas originais não são somadas sem revisão. */
+.cc-pilot-shopping{margin-top:18px;display:grid;gap:10px}
+.cc-pilot-shopping h3{font-size:1.25rem;margin:0}
+.cc-pilot-shopping p{color:#61756b;font-size:13px;line-height:1.6;margin:0 0 7px}
+.cc-pilot-shopping .cc-pilot-shopping-text{min-width:0;overflow-wrap:anywhere}
+.cc-pilot-shopping-text small{display:block;font-weight:400;font-size:12px;color:#6b7d73;margin-top:5px}
+.cc-pilot-shopping .shopping-item strong{white-space:nowrap}
+@media(max-width:620px){.cc-pilot-shopping .shopping-item{align-items:start}.cc-pilot-shopping .shopping-item strong{white-space:normal;text-align:right}}
