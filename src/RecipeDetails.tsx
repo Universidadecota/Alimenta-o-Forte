@@ -14,7 +14,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
    <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} isAi={recipe.imageIsAi} large/></div>
    <div><span className="eyebrow">{recipe.category}</span><h2>{recipe.title}</h2>
     <p>{recipe.description || "Receita demonstrativa em revisão editorial e nutricional."}</p>
-    <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.minutes} minutos</span><span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span></div>
+    <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.pilotSource?.originalTime??recipe.minutes+" minutos"}</span><span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span></div>
    </div>
   </div>
   <div className="detail-columns">
