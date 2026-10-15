@@ -1,0 +1,57 @@
+# Costa&Costa — Fase 2B | Base nutricional e vinculação de ingredientes
+**Data:** 15/10/2026 · **PR #16:** rascunho, sem merge.
+
+## Objetivo
+Registrar composição nutricional **com referência e estado de preparo**, sem atribuir números imaginados; relacionar explicitamente ingredientes das receitas a alimentos; bloquear qualquer cálculo de receita com dados incompletos. **Não confundir classificação nutricional com validação de alergênicos.**
+
+## Estado anterior e inventário
+- 34 alimentos no catálogo público; todos `preliminary`, **0 valores nutricionais verificados**.
+- 8 receitas oficiais com **33 registros de ingredientes**, mais uma receita pessoal (9 receitas ativas e 37 ingredientes no total).
+- Nomes ambíguos: `Feijão` vs variedades; `Arroz` vs branco e estado cozido; `Iogurte natural` vs integral 10%; `Filé de peixe` vs espécies; medidas `lata`, `colher_sopa`, `cm`, `pitada`, `un`.
+- Não existem equivalências universais seguras entre colher e grama ou entre unidade e massa comestível.
+
+## Banco aplicado
+Migração: `supabase/migrations/20261015193000_cc_food_nutrition_drafts_and_links.sql`, aplicada no Supabase como `cc_food_nutrition_drafts_and_links_cloud` (**sucesso**).
+- `cc_food_nutrition_drafts`: revisão interna por alimento; estado (`raw/cooked/drained/prepared/packaged`), nome da fonte e referência de identificação, seis nutrientes por 100 g opcionais, notas, status de trabalho e autoria/data. **Valores só aceitos se acompanhados por fonte, identificação e estado de alimento; todos permanecem pendentes.**
+- `cc_recipe_ingredient_food_links`: relação explícita por ingrediente de receita oficial, com status candidato/confirmado, justificativa, massa total em g **somente quando existe evidência**, e autoria/data. Alteração relevante no ingrediente invalida automaticamente o vínculo confirmado e a massa registrada. Excluir/reinserir ingredientes remove naturalmente links antigos via FK cascata; deve ser auditado no editor.
+- Ambas as tabelas com RLS para administradores; sem privilégios a `anon`, sem policy de DELETE. Gatilhos e suas funções com acesso controlado.
+- Adicionados **15 ingredientes comuns como `food_items` preliminares NÃO publicados**, preservando os 34 alimentos visíveis. Eles são rótulos editoriais novos, não dados nutricionais.
+- Nenhum `nutrition_per_100g`, `nutrition_source` ou `nutrition_reviewed_at` alterado; **0 nutrientes verificados**.
+
+### Conferência após aplicação (SQL somente leitura)
+| Controle | Resultado |
+|---|---|
+| Alimentos totais | 49 |
+| Publicados | 34 |
+| Rascunhos nutricionais preenchidos | 0 |
+| Vínculos registrados | 0 |
+| RLS nas duas tabelas | ativa |
+| Privilégios anônimos SELECT | negados |
+| Policies | SELECT/INSERT/UPDATE autorizados apenas a `cc_is_admin()` |
+| Simulação de usuário autenticado não administrador | `cc_is_admin() = false`; consultas retornam 0 nas tabelas |
+
+A simulação foi feita em transação descartada (`ROLLBACK`); não substitui teste real de tentativa de gravação por sessão comum.
+
+## Interface administrativa implementada no GitHub
+- `src/FoodNutritionAdmin.tsx`: seção expansível **Base nutricional dos alimentos** em Gestão de Receitas Oficiais. Seleciona 49 alimentos (inclusive 15 rascunhos), cadastra valores opcionais **por 100 g**, fonte/título, referência/código/edição, URL HTTPS opcional, estado de preparo e pendências. **Salva só em `cc_food_nutrition_drafts`**, sem liberar conteúdo.
+- `src/RecipeIngredientFoodLinks.tsx`: dentro da ficha técnica de cada receita oficial, permite relacionar cada ingrediente a um alimento, registrar motivo da correspondência, status candidato/confirmado e a massa total documentada para a receita. Nenhum vínculo inicial foi inventado ou selecionado automaticamente.
+- `src/AdminRecipes.tsx` e `src/RecipeTechnicalSheet.tsx`: integração com os componentes de revisão; `src/styles.css`: responsividade das telas.
+- `src/lib/recipeNutrition.ts`: motor matemático **conservador**, ainda não integrado à publicação. Só calcula quando todos os ingredientes necessários estão vinculados a fontes nutricionais verificadas, com massa e porções comprovadas. Em caso de falta, devolve `incomplete` com pendências; ingredientes opcionais requerem escolha explícita e ingredientes a gosto sem quantidade bloqueiam total definitivo. Mesmo resultado completo é `calculated_unreviewed`, não aprovação técnica.
+
+## Fontes oficiais e próximos dados
+- TACO/NEPA-UNICAMP, 4ª edição, 2011 (consulta/download no NEPA): https://nepa.unicamp.br/tabela-brasileira-de-composicao-de-alimentos-4a-edicao/
+- A TACO 4ª edição permite reprodução com citação de fonte em sua publicação; registrar código preciso do alimento, estado e edição antes de copiar qualquer valor.
+- TBCA/USP, alternativa/complemento: https://www.tbca.net.br/ — conferir termos atuais de reprodução/uso antes de importação sistemática.
+- Rotulagem e alergênicos em alimentos embalados devem respeitar referências ANVISA: https://www.gov.br/anvisa/pt-br/assuntos/alimentos/rotulagem
+
+**Não transferir valores automaticamente por aproximação de nome.** Produtos embalados (leite de coco, iogurte, chocolate e adoçantes) podem requerer rótulos específicos; receita pronta exige avaliação de transformação no preparo.
+
+## Homologação necessária
+1. No PowerShell, `git pull --ff-only`, `npm run build`. Validar integração TypeScript antes de qualquer merge.
+2. Administração → Gestão de Receitas Oficiais → **Base nutricional dos alimentos**: abrir o cadastro, selecionar Alface (sem números), confirmar que só aparecem campos em branco e fonte a preencher. **Não cadastrar números de teste** no banco de trabalho.
+3. Administração → Chá Cremoso de Cúrcuma → Ficha técnica → **Ingredientes e Biblioteca de Alimentos**: conferir sete ingredientes e dropdown de alimentos; os links devem estar inicialmente sem correspondência e nenhuma massa inventada.
+4. Verificar páginas no desktop e em 390 px; testar gravação de anotação apenas com fonte documental identificada. Nunca registrar alegação clínica nem marcar receita como segura.
+5. Validar RLS com sessão comum e revisão de dados reais da TACO/rótulos com responsável técnico antes de ativar cálculo na interface pública.
+6. Reconciliar histórico local/remoto de migrações antes de `db push`; PR #16 mantém-se em rascunho e sem merge.
+
+**Fora do escopo desta fase:** preenchimento automático dos 49 alimentos, avaliação clínica, identificação exaustiva de alergênicos, aprovação profissional, exibição de macro/micronutrientes ao consumidor, mudanças em cardápios e compras.
