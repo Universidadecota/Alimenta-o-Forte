@@ -56,3 +56,11 @@ npm run build
 **Evidência visual**: captura de `localhost:5173` da seção **Ficha técnica editorial** para a receita Chá Cremoso de Cúrcuma dentro da Gestão de Receitas Oficiais. Exibidos: livro *50 Receitas Para Emagrecer De Vez*, página 18, rendimento 2 copos, 7 ingredientes, revisão editorial pendente, revisão de alergênicos “Não registrada” e contato cruzado “não avaliado”. Campos de notas, andamento editorial e botão “Salvar ficha técnica” estão presentes. **Homologação de carregamento e renderização em desktop: aprovada.**
 
 **Ainda não demonstrados:** clique em salvar com confirmação e releitura do banco; persistência após sair/voltar à receita; exposição/negativa via sessão real não administrativa; layout responsivo a 390 px; abertura do Iogurte Turbo no editor. A presença do botão não comprova persistência. A aprovação nutricional e de alergênicos permanece inexistente. Nenhum novo merge ou deploy autorizado por esta evidência.
+
+## Evidência de gravação e persistência no Supabase — 15/10/2026
+
+**Captura de UI:** após salvar a ficha do Chá Cremoso de Cúrcuma, o campo “Fontes e pendências nutricionais” exibe o texto “Pendente: confirmar volume e composição do leite de coco utilizado, a partir do rótulo.”; aparece a confirmação “Ficha técnica editorial salva. Informações nutricionais e alergênicos continuam sem aprovação.”
+
+**Conferência independente:** consulta SQL **somente leitura** em `public.cc_recipe_technical_sheets` associada a `public.recipes` confirmou o mesmo texto gravado em `nutrition_reference_notes`, `source_page=18`, `reference_yield_quantity=2`, `reference_yield_unit='copos'`, `review_status='pending'`, com `updated_at=2026-10-15 18:13:13.930659+00` (UTC). **Gravação e persistência no banco aprovadas.**
+
+**Limites do teste:** não há evidência direta de alternância entre receitas e retorno à ficha após navegação, nem de gravação por usuário comum, testes de invalidação transacional ou layout mobile. A revisão de alergênicos continua não registrada e a nutrição continua sem aprovação. Não houve alteração nesta homologação de receitas, cardápio, lista de compras ou migrações. PR #16 permanece em rascunho, sem merge.
