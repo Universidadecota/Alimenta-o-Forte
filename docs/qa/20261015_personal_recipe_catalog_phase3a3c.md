@@ -77,3 +77,19 @@ O responsável executou em PowerShell, no diretório do projeto Alimenta-o-Forte
 **Resultado:** sincronização local, TypeScript e build de produção da Fase 3A–3C **aprovados**. **Ainda pendente:** teste visual real da página Receitas filtrada por **Ceias** (dez receitas), conferência de ingredientes/preparo, seleção manual de uma ceia no horário adequado, e biblioteca privada de alimentos na sessão de administrador. Não declarar a interface homologada sem captura/evidência. Nenhuma nova receita foi publicada comercialmente ou atribuída automaticamente a datas.
 
 **Próximo passo do responsável:** atualizar `localhost:5173`, entrar na página **Receitas**, filtrar **Ceias** e enviar uma captura da listagem e, se possível, dos detalhes de uma ceia. Não repetir o build ou testes já aprovados.
+
+## Homologação visual das ceias e ajustes pontuais de UX — 15/10/2026
+
+**Evidências:** três capturas fornecidas do aplicativo local `localhost:5173`, sem alteração de dados no banco. Página **Receitas** com filtro **Ceias** ativo e indicador **10 receitas encontradas**. As capturas da primeira e da segunda metade da listagem mostram dez cartões do acervo piloto, inclusive `Leite dourado de coco`.
+
+**Detalhes da receita:** a captura da ficha `Leite dourado de coco` mostra o texto original dos ingredientes e do preparo, tempo `8 min`, porção de referência `1`, e as ressalvas de que quantidades e alergênicos não estão revisados. O texto visível está coerente com a fonte importada; não houve evidência de alteração de ingredientes.
+
+**Resultado visual aprovado:** contagem de dez ceias, filtro, cartões e consulta da ficha de ingrediente/preparo. **Não foram testados:** salvar uma ceia no cardápio, troca de dia/semana, persistência após recarga e biblioteca de alimentos.
+
+**Inconsistências detectadas e corrigidas no GitHub (ainda sem novo build Windows):**
+- A ficha de uma ceia mostrava o rótulo genérico `Lanche`, por causa da categoria legada do banco. Agora a interface apresenta **Ceia** pelo subtipo original (e **Salada · almoço ou jantar** nas saladas).
+- O botão da ficha tinha a legenda `Adicionar ao dia selecionado`, mas ceias/lanche precisavam de escolha de horário. Agora aparece **Escolher horário no cardápio**; o fluxo exibe apenas horários compatíveis. Para saladas, possibilita selecionar **Almoço** ou **Jantar**, sem alterar o texto da receita.
+- O controle de aumento/diminuição de porções podia sugerir ajuste automático das quantidades originais não estruturadas. Foi retirado das fichas do piloto; o planejamento informa o rendimento original e não permite alterar porções até a revisão. As receitas antigas estruturadas mantêm seu controle de porção.
+- A ficha passou a evitar repetir o rendimento no cabeçalho quando ele já consta de `originalTime`.
+
+**Cuidados:** nenhuma receita foi publicada para usuários externos. Preservar modo de preparo, ingredientes, alternativas, quantidade e rendimento dos PDFs. O novo código **precisa de `git pull --ff-only` e `npm run build`** antes da homologação visual da correção; não repetir o teste já aprovado do filtro das dez ceias. PR #16 permanece draft/sem merge.
