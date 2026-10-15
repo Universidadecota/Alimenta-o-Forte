@@ -1,5 +1,6 @@
 import AdminRecipes from "./AdminRecipes";
 import HomeDashboard from "./HomeDashboard";
+import FoodLibrary from "./FoodLibrary";
 import CopyMealAction from "./CopyMealAction";
 import RecipeImage from "./RecipeImage";
 import {consolidateShopping,shoppingNotes,formatIngredientAmount,type ShoppingItem} from "./lib/shopping";
@@ -11,7 +12,7 @@ import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
 import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeCategoryForSlot, dateKey, startOfWeek, loadRecipes, loadWeek, saveMeal, removeMeal, moveMeal } from "./lib/planner";
-import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, RefreshCcw, LogOut } from "lucide-react";
+import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, RefreshCcw, LogOut, Apple } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
  const [isAdmin,setIsAdmin]=useState(false);
@@ -234,7 +235,7 @@ export default function App(){
   if(dateKey(todayWeek)!==weekStart){setPlan({});setWeek(todayWeek);}
   setSelected(dateKey(today));setPage("Início");
  };
- const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Coleção EDV",Leaf],["Compras",ShoppingBasket],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
+ const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Alimentos",Apple],["Coleção EDV",Leaf],["Compras",ShoppingBasket],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
  return <div className="shell"><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav>{nav.map(([name,Icon])=><button className={page===name?"active":""} key={name} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={19}/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1>{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div>{supabase?<div className="cc-account-controls"><span className="cc-account-email" title={userEmail??"Minha conta"}>{userEmail??"Minha conta"}</span><button type="button" onClick={()=>void supabase?.auth.signOut()} aria-label="Sair da conta"><LogOut size={16}/> Sair</button></div>:<div className="avatar">C&C</div>}</header><div className="notice"><Leaf size={15}/> Ambiente de testes · Receitas demonstrativas em revisão editorial e nutricional.</div>
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
  {page==="Início"&&<HomeDashboard
@@ -261,6 +262,7 @@ export default function App(){
  aria-expanded={optionalOpen} onClick={()=>setOptionalOpen(value=>!value)}>
  {optionalOpen?"Ocultar horários não preenchidos":"Adicionar lanche ou ceia"}
  </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small><strong>{current?.title||"Escolha uma refeição"}</strong><span>{current?current.minutes+" minutos de preparo":"Sem refeição planejada"}</span>{current&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>r.category===recipeCategoryForSlot(slot)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
+ {page==="Alimentos"&&<FoodLibrary/>}
  {page==="Coleção EDV"&&<EdvCollection/>}
  {page==="Administração"&&isAdmin&&<AdminRecipes onRefresh={reloadRecipes}/> }
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
