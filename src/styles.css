@@ -310,3 +310,20 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .cc-food-detail-grid{grid-template-columns:minmax(0,1fr)}.cc-food-detail-header{align-items:flex-start}.cc-food-detail-symbol{height:55px;width:55px}
  .cc-food-pages{gap:8px}.cc-food-pages button{padding:9px}}
 @media(prefers-reduced-motion:reduce){.cc-food-card{transition:none}}
+
+/* Biblioteca de Alimentos: composição centralizada apenas em telas pequenas. */
+@media(max-width:620px){
+ .cc-food-intro{flex-direction:column;align-items:center;text-align:center;gap:12px}
+ .cc-food-intro>div:last-child{min-width:0;width:100%}
+ .cc-food-intro p:not(.cc-food-kicker){margin-left:auto;margin-right:auto}
+ .cc-food-filters{justify-content:center}
+ .cc-food-search>label{text-align:center}
+ .cc-food-results-heading{justify-content:center;flex-wrap:wrap;text-align:center}
+ .cc-food-card{align-items:center;text-align:center}
+ .cc-food-card-art{margin-left:auto;margin-right:auto}
+ .cc-food-card-link{justify-content:center}
+ .cc-food-detail-header{flex-direction:column;align-items:center;text-align:center;gap:12px}
+ .cc-food-detail-grid h3{text-align:center}
+ .cc-food-pages{flex-wrap:wrap;gap:8px}
+ .cc-food-back{display:flex;margin-left:auto;margin-right:auto;justify-content:center}
+}
