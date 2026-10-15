@@ -53,3 +53,13 @@ Verificações: `anon` não pode ler casos nem executar RPCs; `authenticated` n�
 5. Manter PR #16 sem merge até revisão de segurança e reconciliação das migrações local/remoto.
 
 **Não implica:** registro profissional obtido, validade clínica, alimento livre de alergênicos, liberação de cálculo ao consumidor, homologação de build ou merge.
+
+## Teste negativo das RPCs — acesso sem privilégio
+
+**Teste executado:** transação `BEGIN … ROLLBACK` com `SET LOCAL ROLE authenticated` e identificador de usuário não administrador de teste. Para cada chamada, o bloco PL/pgSQL exigiu o erro exato, abortando a validação caso a operação passasse indevidamente.
+
+- `cc_request_food_nutrition_review` recusou com **“Apenas administradores podem solicitar revisao tecnica”**.
+- `cc_decide_food_nutrition_review` recusou com **“Revisor tecnico nao credenciado”**.
+- Transação revertida; **0** profissionais cadastrados, **0** revisões e **0** eventos. `cc_food_nutrition_variants` permanece com **10** linhas e `food_items.nutrition_per_100g` com **0** linhas preenchidas; **25** refeições planejadas preservadas.
+
+**Limite:** simulação SQL não substitui teste com dois usuários reais. O front ainda não passou por build Windows, navegação/solicitação legítima ou verificação visual mobile. Antes de liberar o parecer para uso real, validar também a adequação do protocolo de credenciamento e o tratamento formal de valores `Tr`/ausentes.
