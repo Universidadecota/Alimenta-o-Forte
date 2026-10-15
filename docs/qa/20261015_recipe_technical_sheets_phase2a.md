@@ -48,3 +48,11 @@ npm run build
 - Mapeamento de ingrediente/estado (cru/cozido) para `food_items`, fontes nutricionais rastreáveis e cálculo com unidades convertidas apenas mediante evidência;
 - Workflow de aprovação por responsável técnico, revisão de rótulos e contato cruzado; integração futura de alertas específicos por receita sem alegação indiscriminada de segurança;
 - Reconciliação do histórico de migrações local/remoto antes de `db push`.
+
+## Evidência de build e abertura da ficha — 15/10/2026
+
+**Windows PowerShell**: usuário executou `git pull --ff-only` com avanço de `50a409a` para `8b541f3` e `npm run build`, incluindo `tsc -b` e `vite build`; Vite v6.4.4, **1.642 módulos** transformados, build bem-sucedido em **15,91 s**.
+
+**Evidência visual**: captura de `localhost:5173` da seção **Ficha técnica editorial** para a receita Chá Cremoso de Cúrcuma dentro da Gestão de Receitas Oficiais. Exibidos: livro *50 Receitas Para Emagrecer De Vez*, página 18, rendimento 2 copos, 7 ingredientes, revisão editorial pendente, revisão de alergênicos “Não registrada” e contato cruzado “não avaliado”. Campos de notas, andamento editorial e botão “Salvar ficha técnica” estão presentes. **Homologação de carregamento e renderização em desktop: aprovada.**
+
+**Ainda não demonstrados:** clique em salvar com confirmação e releitura do banco; persistência após sair/voltar à receita; exposição/negativa via sessão real não administrativa; layout responsivo a 390 px; abertura do Iogurte Turbo no editor. A presença do botão não comprova persistência. A aprovação nutricional e de alergênicos permanece inexistente. Nenhum novo merge ou deploy autorizado por esta evidência.
