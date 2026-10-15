@@ -2,6 +2,7 @@ import RecipeImage from "./RecipeImage";
 import { useState } from "react";
 import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
+import { formatRecipeIngredient } from "./lib/ingredientMeasures";
 
 type Props={recipe:Meal;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean};
 export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
@@ -18,7 +19,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
   </div>
   <div className="detail-columns">
    <section className="detail-panel"><h3>Ingredientes</h3><div className="portion-stepper"><span>Porções</span><button type="button" disabled={servings<=1} onClick={()=>setServings(v=>Math.max(1,v-1))} aria-label="Diminuir porções"><Minus size={16}/></button><strong>{servings}</strong><button type="button" disabled={servings>=20} onClick={()=>setServings(v=>Math.min(20,v+1))} aria-label="Aumentar porções"><Plus size={16}/></button></div>
-   <ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{Number((ingredient.quantity*servings/recipe.servings).toFixed(2))} {ingredient.unit}</strong></li>)}</ul>
+   <ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>
    <p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>
    </section>
    <section className="detail-panel"><h3>Modo de preparo</h3>{steps.length>0?<ol className="preparation">{steps.map((step,i)=><li key={i}>{step}</li>)}</ol>:<p className="detail-note">O modo de preparo desta receita ainda não foi cadastrado e revisado. Não vamos apresentar instruções inventadas como definitivas.</p>}
