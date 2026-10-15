@@ -352,3 +352,20 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .recipe-details .ingredients li>span{flex:1 1 42%;min-width:0;overflow-wrap:break-word}
  .recipe-details .ingredients li>strong{flex:0 1 56%;min-width:0;white-space:normal;overflow-wrap:break-word;text-align:right;line-height:1.45}
 }
+
+/* Fase 2A: ficha tecnica de revisao editorial, exclusiva da area administrativa. */
+.cc-tech-sheet{display:grid;gap:12px;background:#fff;border:1px solid #dce7dc;border-radius:18px;padding:clamp(16px,3vw,26px)}
+.cc-tech-sheet h3{margin:0;color:#183f35}
+.cc-tech-sheet .detail-note{margin:0}
+.cc-tech-review{display:grid;gap:7px;background:#f7f4e9;border:1px solid #eee3c9;border-radius:12px;padding:12px 15px;font-size:13px;line-height:1.6;color:#6d5940}
+.cc-tech-review strong{color:#604d33}
+.cc-tech-form{display:grid;gap:15px}
+.cc-tech-form label{display:flex;flex-direction:column;gap:7px;color:#315243;font-size:13px;font-weight:700;min-width:0}
+.cc-tech-form input,.cc-tech-form select,.cc-tech-form textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box;font:inherit;font-weight:400;color:#163e32;border:1px solid #d3e0d3;border-radius:10px;padding:11px 12px;background:#fff}
+.cc-tech-form textarea{resize:vertical;line-height:1.5}
+.cc-tech-form :is(input,select,textarea):focus-visible{outline:2px solid #245a49;outline-offset:2px}
+.cc-tech-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.cc-tech-error{color:#8a3030;font-size:13px;margin:0}
+.cc-tech-success{color:#285b3a;font-size:13px;margin:0}
+.cc-tech-form>.primary{justify-self:start}
+@media(max-width:700px){.cc-tech-fields{grid-template-columns:1fr}.cc-tech-form>.primary{width:100%}}
