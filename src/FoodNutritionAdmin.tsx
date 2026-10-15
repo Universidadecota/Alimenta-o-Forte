@@ -19,6 +19,13 @@ const blank=():VariantDraft=>({
  energy_kcal:null,protein_g:null,carbohydrates_g:null,fats_g:null,
  fiber_g:null,sodium_mg:null,review_status:"pending",notes:""
 });
+const fromVariant=(row:Variant):VariantDraft=>({
+ variant_name:row.variant_name,food_state:row.food_state,preparation_method:row.preparation_method,
+ source_name:row.source_name,source_reference:row.source_reference,source_url:row.source_url,
+ energy_kcal:row.energy_kcal,protein_g:row.protein_g,carbohydrates_g:row.carbohydrates_g,
+ fats_g:row.fats_g,fiber_g:row.fiber_g,sodium_mg:row.sodium_mg,
+ review_status:row.review_status,notes:row.notes
+});
 const nutrients:{key:Nutrient;label:string;unit:string;max:number}[]=[
  {key:"energy_kcal",label:"Energia",unit:"kcal",max:1000},
  {key:"protein_g",label:"Proteínas",unit:"g",max:100},
@@ -74,13 +81,13 @@ export default function FoodNutritionAdmin(){
    if(readError){setError(readError.message);setLoading(false);return;}
    const records=(data??[]) as Variant[];
    setVariants(records);
-   if(records.length){setSelectedVariant(records[0].id);setForm({...records[0]});}
+   if(records.length){setSelectedVariant(records[0].id);setForm(fromVariant(records[0]));}
    setLoading(false);
   })();
   return()=>{active=false;};
  },[selectedFood]);
  const chooseVariant=(id:string)=>{
-  setSelectedVariant(id);setForm(id?{...variants.find(v=>v.id===id)!}:blank());
+  setSelectedVariant(id);setForm(id?fromVariant(variants.find(v=>v.id===id)!):blank());
   setError("");setMessage("");
  };
  const patch=<K extends keyof VariantDraft,>(key:K,value:VariantDraft[K])=>{
@@ -101,8 +108,10 @@ export default function FoodNutritionAdmin(){
   if(form.source_url&& !/^https:\/\//i.test(form.source_url)){
    setError("A URL deve começar por HTTPS ou ficar vazia.");return;
   }
-  if(nutrients.some(({key,max})=>form[key]!==null&&
-    (!Number.isFinite(form[key])||form[key]!<0||form[key]!>max))){
+  if(nutrients.some(({key,max})=>{
+   const value=form[key];
+   return value!==null&&(!Number.isFinite(value)||value<0||value>max);
+  })){
    setError("Confira os valores numéricos e os limites por 100 g.");return;
   }
   setSaving(true);
@@ -117,7 +126,7 @@ export default function FoodNutritionAdmin(){
    const saved=data as Variant;
    setVariants(previous=>(selectedVariant?previous.map(v=>v.id===saved.id?saved:v):[...previous,saved])
     .sort((a,b)=>a.variant_name.localeCompare(b.variant_name,"pt-BR")));
-   setSelectedVariant(saved.id);setForm({...saved});
+   setSelectedVariant(saved.id);setForm(fromVariant(saved));
    setMessage("Variante editorial salva. Nenhum dado nutricional foi publicado ou aprovado.");
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível salvar a variante.");}
   finally{setSaving(false);}
