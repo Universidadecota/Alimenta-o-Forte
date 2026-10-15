@@ -3,7 +3,16 @@ import { supabase } from "./supabase";
 export type RecipeCategory = "Café da manhã" | "Almoço" | "Jantar" | "Lanche";
 export type Slot = "Café da manhã" | "Lanche da manhã" | "Almoço" | "Lanche da tarde" | "Jantar" | "Ceia";
 export type Ingredient = {name:string;quantity:number|null;unit:string;measureMode?:"measured"|"taste"|"unspecified";optional?:boolean};
-export type Meal = {id:string;title:string;category:RecipeCategory;ingredients:Ingredient[];minutes:number;servings:number;description:string|null;instructions:string|null;imageUrl:string|null;ownerId:string|null;imageIsAi:boolean};
+export type PilotRecipeSource = {
+ kind:"week"|"salad"|"snack"|"supper"|"sauce";
+ sourceMeal:string;
+ originalIngredients:string;
+ originalTime:string;
+ originalYield:string;
+ sourceDocument:string;
+ ingredientsReviewed:boolean;
+};
+export type Meal = {id:string;title:string;category:RecipeCategory;ingredients:Ingredient[];minutes:number;servings:number;description:string|null;instructions:string|null;imageUrl:string|null;ownerId:string|null;imageIsAi:boolean;pilotSource?:PilotRecipeSource};
 export type PlannedMeal = {id:string;servings:number};
 export type Plan = Record<string,Partial<Record<Slot,PlannedMeal>>>;
 // As três refeições principais continuam sendo a referência da sugestão automática.
@@ -20,6 +29,15 @@ const fromSlot:Record<Slot,string>={
 };
 const toSlot:Record<string,Slot>={breakfast:"Café da manhã",morning_snack:"Lanche da manhã",lunch:"Almoço",afternoon_snack:"Lanche da tarde",dinner:"Jantar",supper:"Ceia"};
 const toRecipeCategory:Record<string,RecipeCategory>={breakfast:"Café da manhã",lunch:"Almoço",dinner:"Jantar",snack:"Lanche"};
+/** Seleção livre de dias, respeitando o tipo original (ceia, lanche, salada). */
+export function recipeFitsSlot(recipe:Meal,slot:Slot):boolean{
+ const kind=recipe.pilotSource?.kind;
+ if(kind==="salad")return slot==="Almoço"||slot==="Jantar";
+ if(kind==="supper")return slot==="Ceia";
+ if(kind==="snack")return slot==="Lanche da manhã"||slot==="Lanche da tarde";
+ if(kind==="sauce")return false;
+ return recipe.category===recipeCategoryForSlot(slot);
+}
 export const dateKey=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
 export function startOfWeek(date:Date){const d=new Date(date);d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
 const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings:number}>):Plan=>rows.reduce((all,row)=>{
@@ -27,13 +45,41 @@ const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings
 },{} as Plan);
 export async function loadRecipes():Promise<Meal[]>{
  if(!supabase)return [];
- const {data,error}=await supabase.from("recipes").select("id,title,category,prep_minutes,servings,description,instructions,url,owner_user_id,published,image_is_ai,recipe_ingredients(name,quantity,unit,measure_mode,is_optional)").order("title");
- if(error)throw error;
- const ownPaths=(data||[]).filter(r=>r.owner_user_id&&r.url?.startsWith("personal-recipe-images/")).map(r=>r.url!.slice("personal-recipe-images/".length));
+ const [recipeResult,adminResult]=await Promise.all([
+  supabase.from("recipes").select("id,title,category,prep_minutes,servings,description,instructions,url,owner_user_id,published,image_is_ai,recipe_ingredients(name,quantity,unit,measure_mode,is_optional)").order("title"),
+  supabase.rpc("cc_is_admin")
+ ]);
+ if(recipeResult.error)throw recipeResult.error;
+ // Nunca incluir rascunhos oficiais de outro usuário: somente o administrador vê o próprio piloto.
+ const isAdmin=!adminResult.error && adminResult.data===true;
+ const sources=new Map<string,PilotRecipeSource>();
+ if(isAdmin){
+  const {data,error}=await supabase.from("cc_official_recipe_source_records")
+   .select("recipe_id,source_kind,source_meal_name,source_document,original_ingredients,original_time,original_yield,ingredient_review_status,is_plannable,use_stage")
+   .eq("use_stage","personal_pilot").eq("is_plannable",true);
+  if(error)throw error;
+  for(const row of data??[]){
+   sources.set(row.recipe_id,{
+    kind:row.source_kind as PilotRecipeSource["kind"],
+    sourceMeal:row.source_meal_name,
+    originalIngredients:row.original_ingredients,
+    originalTime:row.original_time,
+    originalYield:row.original_yield,
+    sourceDocument:row.source_document,
+    ingredientsReviewed:row.ingredient_review_status==="structured_confirmed"
+   });
+  }
+ }
+ const data=recipeResult.data??[];
+ const ownPaths=data.filter(r=>r.owner_user_id&&r.url?.startsWith("personal-recipe-images/")).map(r=>r.url!.slice("personal-recipe-images/".length));
  const signed=new Map<string,string>();
  if(ownPaths.length){const {data:links}=await supabase.storage.from("personal-recipe-images").createSignedUrls(ownPaths,3600);links?.forEach((link,i)=>{if(link.signedUrl)signed.set(ownPaths[i],link.signedUrl);});}
- return (data||[]).filter(r=>!!toRecipeCategory[r.category]&&(r.published || r.owner_user_id)).map(r=>({
-  id:r.id,title:r.title,category:toRecipeCategory[r.category],minutes:r.prep_minutes,servings:r.servings,description:r.description,instructions:r.instructions,imageUrl:r.url?.startsWith("personal-recipe-images/")?(signed.get(r.url.slice("personal-recipe-images/".length))??null):r.url,ownerId:r.owner_user_id,imageIsAi:r.owner_user_id?Boolean(r.image_is_ai):true,
+ return data.filter(r=>Boolean(toRecipeCategory[r.category])&&(r.published || r.owner_user_id || sources.has(r.id))).map(r=>({
+  id:r.id,title:r.title,category:toRecipeCategory[r.category],minutes:r.prep_minutes,servings:r.servings,
+  description:r.description,instructions:r.instructions,
+  imageUrl:r.url?.startsWith("personal-recipe-images/")?(signed.get(r.url.slice("personal-recipe-images/".length))??null):r.url,
+  ownerId:r.owner_user_id,imageIsAi:r.owner_user_id?Boolean(r.image_is_ai):true,
+  pilotSource:sources.get(r.id),
   ingredients:(r.recipe_ingredients||[]).map(i=>({name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:i.measure_mode??"measured",optional:Boolean(i.is_optional)}))
  }));
 }
