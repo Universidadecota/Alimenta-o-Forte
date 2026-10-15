@@ -27,6 +27,7 @@ export type FoodItem = {
   nutrition_source: string | null;
   nutrition_reviewed_at: string | null;
   editorial_status: "preliminary" | "verified";
+  published: boolean;
 };
 export const FOOD_PAGE_SIZE = 18;
 export const foodCategoryLabel = (category: string) =>
@@ -45,10 +46,13 @@ export async function fetchFoodItems(
   if (!supabase) throw new Error("Biblioteca indisponível: configure a conexão com o Supabase.");
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
   const normalizedSearch = search.trim().slice(0, 80).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+  const {data:adminFlag,error:adminError}=await supabase.rpc("cc_is_admin");
+  // Falha na verificação nunca abre itens preliminares a usuários comuns.
+  const isAdmin = !adminError && adminFlag === true;
   let query = supabase
     .from("food_items")
-    .select("id,name,category,description,reference_portion_quantity,reference_portion_unit,nutrition_per_100g,nutrition_source,nutrition_reviewed_at,editorial_status", { count: "exact" })
-    .eq("published", true);
+    .select("id,name,category,description,reference_portion_quantity,reference_portion_unit,nutrition_per_100g,nutrition_source,nutrition_reviewed_at,editorial_status,published", { count: "exact" });
+  if (!isAdmin) query = query.eq("published", true);
   if (category !== "all") {
     if (!foodCategories.some(item => item.id === category)) throw new Error("Categoria de alimento inválida.");
     query = query.eq("category", category);
