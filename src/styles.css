@@ -345,3 +345,10 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-allergy-alert summary:focus-visible{outline:2px solid #225442;outline-offset:3px;border-radius:3px}
 .cc-allergy-alert details p{margin:8px 0 0;line-height:1.65;max-width:80ch}
 @media(max-width:620px){.notice.cc-allergy-alert{padding:12px 14px;gap:6px}}
+
+/* Ficha da receita: medidas longas podem quebrar sem sobrepor o ingrediente no celular. */
+@media(max-width:620px){
+ .recipe-details .ingredients li{align-items:flex-start}
+ .recipe-details .ingredients li>span{flex:1 1 42%;min-width:0;overflow-wrap:break-word}
+ .recipe-details .ingredients li>strong{flex:0 1 56%;min-width:0;white-space:normal;overflow-wrap:break-word;text-align:right;line-height:1.45}
+}
