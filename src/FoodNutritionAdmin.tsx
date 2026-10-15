@@ -2,21 +2,24 @@ import {useEffect,useState,type FormEvent} from "react";
 import {supabase} from "./lib/supabase";
 
 type Food={id:string;name:string;published:boolean};
-type FoodState="unspecified"|"raw"|"cooked"|"drained"|"prepared"|"packaged";
+type FoodState="unspecified"|"raw"|"cooked"|"sauteed"|"fried"|"roasted"|"grilled"|"drained"|"prepared"|"packaged"|"other";
 type ReviewStatus="pending"|"in_review"|"needs_source"|"awaiting_specialist";
-type NumericField="energy_kcal"|"protein_g"|"carbohydrates_g"|"fats_g"|"fiber_g"|"sodium_mg";
-type NutritionDraft={
- food_state:FoodState;source_name:string;source_reference:string;source_url:string;
- energy_kcal:number|null;protein_g:number|null;carbohydrates_g:number|null;fats_g:number|null;
- fiber_g:number|null;sodium_mg:number|null;
+type Nutrient="energy_kcal"|"protein_g"|"carbohydrates_g"|"fats_g"|"fiber_g"|"sodium_mg";
+type VariantDraft={
+ variant_name:string;food_state:FoodState;preparation_method:string;
+ source_name:string;source_reference:string;source_url:string;
+ energy_kcal:number|null;protein_g:number|null;carbohydrates_g:number|null;
+ fats_g:number|null;fiber_g:number|null;sodium_mg:number|null;
  review_status:ReviewStatus;notes:string;
 };
-const initial: NutritionDraft={
- food_state:"unspecified",source_name:"",source_reference:"",source_url:"",
+type Variant=VariantDraft & {id:string;food_item_id:string};
+const blank=():VariantDraft=>({
+ variant_name:"",food_state:"unspecified",preparation_method:"",
+ source_name:"",source_reference:"",source_url:"",
  energy_kcal:null,protein_g:null,carbohydrates_g:null,fats_g:null,
  fiber_g:null,sodium_mg:null,review_status:"pending",notes:""
-};
-const nutrients:{key:NumericField;label:string;unit:string;max:number}[]=[
+});
+const nutrients:{key:Nutrient;label:string;unit:string;max:number}[]=[
  {key:"energy_kcal",label:"Energia",unit:"kcal",max:1000},
  {key:"protein_g",label:"Proteínas",unit:"g",max:100},
  {key:"carbohydrates_g",label:"Carboidratos",unit:"g",max:100},
@@ -24,15 +27,24 @@ const nutrients:{key:NumericField;label:string;unit:string;max:number}[]=[
  {key:"fiber_g",label:"Fibras",unit:"g",max:100},
  {key:"sodium_mg",label:"Sódio",unit:"mg",max:50000}
 ];
-const statusLabel:Record<ReviewStatus,string>={
- pending:"Pendente",in_review:"Em revisão",needs_source:"Fonte a confirmar",awaiting_specialist:"Aguardando profissional"
+const statusLabels:Record<ReviewStatus,string>={
+ pending:"Pendente",in_review:"Em revisão",needs_source:"Conferir fonte/valores",
+ awaiting_specialist:"Aguardando profissional"
 };
+const stateLabels:Record<FoodState,string>={
+ unspecified:"A identificar",raw:"Cru",cooked:"Cozido",sauteed:"Refogado",
+ fried:"Frito",roasted:"Assado",grilled:"Grelhado",drained:"Drenado",
+ prepared:"Preparado",packaged:"Industrializado / rótulo",other:"Outro (descrever)"
+};
+
 export default function FoodNutritionAdmin(){
  const [foods,setFoods]=useState<Food[]>([]);
- const [selected,setSelected]=useState("");
- const [draft,setDraft]=useState<NutritionDraft>({...initial});
- const [busy,setBusy]=useState(false);
+ const [selectedFood,setSelectedFood]=useState("");
+ const [variants,setVariants]=useState<Variant[]>([]);
+ const [selectedVariant,setSelectedVariant]=useState("");
+ const [form,setForm]=useState<VariantDraft>(blank);
  const [loading,setLoading]=useState(false);
+ const [saving,setSaving]=useState(false);
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
  useEffect(()=>{
@@ -40,107 +52,142 @@ export default function FoodNutritionAdmin(){
   const client=supabase;
   if(!client){setError("Supabase indisponível.");return;}
   void (async()=>{
-   const {data,error:loadError}=await client.from("food_items")
-    .select("id,name,published").order("name");
+   const {data,error:queryError}=await client.from("food_items").select("id,name,published").order("name");
    if(!active)return;
-   if(loadError){setError(loadError.message);return;}
+   if(queryError){setError(queryError.message);return;}
    setFoods(data??[]);
-   setSelected((data??[])[0]?.id??"");
+   setSelectedFood((data??[])[0]?.id??"");
   })();
   return()=>{active=false;};
  },[]);
  useEffect(()=>{
   let active=true;
   const client=supabase;
-  setDraft({...initial});setError("");setMessage("");
-  if(!client||!selected)return;
-  setLoading(true);
+  setLoading(true);setVariants([]);setSelectedVariant("");setForm(blank());
+  setError("");setMessage("");
+  if(!client||!selectedFood){setLoading(false);return;}
   void (async()=>{
-   const {data,error:readError}=await client.from("cc_food_nutrition_drafts")
-    .select("food_state,source_name,source_reference,source_url,energy_kcal,protein_g,carbohydrates_g,fats_g,fiber_g,sodium_mg,review_status,notes")
-    .eq("food_item_id",selected).maybeSingle();
+   const {data,error:readError}=await client.from("cc_food_nutrition_variants")
+    .select("id,food_item_id,variant_name,food_state,preparation_method,source_name,source_reference,source_url,energy_kcal,protein_g,carbohydrates_g,fats_g,fiber_g,sodium_mg,review_status,notes")
+    .eq("food_item_id",selectedFood).order("variant_name");
    if(!active)return;
-   if(readError)setError(readError.message);
-   else if(data)setDraft({...initial,...data} as NutritionDraft);
+   if(readError){setError(readError.message);setLoading(false);return;}
+   const records=(data??[]) as Variant[];
+   setVariants(records);
+   if(records.length){setSelectedVariant(records[0].id);setForm({...records[0]});}
    setLoading(false);
   })();
   return()=>{active=false;};
- },[selected]);
- const patch=<K extends keyof NutritionDraft,>(key:K,value:NutritionDraft[K])=>{
-  setDraft(previous=>({...previous,[key]:value}));setMessage("");
+ },[selectedFood]);
+ const chooseVariant=(id:string)=>{
+  setSelectedVariant(id);setForm(id?{...variants.find(v=>v.id===id)!}:blank());
+  setError("");setMessage("");
+ };
+ const patch=<K extends keyof VariantDraft,>(key:K,value:VariantDraft[K])=>{
+  setForm(previous=>({...previous,[key]:value}));setMessage("");
  };
  const save=async(event:FormEvent)=>{
   event.preventDefault();
-  if(!supabase||!selected||loading||busy)return;
+  if(!supabase||!selectedFood||loading||saving)return;
   setError("");setMessage("");
-  const hasValues=nutrients.some(({key})=>draft[key]!==null);
-  if(hasValues&&(draft.source_name.trim().length<3||
-    draft.source_reference.trim().length<2||draft.food_state==="unspecified")){
-   setError("Antes de registrar nutrientes, informe fonte, código/edição e estado de preparo.");return;
+  if(form.variant_name.trim().length<4){
+   setError("Informe a variedade e o preparo de forma específica.");return;
   }
-  if(draft.source_url&& !/^https:\/\//i.test(draft.source_url)){
-   setError("Utilize um endereço HTTPS na referência, ou deixe-o vazio.");return;
+  const hasNutrients=nutrients.some(({key})=>form[key]!==null);
+  if(hasNutrients&&(form.source_name.trim().length<3||
+    form.source_reference.trim().length<2||form.food_state==="unspecified")){
+   setError("Para informar nutrientes, identifique fonte, código/edição e estado do alimento.");return;
   }
-  setBusy(true);
+  if(form.source_url&& !/^https:\/\//i.test(form.source_url)){
+   setError("A URL deve começar por HTTPS ou ficar vazia.");return;
+  }
+  if(nutrients.some(({key,max})=>form[key]!==null&&
+    (!Number.isFinite(form[key])||form[key]!<0||form[key]!>max))){
+   setError("Confira os valores numéricos e os limites por 100 g.");return;
+  }
+  setSaving(true);
   try{
-   const {error:saveError}=await supabase.from("cc_food_nutrition_drafts")
-    .upsert({food_item_id:selected,...draft},{onConflict:"food_item_id"});
-   if(saveError)throw saveError;
-   setMessage("Rascunho nutricional salvo. Os valores NÃO foram publicados nem aprovados.");
-  }catch(e){setError(e instanceof Error?e.message:"Não foi possível salvar o rascunho.");}
-  finally{setBusy(false);}
+   const fields={...form,variant_name:form.variant_name.trim(),food_item_id:selectedFood};
+   const builder=supabase.from("cc_food_nutrition_variants");
+   const query=selectedVariant?
+     builder.update(fields).eq("id",selectedVariant).eq("food_item_id",selectedFood):
+     builder.insert(fields);
+   const {data,error:writeError}=await query.select("id,food_item_id,variant_name,food_state,preparation_method,source_name,source_reference,source_url,energy_kcal,protein_g,carbohydrates_g,fats_g,fiber_g,sodium_mg,review_status,notes").single();
+   if(writeError)throw writeError;
+   const saved=data as Variant;
+   setVariants(previous=>(selectedVariant?previous.map(v=>v.id===saved.id?saved:v):[...previous,saved])
+    .sort((a,b)=>a.variant_name.localeCompare(b.variant_name,"pt-BR")));
+   setSelectedVariant(saved.id);setForm({...saved});
+   setMessage("Variante editorial salva. Nenhum dado nutricional foi publicado ou aprovado.");
+  }catch(e){setError(e instanceof Error?e.message:"Não foi possível salvar a variante.");}
+  finally{setSaving(false);}
  };
- return <section className="cc-food-nutrition-admin" aria-label="Base nutricional em revisão">
-  <h3>Base nutricional — revisão de alimentos</h3>
-  <p className="detail-note">Registre dados por 100 g usando a descrição e o código exatos da fonte. Estas informações ficam em rascunho administrativo; não aparecem nas fichas públicas e não alimentam cálculos de receitas até a aprovação especializada.</p>
+ return <section className="cc-food-nutrition-admin" aria-label="Variedades e composição nutricional">
+  <h3>Base nutricional — variedades e preparo</h3>
+  <p className="detail-note">Um alimento pode ter várias composições: variedade, estado cru/cozido e preparo alteram a referência. Toda variante é administrativa e permanece em revisão, mesmo quando possui fonte cadastrada.</p>
   <label>Alimento do catálogo
-   <select value={selected} onChange={e=>setSelected(e.target.value)}>
-    {foods.map(f=><option key={f.id} value={f.id}>{f.name}{f.published?"":" · novo / não publicado"}</option>)}
+   <select value={selectedFood} disabled={saving} onChange={e=>setSelectedFood(e.target.value)}>
+    {foods.map(food=><option key={food.id} value={food.id}>{food.name}{food.published?"":" · não publicado"}</option>)}
    </select>
   </label>
-  {loading?<p role="status">Carregando revisão...</p>:selected&&<form className="cc-tech-form" onSubmit={e=>void save(e)}>
-   <div className="cc-tech-fields">
-    <label>Estado do alimento na fonte
-     <select value={draft.food_state} onChange={e=>patch("food_state",e.target.value as FoodState)}>
-      <option value="unspecified">A identificar</option>
-      <option value="raw">Cru</option><option value="cooked">Cozido</option>
-      <option value="drained">Drenado</option><option value="prepared">Preparado</option>
-      <option value="packaged">Industrializado / rótulo</option>
-     </select>
+  {loading?<p role="status">Carregando variantes...</p>:selectedFood&&<>
+   <label>Variante e estado de preparo <small>({variants.length} cadastradas)</small>
+    <select value={selectedVariant} disabled={saving} onChange={e=>chooseVariant(e.target.value)}>
+     <option value="">+ Nova variante, com identificação precisa</option>
+     {variants.map(v=><option key={v.id} value={v.id}>{v.variant_name} · {stateLabels[v.food_state]} · {statusLabels[v.review_status]}</option>)}
+    </select>
+   </label>
+   <form className="cc-tech-form" onSubmit={e=>void save(e)}>
+    <label>Nome exato da variedade / alimento na fonte
+     <input required minLength={4} maxLength={180} placeholder="Ex.: Abobrinha, italiana, crua"
+      value={form.variant_name} onChange={e=>patch("variant_name",e.target.value)}/>
     </label>
-    <label>Andamento
-     <select value={draft.review_status} onChange={e=>patch("review_status",e.target.value as ReviewStatus)}>
-      {Object.entries(statusLabel).map(([key,label])=><option key={key} value={key}>{label}</option>)}
-     </select>
+    <div className="cc-tech-fields">
+     <label>Estado de preparo
+      <select value={form.food_state} onChange={e=>patch("food_state",e.target.value as FoodState)}>
+       {Object.entries(stateLabels).map(([id,label])=><option key={id} value={id}>{label}</option>)}
+      </select>
+     </label>
+     <label>Detalhe do preparo
+      <input maxLength={240} placeholder="Se necessário: refogado, com óleo etc."
+       value={form.preparation_method} onChange={e=>patch("preparation_method",e.target.value)}/>
+     </label>
+     <label>Andamento editorial
+      <select value={form.review_status} onChange={e=>patch("review_status",e.target.value as ReviewStatus)}>
+       {Object.entries(statusLabels).map(([id,label])=><option key={id} value={id}>{label}</option>)}
+      </select>
+     </label>
+    </div>
+    <label>Fonte dos dados
+     <input maxLength={240} placeholder="Ex.: NEPA/UNICAMP — TACO 4ª edição"
+      value={form.source_name} onChange={e=>patch("source_name",e.target.value)}/>
     </label>
-   </div>
-   <label>Fonte (TBCA, TACO, rótulo específico ou outra)
-    <input value={draft.source_name} maxLength={240} onChange={e=>patch("source_name",e.target.value)} placeholder="Instituição e título da referência"/>
-   </label>
-   <label>Código, versão e identificação do alimento na fonte
-    <input value={draft.source_reference} maxLength={500} onChange={e=>patch("source_reference",e.target.value)} placeholder="Código e edição; espécie, produto, forma de preparo"/>
-   </label>
-   <label>URL da referência (quando disponível)
-    <input value={draft.source_url} maxLength={1000} onChange={e=>patch("source_url",e.target.value)} placeholder="https://..."/>
-   </label>
-   <h4>Composição por 100 g</h4>
-   <div className="cc-nutrient-grid">
-    {nutrients.map(({key,label,unit,max})=><label key={key}>{label} ({unit})
-     <input type="number" min={0} max={max} step="any" placeholder="Sem valor confirmado"
-      value={draft[key]??""}
-      onChange={e=>patch(key,e.target.value===""?null:Number(e.target.value))}/>
-    </label>)}
-   </div>
-   <label>Observações técnicas e pendências
-    <textarea rows={3} maxLength={4000} value={draft.notes} onChange={e=>patch("notes",e.target.value)}
-     placeholder="Ex.: alimento genérico, peso cru/cozido ainda não confirmado, rótulo a conferir"/>
-   </label>
-   <p className="detail-note">A ausência de um dado não significa zero. Deixe os campos sem evidência em branco. Salvamento não equivale a aprovação.</p>
-   {error&&<p role="alert" className="cc-tech-error">{error}</p>}
-   {message&&<p role="status" className="cc-tech-success">{message}</p>}
-   <button type="submit" className="primary" disabled={busy}>{busy?"Salvando...":"Salvar rascunho nutricional"}</button>
-  </form>}
-  {!selected&&<p className="detail-note">Nenhum alimento encontrado para revisão.</p>}
-  {loading&&error&&<p role="alert">{error}</p>}
+    <label>Código exato, edição e página na fonte
+     <input maxLength={500} placeholder="Ex.: Tabela 1, linha 71, edição 2011"
+      value={form.source_reference} onChange={e=>patch("source_reference",e.target.value)}/>
+    </label>
+    <label>URL da fonte
+     <input maxLength={1000} value={form.source_url} placeholder="https://..."
+      onChange={e=>patch("source_url",e.target.value)}/>
+    </label>
+    <h4>Composição por 100 g de parte comestível</h4>
+    <div className="cc-nutrient-grid">
+     {nutrients.map(({key,label,unit,max})=><label key={key}>{label} ({unit})
+      <input type="number" min={0} max={max} step="any" placeholder="Sem valor verificado"
+       value={form[key]??""}
+       onChange={e=>patch(key,e.target.value===""?null:Number(e.target.value))}/>
+     </label>)}
+    </div>
+    <label>Pendências e evidências técnicas
+     <textarea rows={3} maxLength={4000} value={form.notes}
+      onChange={e=>patch("notes",e.target.value)}/>
+    </label>
+    <p className="detail-note">O cadastro não aprova nutrientes nem sua aplicação em receitas. Valores ausentes não devem ser tratados como zero. Não use nutrientes de uma variante em outra.</p>
+    {error&&<p role="alert" className="cc-tech-error">{error}</p>}
+    {message&&<p role="status" className="cc-tech-success">{message}</p>}
+    <button type="submit" className="primary" disabled={saving}>{saving?"Salvando...":selectedVariant?"Salvar alterações da variante":"Cadastrar variante para revisão"}</button>
+   </form>
+  </>}
+  {!selectedFood&&<p className="detail-note">Nenhum alimento disponível.</p>}
  </section>;
 }
