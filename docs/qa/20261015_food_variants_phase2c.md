@@ -56,3 +56,9 @@ Em 15/10/2026, o responsável enviou saídas do PowerShell confirmando:
 - segundo `npm run build`: **1.644 módulos transformados**, conclusão em **6,08 segundos**, `index-C4tDwXt4.js` e `index-Dun_Ac1e.css`.
 
 **Classificação:** sincronização e compilação TypeScript/Vite **aprovadas**. Ainda falta captura visual do seletor de 4 variantes de Abobrinha e dos campos sem nutrientes; ainda não foram testadas gravação/recuperação na interface, invalidação por mudança de ingrediente/variante ou permissões reais de sessão não administradora. Não repetir o build; prosseguir com homologação visual pontual. Sem liberação do PR #16 para merge ou deploy.
+
+## Homologação visual do seletor de variantes — 15/10/2026
+
+**Evidência:** captura do aplicativo local em `localhost:5173` com `Abobrinha` selecionada e menu de variantes aberto, exibindo **quatro opções distintas**: `Abobrinha, italiana, cozida`, `Abobrinha, italiana, crua`, `Abobrinha, italiana, refogada` e `Abobrinha, paulista, crua`. As etiquetas de preparo e o estado editorial “Conferir fonte/valores” aparecem no seletor. A ficha da variante cozida mostra a referência **NEPA/UNICAMP — TACO 4ª edição (2011), Tabela 1, linha 70, página impressa 30**.
+
+**Resultado:** carregamento e renderização de variantes aprovados visualmente. A captura foi obtida antes da carga controlada de nutrientes da Fase 2D e não comprova gravação de valores, aprovação técnica ou disponibilidade pública. Testes de permissão reais, consistência após edição e homologação do motor permanecem pendentes. **Não repetir o teste do seletor.**
