@@ -63,3 +63,15 @@ A simulação foi feita em transação descartada (`ROLLBACK`); não substitui t
 **Resultado:** sincronização e compilação Windows **aprovadas**. Isso não comprova que os novos formulários carregam ou gravam corretamente no navegador. As próximas verificações ficam limitadas a (1) seção administrativa “Base nutricional dos alimentos” com campos inicialmente vazios e (2) vínculos de ingredientes na ficha técnica, com opções sem correspondência pré-selecionada. Não registrar nutrientes fictícios nem confirmar vínculos por aproximação.
 
 **PR #16:** permanece aberto, em rascunho e sem merge; não executar `supabase db push` até conciliar o histórico de migrações.
+
+## Homologação visual — telas de nutrição e vínculos no desktop
+
+**Evidências:** três capturas do aplicativo local `localhost:5173`, fornecidas pelo responsável. Na Administração > Receitas oficiais:
+
+- **Base nutricional dos alimentos:** a seção expansível abre e apresenta seleção de alimento, estado, andamento editorial, fonte, referência/código/edição, URL, seis campos de composição por 100 g e observações técnicas. Captura exibiu `Abobrinha` no seletor e campos nutricionais vazios. Estado `Cru` e andamento `Aguardando profissional` aparecem selecionados na interface, mas **não correspondem a registro gravado** no momento da auditoria; opções selecionadas sem salvamento não equivalem a revisão.
+- **Vínculos com receitas:** a ficha do `Iogurte Turbo` apresenta seção de ingredientes e biblioteca. Contagem visual `0 de 8 correspondências editoriais confirmadas`. Primeira entrada corresponde às 4 colheres de sopa de iogurte integral; os seletores de alimento, andamento, justificativa, massa e fonte estão presentes e vazios, sem correspondência arbitrária.
+- **Classificação de aceite:** carregamento e **renderização desktop aprovados**, não a validação funcional de gravação de rascunhos/vínculos, revisão profissional, acessibilidade em celular ou cálculo nutricional.
+
+**Conferência independente em SQL (somente leitura) após as capturas:** 0 registros em `cc_food_nutrition_drafts`, 0 em `cc_recipe_ingredient_food_links`, 0 alimentos com `nutrition_per_100g` preenchido. Catálogo total 49, publicados 34; 9 receitas ativas, 37 ingredientes, 25 refeições planejadas. Nenhum dado de teste de nutrição/vínculo ficou salvo. As duas tabelas continuam sob RLS administrativa.
+
+**Próximo passo:** revisão documental da composição em fonte primária (código, edição e estado cru/cozido), testes de gravação com informação editorial real e testes de permissões com conta comum. Não copiar dados por nomes genéricos nem publicar nutrientes preliminares. PR #16 permanece em rascunho e sem merge.
