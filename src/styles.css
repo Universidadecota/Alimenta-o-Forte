@@ -404,3 +404,9 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-nutrition-review-history li{padding:6px 0}
 .cc-nutrition-review-history li p{margin:4px 0;overflow-wrap:anywhere}
 @media(max-width:620px){.cc-nutrition-review-panel{padding:14px}.cc-nutrition-review-panel .cc-tech-form>.primary{width:100%}}
+
+/* Credenciamento medico: acompanhamento estritamente administrativo, sem convite automatico. */
+.cc-medical-onboarding{display:grid;gap:15px;padding-top:18px}
+.cc-medical-onboarding h3{color:#194538;margin:0}
+.cc-medical-onboarding .cc-tech-review{gap:6px}
+.cc-medical-onboarding .cc-tech-review p{margin:0;overflow-wrap:anywhere}
