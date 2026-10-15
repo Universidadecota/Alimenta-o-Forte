@@ -1,13 +1,13 @@
 import {useState,useEffect,type FormEvent} from "react";
 import {Plus, Trash2, ArrowLeft} from "lucide-react";
-import type {Meal,Slot,Ingredient} from "./lib/planner";
+import type {Meal,RecipeCategory,Ingredient} from "./lib/planner";
 import {supabase} from "./lib/supabase";
-const categories:Slot[]=["Café da manhã","Almoço","Jantar","Lanche"];
-const codes:Record<Slot,string>={"Café da manhã":"breakfast","Almoço":"lunch","Jantar":"dinner","Lanche":"snack"};
+const categories:RecipeCategory[]=["Café da manhã","Almoço","Jantar","Lanche"];
+const codes:Record<RecipeCategory,string>={"Café da manhã":"breakfast","Almoço":"lunch","Jantar":"dinner","Lanche":"snack"};
 type Props={recipe:Meal|null;onBack:()=>void;onSaved:()=>Promise<void>};
 export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
  const [title,setTitle]=useState(recipe?.title??"");
- const [category,setCategory]=useState<Slot>(recipe?.category??"Almoço");
+ const [category,setCategory]=useState<RecipeCategory>(recipe?.category??"Almoço");
  const [description,setDescription]=useState(recipe?.description??"");
  const [instructions,setInstructions]=useState(recipe?.instructions??"");
  const [minutes,setMinutes]=useState(recipe?.minutes??25);
@@ -53,7 +53,7 @@ export default function PersonalRecipeForm({recipe,onBack,onSaved}:Props){
  <h2>{recipe?"Editar minha receita":"Nova receita pessoal"}</h2><p>Receitas pessoais ficam visíveis apenas em sua conta. Não são publicadas na biblioteca oficial.</p>
  <form onSubmit={e=>void save(e)} className="personal-form">
  <label>Nome da receita<input required minLength={2} maxLength={180} value={title} onChange={e=>setTitle(e.target.value)}/></label>
- <div className="personal-form-grid"><label>Categoria<select value={category} onChange={e=>setCategory(e.target.value as Slot)}>{categories.map(v=><option key={v}>{v}</option>)}</select></label><label>Preparo (min)<input type="number" min="0" max="1440" value={minutes} onChange={e=>setMinutes(Number(e.target.value))}/></label><label>Porções de referência<input type="number" min="1" max="20" value={servings} onChange={e=>setServings(Number(e.target.value))}/></label></div>
+ <div className="personal-form-grid"><label>Categoria<select value={category} onChange={e=>setCategory(e.target.value as RecipeCategory)}>{categories.map(v=><option key={v}>{v}</option>)}</select></label><label>Preparo (min)<input type="number" min="0" max="1440" value={minutes} onChange={e=>setMinutes(Number(e.target.value))}/></label><label>Porções de referência<input type="number" min="1" max="20" value={servings} onChange={e=>setServings(Number(e.target.value))}/></label></div>
  <label>Descrição<textarea maxLength={2000} value={description} onChange={e=>setDescription(e.target.value)}/></label>
  <h3>Ingredientes</h3>{ingredients.map((item,i)=><div className="ingredient-edit" key={i}><input aria-label={"Ingrediente "+(i+1)} required maxLength={140} placeholder="Ingrediente" value={item.name} onChange={e=>change(i,"name",e.target.value)}/><input aria-label={"Quantidade "+(i+1)} type="number" min=".001" max="100000" step=".001" required value={item.quantity} onChange={e=>change(i,"quantity",Number(e.target.value))}/><select aria-label={"Unidade "+(i+1)} value={item.unit} onChange={e=>change(i,"unit",e.target.value)}>{[["g","g"],["kg","kg"],["ml","ml"],["l","l"],["un","un"],["lata","lata"],["colher_cha","colher de chá"],["fatia","fatia"],["pitada","pitada"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><button type="button" aria-label={"Excluir ingrediente "+(i+1)} disabled={ingredients.length===1} onClick={()=>setIngredients(a=>a.filter((_,j)=>j!==i))}><Trash2 size={16}/></button></div>)}
  <button type="button" className="secondary" disabled={ingredients.length>=40} onClick={()=>setIngredients(a=>[...a,{name:"",quantity:1,unit:"g"}])}><Plus size={16}/> Ingrediente</button>
