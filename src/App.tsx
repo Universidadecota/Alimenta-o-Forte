@@ -279,7 +279,7 @@ export default function App(){
  <p>{recipes.find(r=>r.id===pendingPlacement.recipeId)?.title??"Receita selecionada"} · {pendingPlacement.servings} {pendingPlacement.servings===1?"porção":"porções"} · {selected.split("-").reverse().join("/")}</p></div>
  <label>Horário<select aria-label="Horário para a receita selecionada" value={placementTarget} disabled={loading||saving}
  onChange={e=>setPlacementTarget(e.target.value as Slot|"")}>
- <option value="">Selecione o horário</option>{daySlots.filter(slot=>{const meal=recipes.find(r=>r.id===pendingPlacement.recipeId);return Boolean(meal)&&recipeFitsSlot(meal,slot);}).map(slot=><option key={slot} value={slot}>{slot}</option>)}</select></label>
+ <option value="">Selecione o horário</option>{daySlots.filter(slot=>{const meal=recipes.find(r=>r.id===pendingPlacement.recipeId);return meal !== undefined && recipeFitsSlot(meal,slot);}).map(slot=><option key={slot} value={slot}>{slot}</option>)}</select></label>
  <button type="button" className="primary" disabled={loading||saving||!placementTarget}
  onClick={()=>void confirmPlacement()}>Adicionar ao cardápio</button>
  <button type="button" className="secondary" disabled={saving} onClick={()=>{setPendingPlacement(null);setPlacementTarget("");}}>Cancelar</button>
