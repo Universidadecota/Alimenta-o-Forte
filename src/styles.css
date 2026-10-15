@@ -224,3 +224,28 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 @media(max-width:700px){.cc-optional-toolbar{align-items:start;flex-direction:column}.cc-optional-toolbar button{width:100%}
  .cc-snack-placement{flex-direction:column;align-items:stretch}
  .cc-snack-placement>div{flex:initial}.cc-snack-placement label{width:100%}}
+
+
+/* Ingredientes com medidas reais, opcionais e observações editoriais */
+.cc-ingredient-editor{
+ display:grid;grid-template-columns:minmax(160px,2fr) minmax(125px,1.2fr) minmax(100px,.8fr) minmax(115px,1fr);
+ gap:10px;align-items:end;padding:14px;border:1px solid #e0e9df;border-radius:13px;background:#fbfcfa;
+}
+.cc-ingredient-editor>label{display:grid;gap:6px;color:#46644f;font-size:12px;font-weight:650}
+.cc-ingredient-editor input:not([type="checkbox"]),.cc-ingredient-editor select{
+ min-width:0;width:100%;min-height:40px;padding:9px;border:1px solid #d3e0d3;border-radius:9px;background:white;color:#26332d
+}
+.cc-ingredient-optional{display:flex!important;align-items:center;gap:8px!important;white-space:normal}
+.cc-ingredient-optional input{width:18px;height:18px;accent-color:#183f35;flex-shrink:0}
+.cc-ingredient-remove{width:40px;height:40px;border:0;border-radius:9px;background:#f9eae7;color:#9b493f;display:grid;place-items:center}
+.cc-ingredient-remove:disabled{opacity:.4}
+.cc-ingredient-hint{grid-column:1/-1;color:#708374;font-size:12px;margin:0}
+.cc-shopping-notes{border:1px solid #dde9db;border-radius:16px;background:#fbfdfb;margin:17px 0;padding:20px}
+.cc-shopping-notes h3{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 6px}
+.cc-shopping-notes p{font-size:12px;color:#657c68;line-height:1.5;margin:0 0 10px}
+.cc-shopping-notes ul{list-style:none;margin:0;padding:0}
+.cc-shopping-notes li{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;border-top:1px solid #e4ece2;padding:12px 0;font-size:13px}
+.cc-shopping-notes li strong{color:#55705b;font-weight:650;text-align:right}
+@media(max-width:920px){.cc-ingredient-editor{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-ingredient-editor>label:first-child{grid-column:1/-1}}
+@media(max-width:520px){.cc-ingredient-editor{grid-template-columns:minmax(0,1fr)}.cc-ingredient-editor>label:first-child{grid-column:auto}
+ .cc-shopping-notes li{flex-direction:column;gap:4px}}
