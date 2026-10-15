@@ -20,6 +20,7 @@ export function consolidateShopping(days:Date[],plan:Plan,recipes:Meal[]):Shoppi
   const planned=plan[dateKey(d)]?.[slot];
   const meal=planned?byId.get(planned.id):undefined;
   if(!planned||!meal||meal.servings<=0)return;
+  if(meal.pilotSource&&!meal.pilotSource.ingredientsReviewed)return;
   meal.ingredients.forEach(item=>{
    if(item.optional||(item.measureMode??"measured")!=="measured"
       ||item.quantity===null||!Number.isFinite(item.quantity)||item.quantity<=0)return;
@@ -46,6 +47,14 @@ export function shoppingNotes(days:Date[],plan:Plan,recipes:Meal[]):ShoppingNote
   const planned=plan[dateKey(d)]?.[slot];
   const meal=planned?byId.get(planned.id):undefined;
   if(!planned||!meal||meal.servings<=0)return;
+  if(meal.pilotSource&&!meal.pilotSource.ingredientsReviewed){
+   const key="piloto|"+meal.id;
+   if(!notes.has(key))notes.set(key,{
+    name:meal.title+" · conferência manual",
+    description:meal.pilotSource.originalIngredients+" — Rendimento do documento: "+meal.pilotSource.originalYield+". Sem soma automática até estruturação fiel das medidas."
+   });
+   return;
+  }
   meal.ingredients.forEach(i=>{
    const mode=i.measureMode??"measured";
    if(!i.optional&&mode==="measured"&&i.quantity!==null)return;
