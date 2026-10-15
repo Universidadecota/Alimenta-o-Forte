@@ -1,5 +1,6 @@
 import {useEffect,useState,type FormEvent} from "react";
 import {supabase} from "./lib/supabase";
+import FoodNutritionReviewPanel from "./FoodNutritionReviewPanel";
 
 type Food={id:string;name:string;published:boolean};
 type FoodState="unspecified"|"raw"|"cooked"|"sauteed"|"fried"|"roasted"|"grilled"|"drained"|"prepared"|"packaged"|"other";
@@ -54,6 +55,8 @@ export default function FoodNutritionAdmin(){
  const [saving,setSaving]=useState(false);
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
+ const [unsavedChanges,setUnsavedChanges]=useState(false);
+ const [savedRevision,setSavedRevision]=useState(0);
  useEffect(()=>{
   let active=true;
   const client=supabase;
@@ -71,6 +74,7 @@ export default function FoodNutritionAdmin(){
   let active=true;
   const client=supabase;
   setLoading(true);setVariants([]);setSelectedVariant("");setForm(blank());
+  setUnsavedChanges(false);
   setError("");setMessage("");
   if(!client||!selectedFood){setLoading(false);return;}
   void (async()=>{
@@ -88,10 +92,11 @@ export default function FoodNutritionAdmin(){
  },[selectedFood]);
  const chooseVariant=(id:string)=>{
   setSelectedVariant(id);setForm(id?fromVariant(variants.find(v=>v.id===id)!):blank());
+  setUnsavedChanges(false);
   setError("");setMessage("");
  };
  const patch=<K extends keyof VariantDraft,>(key:K,value:VariantDraft[K])=>{
-  setForm(previous=>({...previous,[key]:value}));setMessage("");
+  setForm(previous=>({...previous,[key]:value}));setMessage("");setUnsavedChanges(true);
  };
  const save=async(event:FormEvent)=>{
   event.preventDefault();
@@ -127,6 +132,7 @@ export default function FoodNutritionAdmin(){
    setVariants(previous=>(selectedVariant?previous.map(v=>v.id===saved.id?saved:v):[...previous,saved])
     .sort((a,b)=>a.variant_name.localeCompare(b.variant_name,"pt-BR")));
    setSelectedVariant(saved.id);setForm(fromVariant(saved));
+   setUnsavedChanges(false);setSavedRevision(n=>n+1);
    setMessage("Variante editorial salva. Nenhum dado nutricional foi publicado ou aprovado.");
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível salvar a variante.");}
   finally{setSaving(false);}
@@ -196,6 +202,9 @@ export default function FoodNutritionAdmin(){
     {message&&<p role="status" className="cc-tech-success">{message}</p>}
     <button type="submit" className="primary" disabled={saving}>{saving?"Salvando...":selectedVariant?"Salvar alterações da variante":"Cadastrar variante para revisão"}</button>
    </form>
+   {selectedVariant&&<FoodNutritionReviewPanel
+    key={selectedVariant+"-"+savedRevision}
+    variantId={selectedVariant} hasUnsavedChanges={unsavedChanges}/>} 
   </>}
   {!selectedFood&&<p className="detail-note">Nenhum alimento disponível.</p>}
  </section>;
