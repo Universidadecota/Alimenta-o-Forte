@@ -13,7 +13,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Pl
  const servings=Math.max(1,Math.min(20,Math.trunc(prefs.household_size)||1));
  const result:Plan={};
  for(const slot of slots){
-  const available=recipes.filter(r=>r.category===slot&&r.ingredients.length>0&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
+  const available=recipes.filter(r=>r.category===slot&&r.ingredients.length>0&&(!r.pilotSource||r.pilotSource.ingredientsReviewed)&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
   const candidates=withinTime.length?withinTime:available;
   if(!candidates.length)throw new Error("Não há receitas suficientes na categoria "+slot+" após os filtros. Ajuste suas preferências ou cadastre receitas.");
