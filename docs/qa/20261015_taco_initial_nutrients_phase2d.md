@@ -56,3 +56,13 @@ No navegador atualizado, entrar em **Administração → Receitas oficiais → B
 Valores exibidos por 100 g de parte comestível para **Abobrinha italiana cozida**: **15 kcal**, **1,1 g proteínas**, **3 g carboidratos**, **0,2 g gorduras**, **1,6 g fibras** e **1 mg sódio**. Correspondem aos valores armazenados na carga 2D. O campo de observações esclarece que permanecem dependentes de revisão especializada.
 
 **Conclusão restrita:** consulta e renderização dos seis nutrientes no desktop **aprovadas**. A captura não inclui no recorte o seletor nem o status editorial; o banco registra `awaiting_specialist` e não houve evidência de aprovação técnica. Não foi demonstrada gravação por UI, uso no motor de cálculo, nem publicação para consumidor. Próximo teste pontual: variante **Abobrinha italiana crua**, conferir que sódio da TACO indicado como `Tr` continua **sem valor numérico** e não aparece `0 mg`. PR #16 continua rascunho e sem merge; não repetir build por causa desta documentação.
+
+## Homologação de nutriente não quantificado — abobrinha italiana crua
+
+**Evidência:** captura do aplicativo local em `localhost:5173`, variante **Abobrinha, italiana, crua**, estado `Cru`, andamento `Aguardando profissional`, fonte `NEPA/UNICAMP — TACO 4ª edição (2011)`, `Tabela 1, linha 71, página impressa 30`.
+
+**Valores exibidos por 100 g**: energia 19 kcal; proteínas 1,1 g; carboidratos 4,3 g; gorduras 0,1 g; fibras 1,4 g; **sódio “Sem valor verificado”** (input sem número), sem conversão em `0`. Campo de notas registra explicitamente `sodio = Tr na fonte, mantido NULL`.
+
+**Resultado:** teste visual de preservação de `NULL` e do status editorial **aprovado**. **Ressalva semântica:** o placeholder genérico “Sem valor verificado” não distingue no próprio campo `Tr` (traços na fonte) de dado ainda não pesquisado; a informação exata existe nas notas. Em futura melhoria editorial, oferecer indicação `Traços (Tr) — não quantificado` quando suportada por evidência, sem escrever zero nem criar quantidade numérica. Não alterar a fórmula nutricional de receitas com valor indefinido.
+
+**Pendências permanecem:** revisão técnica das dez variantes, testes de escrita/RLS com conta comum real, integridade dos vínculos após edições e prova de cálculo. Nenhum dado, migração ou código foram alterados neste teste; não repetir build nem os testes visuais já aprovados. PR #16 ainda rascunho, sem merge.
