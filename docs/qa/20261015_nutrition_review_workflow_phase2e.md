@@ -63,3 +63,15 @@ Verificações: `anon` não pode ler casos nem executar RPCs; `authenticated` n�
 - Transação revertida; **0** profissionais cadastrados, **0** revisões e **0** eventos. `cc_food_nutrition_variants` permanece com **10** linhas e `food_items.nutrition_per_100g` com **0** linhas preenchidas; **25** refeições planejadas preservadas.
 
 **Limite:** simulação SQL não substitui teste com dois usuários reais. O front ainda não passou por build Windows, navegação/solicitação legítima ou verificação visual mobile. Antes de liberar o parecer para uso real, validar também a adequação do protocolo de credenciamento e o tratamento formal de valores `Tr`/ausentes.
+
+## Homologação visual do painel de revisão e build no Windows — 15/10/2026
+
+**Evidências recebidas:** execução no Windows PowerShell de `git pull --ff-only` com avanço da branch `feat/revisao-alergenos-fase1-12out2026` de `c9672dd` até `70555d3` (fast-forward); `npm run build` (`tsc -b && vite build`) concluído sem erros, Vite 6.4.4, **1.645 módulos** transformados, **43,54 segundos**. CSS `index-z5YuNBsH.css`, JS `index-Dzw-jtt1.js`.
+
+**Captura `localhost:5173`:** a nova seção **Revisão técnica e histórico** é apresentada abaixo do botão **Salvar alterações da variante**. Mensagem de estado **Nenhuma solicitação formal registrada**, campo de texto **Motivo e escopo da revisão** com orientação sobre conferência da transcrição TACO e significado de `Tr`, e botão **Solicitar revisão técnica** visíveis. Nenhum botão de aprovação profissional foi exposto nesta área.
+
+**Resultado:** compilação Windows e apresentação visual desktop **aprovadas**. Não inferir funcionamento de submissão, gravação, histórico após evento, validação de responsável técnico, responsividade ou ausência de erro de console a partir desta captura.
+
+**Conferência de integridade por SQL somente leitura após captura:** **0 solicitações**, **0 eventos**, **0 revisores credenciados**, **10 variantes aguardando especialista**, **0 alimentos com nutrição publicada**, **25 refeições planejadas**. Não foram feitos pedidos fictícios nem concedidas aprovações. Manter PR #16 em rascunho e sem merge.
+
+**Pendente antes do uso real:** credenciamento formal de profissional habilitado (com verificação externa do registro e identificação do usuário), testar pedido legítimo, decisão por profissional distinto do solicitante, invalidação por edição, RLS em sessões reais e política de publicação. Não repetir o build nem a inspeção visual já aprovados.
