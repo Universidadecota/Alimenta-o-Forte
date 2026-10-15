@@ -139,3 +139,8 @@ from public.recipes r
 where r.owner_user_id is null and r.archived_at is null
   and r.title in ('Iogurte Turbo','Chá Cremoso De  Cúrcuma')
 on conflict (recipe_id) do nothing;
+
+-- Trigger functions are internal plumbing, not client RPC endpoints.
+revoke all on function public.cc_recipe_technical_sheet_guard() from public, anon, authenticated;
+revoke all on function public.cc_mark_recipe_technical_sheet_pending() from public, anon, authenticated;
+revoke all on function public.cc_mark_recipe_technical_sheet_pending_on_recipe() from public, anon, authenticated;
