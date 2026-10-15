@@ -11,6 +11,41 @@ const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
   .trim().toLocaleLowerCase("pt-BR").replace(/\s+/g," ");
 export type ShoppingItem={name:string;quantity:number;unit:string};
 export type ShoppingNote={name:string;description:string};
+export type PilotShoppingItem=ShoppingItem&{sourceText:string;sourceRecipes:string[]};
+/**
+ * Lista de compra UTILIZÁVEL para o piloto pessoal.
+ * Cada item contém a expressão literal usada na receita, inclusive medidas,
+ * produtos alternativos e qualificadores. quantity = número de ocorrências
+ * na semana, NÃO quantidade física, nem conversão de colher para gramas.
+ * O prefixo na chave evita colisão com compras estruturadas anteriores.
+ */
+export function collectPilotShopping(days:Date[],plan:Plan,recipes:Meal[]):PilotShoppingItem[]{
+ const byId=new Map(recipes.map(recipe=>[recipe.id,recipe]));
+ const out=new Map<string,PilotShoppingItem>();
+ days.forEach(day=>daySlots.forEach(slot=>{
+  const entry=plan[dateKey(day)]?.[slot];
+  const meal=entry?byId.get(entry.id):undefined;
+  if(!meal?.pilotSource||meal.pilotSource.ingredientsReviewed)return;
+  // O rendimento permanece o da receita original até revisão das medidas.
+  for(const ingredient of meal.ingredients){
+   const text=ingredient.name.trim();
+   if(!text)continue;
+   const key=normalize(text.replace(/[.\s]+$/g,""));
+   const old=out.get(key);
+   if(old){
+    old.quantity+=1;
+    if(!old.sourceRecipes.includes(meal.title))old.sourceRecipes.push(meal.title);
+   }else{
+    out.set(key,{
+     name:"Piloto · "+text,quantity:1,unit:"un",sourceText:text,
+     sourceRecipes:[meal.title]
+    });
+   }
+  }
+ }));
+ return [...out.values()].sort((a,b)=>a.sourceText.localeCompare(b.sourceText,"pt-BR"));
+}
+
 
 /** Apenas ingredientes obrigatórios com quantidades confiáveis participam do total. */
 export function consolidateShopping(days:Date[],plan:Plan,recipes:Meal[]):ShoppingItem[]{
@@ -47,14 +82,7 @@ export function shoppingNotes(days:Date[],plan:Plan,recipes:Meal[]):ShoppingNote
   const planned=plan[dateKey(d)]?.[slot];
   const meal=planned?byId.get(planned.id):undefined;
   if(!planned||!meal||meal.servings<=0)return;
-  if(meal.pilotSource&&!meal.pilotSource.ingredientsReviewed){
-   const key="piloto|"+meal.id;
-   if(!notes.has(key))notes.set(key,{
-    name:meal.title+" · conferência manual",
-    description:meal.pilotSource.originalIngredients+" — Rendimento do documento: "+meal.pilotSource.originalYield+". Sem soma automática até estruturação fiel das medidas."
-   });
-   return;
-  }
+  if(meal.pilotSource&&!meal.pilotSource.ingredientsReviewed)return;
   meal.ingredients.forEach(i=>{
    const mode=i.measureMode??"measured";
    if(!i.optional&&mode==="measured"&&i.quantity!==null)return;
