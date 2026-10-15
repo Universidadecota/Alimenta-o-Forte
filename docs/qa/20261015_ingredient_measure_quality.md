@@ -45,3 +45,21 @@ Somente em `Chá Cremoso De  Cúrcuma`:
 - Dados de receitas são de demonstração, não afirmações nutricionais validadas. Não declarar adequação para alergias, emagrecimento ou tratamentos.
 
 **Proteções operacionais:** não executar `supabase db push` nem merge do PR #16 até reconciliar históricos de migrações Cloud/local e concluir homologação da Fase 1.
+
+
+## Homologação visual concluída — 15/10/2026
+
+**Evidências fornecidas:** três capturas do aplicativo no Chrome localhost:5173 mostrando o Cardápio, Compras e o seletor de unidades em Nova Receita. Build local anterior da revisão `e90ea4d` concluído com sucesso em Windows (`tsc -b && vite build`, 1.639 módulos).
+
+**Resultados confirmados visualmente:**
+- Planejamento de terça-feira 13/10/2026 mantém **Chá Cremoso De Cúrcuma — Lanche da tarde opcional, 2 porções** e **[Exemplo] Frango com arroz, feijão e salada — Almoço, 3 porções**.
+- Compras da semana 12–18/10: **gengibre fresco 4 cm**, **cúrcuma 2 colheres de chá**, **canela 2 pitadas**, **pimenta-caiena 2 pitadas**, leite de coco integral **2 latas** conforme receita demonstrativa cadastrada.
+- Somatório de ingredientes principais permanece **Alface 450 g** (checkbox comprado continua marcado), **Arroz 720 g**, **Feijão 900 g**, **Peito de frango 1.350 g**.
+- Bloco **A gosto e opcionais** mostra **Adoçante (ex.: estévia) — a gosto** e **Manteiga — quantidade não informada · opcional**; sem quantidades fictícias.
+- No editor de nova receita, a lista nativa de unidades inclui **colher de chá** e **colher de sopa**, além de gramas, quilos, mL, litro, unidade, centímetro, lata, fatia e pitada.
+
+**Decisão:** teste visual de medidas e separação da lista de compras **APROVADO**. Não houve novo cadastro de receita pessoal nesta verificação: comportamento de salvamento já foi testado anteriormente por SQL transacional; teste completo de gravação no formulário segue para a regressão final. Layout responsivo em dispositivo móvel permanece pendente.
+
+**Ressalva editorial, não correção automática:** `2 latas` de leite de coco para 2 porções pode não representar uma quantidade adequada para a receita. A origem, o volume por lata e o rendimento devem ser verificados e aprovados antes da publicação; nenhuma proporção foi inventada. Não declarar esta receita como nutricionalmente validada.
+
+**Próximo eixo de produto:** Biblioteca de Alimentos Brasileiros, conforme Fase 1 do Prompt Mestre, começando por modelo de dados e interface de leitura sem substituir diretamente ingredientes ou unidades de receitas existentes. PR #16 permanece sem merge.
