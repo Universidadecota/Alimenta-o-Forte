@@ -203,6 +203,8 @@ export default function App(){
  };
  const confirmSnackPlace=async()=>{
   if(!pendingSnack || !snackTarget || !optionalSlots.includes(snackTarget))return;
+  const selectedRecipe=recipes.find(r=>r.id===pendingSnack.recipeId);
+  if(!selectedRecipe||!recipeFitsSlot(selectedRecipe,snackTarget))return;
   const saved=await update(selected,snackTarget,pendingSnack.recipeId,pendingSnack.servings);
   if(saved){setPendingSnack(null);setSnackTarget("");}
  };
@@ -251,7 +253,7 @@ export default function App(){
  <p>{recipes.find(r=>r.id===pendingSnack.recipeId)?.title??"Receita de lanche"} · {pendingSnack.servings} {pendingSnack.servings===1?"porção":"porções"} · {selected.split("-").reverse().join("/")}</p></div>
  <label>Horário<select aria-label="Horário para a receita de lanche" value={snackTarget} disabled={loading||saving}
  onChange={e=>setSnackTarget(e.target.value as Slot|"")}>
- <option value="">Selecione o horário</option>{optionalSlots.map(slot=><option key={slot} value={slot}>{slot}</option>)}</select></label>
+ <option value="">Selecione o horário</option>{optionalSlots.filter(slot=>{const meal=recipes.find(r=>r.id===pendingSnack.recipeId);return !meal||recipeFitsSlot(meal,slot);}).map(slot=><option key={slot} value={slot}>{slot}</option>)}</select></label>
  <button type="button" className="primary" disabled={loading||saving||!snackTarget}
  onClick={()=>void confirmSnackPlace()}>Adicionar ao cardápio</button>
  <button type="button" className="secondary" disabled={saving} onClick={()=>{setPendingSnack(null);setSnackTarget("");}}>Cancelar</button>
