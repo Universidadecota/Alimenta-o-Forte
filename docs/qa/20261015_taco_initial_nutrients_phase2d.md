@@ -48,3 +48,11 @@ A fonte registra **`Tr`** (traços) para o sódio da abobrinha italiana crua. O 
 No navegador atualizado, entrar em **Administração → Receitas oficiais → Base nutricional dos alimentos**, selecionar `Abobrinha` e a variante `italiana cozida`. Verificar se aparecem **15 kcal, 1,1 g proteína, 0,2 g lipídios, 3,0 g carboidratos, 1,6 g fibras, 1 mg sódio** e o status `Aguardando profissional`. Não clicar em salvar ou alterar valores nesse teste. Não repetir compilação: esta etapa alterou apenas dados SQL e documentação, sem TSX/CSS.
 
 **Depois:** validar os casos `Tr`, os estados no editor e o controle de permissões; somente após revisão de especialista considerar publicar valores e desenvolver cálculo para receitas específicas.
+
+## Homologação visual dos seis campos nutricionais — 15/10/2026
+
+**Evidência fornecida:** captura do aplicativo local `localhost:5173` após a migração nutricional, mostrando a ficha administrativa com referência **NEPA/UNICAMP — TACO 4ª edição (2011)**, **Tabela 1, linha 70, página impressa 30** e URL da obra.
+
+Valores exibidos por 100 g de parte comestível para **Abobrinha italiana cozida**: **15 kcal**, **1,1 g proteínas**, **3 g carboidratos**, **0,2 g gorduras**, **1,6 g fibras** e **1 mg sódio**. Correspondem aos valores armazenados na carga 2D. O campo de observações esclarece que permanecem dependentes de revisão especializada.
+
+**Conclusão restrita:** consulta e renderização dos seis nutrientes no desktop **aprovadas**. A captura não inclui no recorte o seletor nem o status editorial; o banco registra `awaiting_specialist` e não houve evidência de aprovação técnica. Não foi demonstrada gravação por UI, uso no motor de cálculo, nem publicação para consumidor. Próximo teste pontual: variante **Abobrinha italiana crua**, conferir que sódio da TACO indicado como `Tr` continua **sem valor numérico** e não aparece `0 mg`. PR #16 continua rascunho e sem merge; não repetir build por causa desta documentação.
