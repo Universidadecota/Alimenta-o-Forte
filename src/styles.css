@@ -369,3 +369,24 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-tech-success{color:#285b3a;font-size:13px;margin:0}
 .cc-tech-form>.primary{justify-self:start}
 @media(max-width:700px){.cc-tech-fields{grid-template-columns:1fr}.cc-tech-form>.primary{width:100%}}
+
+/* Fase 2B: cadastro de dados por 100 g e correspondencia dos ingredientes. */
+.cc-food-nutrition-section{border:1px solid #d9e5d9;border-radius:16px;background:#fff;padding:15px;margin:10px 0}
+.cc-food-nutrition-section>summary{cursor:pointer;font-weight:750;color:#1e503d;padding:5px 0}
+.cc-food-nutrition-section>summary:focus-visible{outline:2px solid #285845;outline-offset:3px}
+.cc-food-nutrition-admin{display:grid;gap:14px;padding-top:20px;max-width:980px}
+.cc-food-nutrition-admin>label,.cc-mapping-item>label{display:grid;gap:7px;font-size:13px;font-weight:700;color:#285543;min-width:0}
+.cc-food-nutrition-admin select,.cc-mapping-item input,.cc-mapping-item select{width:100%;min-width:0;max-width:100%;padding:11px 12px;border:1px solid #d3dfd3;border-radius:10px;color:#153e32;background:#fff;box-sizing:border-box}
+.cc-nutrient-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cc-food-nutrition-admin h4{margin:8px 0 0}
+.cc-ingredient-mapping{display:grid;gap:14px;border-top:1px solid #e3ece1;margin-top:16px;padding-top:22px}
+.cc-ingredient-mapping h3{margin:0}
+.cc-mapping-item{display:grid;gap:11px;border:1px solid #e2eae1;border-radius:15px;padding:16px;background:#fcfdf9}
+.cc-mapping-item h4{margin:0;color:#1b4438}
+.cc-mapping-item .detail-note{margin:0}
+.cc-mapping-item .secondary{justify-self:start}
+@media(max-width:700px){
+ .cc-nutrient-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cc-mapping-item .secondary{width:100%}
+}
+@media(max-width:420px){.cc-nutrient-grid{grid-template-columns:1fr}}
