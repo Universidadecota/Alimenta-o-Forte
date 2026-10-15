@@ -50,7 +50,7 @@ export default function FoodLibrary() {
       <div className="cc-food-detail-header">
         <div className="cc-food-detail-symbol" aria-hidden="true"><Apple size={33} strokeWidth={1.5}/></div>
         <div>
-          <p className="cc-food-kicker">BIBLIOTECA DE ALIMENTOS</p>
+          <p className="cc-food-kicker">{selected.published?"BIBLIOTECA DE ALIMENTOS":"ACERVO PILOTO · CONSULTA ADMINISTRATIVA"}</p>
           <h2 id="cc-food-detail-title">{selected.name}</h2>
           <span className="cc-food-category-label">{foodCategoryLabel(selected.category)}</span>
         </div>
@@ -70,7 +70,7 @@ export default function FoodLibrary() {
         </section>
       </div>
       <div className="cc-food-safety"><Info size={19} aria-hidden="true"/>
-        <p>Informações de alergênicos e contato cruzado ainda não foram avaliadas nesta ficha. Não utilize esta biblioteca para determinar se um alimento é seguro em caso de alergia ou intolerância.</p>
+        <p>Informações de alergênicos e contato cruzado ainda não foram avaliadas nesta ficha. Não utilize esta biblioteca para determinar se um alimento é seguro em caso de alergia ou intolerância. {selected.published?"":"Este registro permanece preliminar e restrito à administração."}</p>
       </div>
       <p className="cc-food-footnote">Ficha {selected.editorial_status==="verified"?"com revisão editorial registrada":"de classificação preliminar"}. Nenhuma informação nutricional foi estimada pelo aplicativo.</p>
     </div>
@@ -81,7 +81,7 @@ export default function FoodLibrary() {
       <div className="cc-food-intro-icon" aria-hidden="true"><Apple size={28}/></div>
       <div><p className="cc-food-kicker">CONHEÇA SEUS ALIMENTOS</p>
         <h2 id="cc-food-title">Biblioteca de Alimentos Brasileiros</h2>
-        <p>Explore ingredientes do dia a dia por nome e categoria. Um catálogo em evolução, sem informações nutricionais inventadas.</p>
+        <p>Explore ingredientes por nome e categoria. No acesso administrativo, também aparecem os novos cadastros preliminares para uso pessoal; eles não estão publicados para outros usuários.</p>
       </div>
     </div>
     <div className="cc-food-caution"><Info size={17} aria-hidden="true"/>
@@ -117,7 +117,7 @@ export default function FoodLibrary() {
         <div className="cc-food-card-art" aria-hidden="true"><Apple size={29} strokeWidth={1.4}/></div>
         <span className="cc-food-card-category">{foodCategoryLabel(item.category)}</span>
         <strong>{item.name}</strong>
-        <span className="cc-food-card-meta">{item.editorial_status==="verified"?"Conteúdo em revisão":"Informações básicas"}</span>
+        <span className="cc-food-card-meta">{!item.published?"Piloto pessoal · não publicado":item.editorial_status==="verified"?"Conteúdo em revisão":"Informações básicas"}</span>
         <span className="cc-food-card-link">Ver ficha <ArrowRight size={15}/></span>
       </button>)}
     </div>}
