@@ -42,3 +42,20 @@
 5. Homologar `git pull --ff-only` + `npm run build` no Windows, validar a nova seção no desktop e 390px. PR #16 continua rascunho, sem merge.
 
 **Sem efeitos de produção:** nenhum profissional recebeu acesso, nenhuma aprovação foi publicada, nenhuma avaliação nutricional foi alterada. A concordância comunicada pelo administrador foi registrada apenas como contexto.
+
+
+## Continuação 2F.1 — contato de convite e compilação Windows
+
+Em 15/10/2026, o responsável comunicou o endereço de e-mail de contato escolhido para o convite. **Por privacidade, o endereço completo não foi escrito no repositório**; ficou restrito ao Supabase com RLS administrativa.
+
+- Migração `supabase/migrations/20261015231000_cc_medical_reviewer_contact_phase2f1.sql` aplicada no banco: adiciona `contact_email` (normalização/validação, unicidade) e `contact_verified_at` (nulo por padrão); ativação exige confirmação de e-mail.
+- `UPDATE` restrito ao registro CRM-SP 170476 e ao pré-cadastro ainda não convidado; retorno confirmou `contact_registered=true`, `email_verified=false`, `invitation_status=not_invited`, `credential_status=pending_official_check` e `has_account=false`.
+- `src/MedicalReviewerOnboarding.tsx` agora exibe o e-mail indicado e informa se houve verificação de posse do contato, **sem recurso de envio automático**.
+- Não foi criado nenhum usuário, token, senha ou convite. Não foram atribuídos RQE, qualificação verificada, papel de revisor médico, pareceres ou permissões de publicação.
+- Pesquisa em diretórios públicos menciona CRM-SP 170476 e RQE 130834, mas **não comprova oficialmente a especialidade associada ao RQE**; consultar a situação do registro no CFM/CREMESP antes de ativar título de Endocrinologia na plataforma.
+
+### Build local anterior à migração de contato
+O responsável enviou resultado Windows: `git pull --ff-only` atualizou o commit até `e21cfa4`; `npm run build` executou `tsc -b && vite build` sem erros, Vite 6.4.4, **1.646 módulos transformados**, compilação em **23,54 segundos**. Essa homologação cobre o estado anterior à inclusão de `contact_email` no frontend. **Nova alteração de interface ainda exige build do estado atual** antes de merge.
+
+### Homologação seguinte
+`git pull --ff-only` e `npm run build`; no painel administrativo, abrir **Revisão médica · credenciamento de profissionais** e confirmar contato indicado com estado **pendente**, sem convite e sem ativação. Não repetir testes de outras fases. Antes de enviar qualquer e-mail, obter confirmação do RQE/especialidade na fonte oficial, confirmar o destinatário e exigir fluxo individual de convite autenticado. PR #16 continua rascunho, sem merge.
