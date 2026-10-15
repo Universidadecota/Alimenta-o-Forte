@@ -14,7 +14,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
    <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} isAi={recipe.imageIsAi} large/></div>
    <div><span className="eyebrow">{recipe.pilotSource?.kind==="supper"?"Ceia":recipe.pilotSource?.kind==="salad"?"Salada · almoço ou jantar":recipe.pilotSource?.kind==="snack"?"Lanche":recipe.category}</span><h2>{recipe.title}</h2>
     <p>{recipe.description || "Receita demonstrativa em revisão editorial e nutricional."}</p>
-    <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.pilotSource?.originalTime??recipe.minutes+" minutos"}</span><span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span></div>
+    <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.pilotSource?.originalTime??recipe.minutes+" minutos"}</span>{!recipe.pilotSource&&<span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span>}</div>
    </div>
   </div>
   <div className="detail-columns">
@@ -24,7 +24,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
    {recipe.pilotSource?<div className="cc-pilot-source-ingredients">
     <p><strong>Ingredientes conforme o documento original:</strong></p>
     <p>{recipe.pilotSource.originalIngredients}</p>
-    <p className="detail-note">Rendimento informado: {recipe.pilotSource.originalYield}. As medidas ainda não foram estruturadas para redimensionamento ou soma automática na lista de compras.</p>
+    <p className="detail-note">As medidas originais ainda não estão estruturadas para redimensionamento ou soma automática na lista de compras.</p>
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
    {recipe.pilotSource?<p className="detail-note">Acervo de uso pessoal — texto original preservado. As quantidades e o rendimento permanecem exatamente como no documento, sem redimensionamento automático. Dados nutricionais, alergênicos e equivalências aguardam revisão.</p>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
