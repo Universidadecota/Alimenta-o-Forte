@@ -47,3 +47,11 @@ Capturas no Chrome DevTools, vista responsiva 390 × 545 a 100%:
 - O Console exibe `GET /favicon.ico 404`. Esse aviso não indica falha das consultas ou da receita, mas merece correção de ativo estático em uma etapa separada.
 
 Nenhuma nova migração ou alteração de ingredientes é requerida por essas capturas. Permanece o estado conservador de segurança alimentar e o PR #16 não deve ser mesclado ainda.
+
+## Homologação final do ajuste de quebra de linhas — 15/10/2026
+
+**Evidência:** saída fornecida do PowerShell com `git pull --ff-only` (`d5c3483..50a409a`) e `npm run build` executando `tsc -b && vite build`, Vite v6.4.4, **1.641 módulos**, compilação concluída em **16,00 segundos**, sem erros reportados.
+
+**Captura:** ficha do Chá Cremoso de Cúrcuma em Chrome DevTools, visualização responsiva 390 × 545 e 100%: medida da Manteiga (“quantidade não informada · opcional”) quebra em duas linhas sem sobrepor o rótulo do ingrediente; ingredientes anteriores e valores permanecem legíveis. **Correção CSS do commit `672a745` homologada visualmente.**
+
+**Resultado:** pendência de layout mobile da ficha **encerrada**. O `favicon.ico 404` segue como ajuste cosmético independente, sem impacto detectado nos dados. Permanecem pendentes a conferência da apresentação dos oito ingredientes do Iogurte Turbo no editor, revisão nutricional/alergênicos, testes de permissões e conciliação de migrações; manter o PR #16 em rascunho sem merge.
