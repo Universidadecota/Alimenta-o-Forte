@@ -37,3 +37,13 @@ Arquivo versionado: `supabase/migrations/20261015180000_cc_recipe_source_reconci
 - **Resultado:** compilação e regressão visual das duas telas demonstradas **aprovadas**. Os testes anteriores de Biblioteca de Alimentos e da navegação não precisam ser repetidos por causa desta alteração.
 
 **Pendências mantidas:** expandir/recolher o aviso no celular a 390 px, conferir no painel administrativo os oito ingredientes do Iogurte Turbo (mantido em rascunho), revisão profissional de nutrição e alergênicos, segurança de sugestões para perfis com alergias, e reconciliação dos históricos local/remoto antes de merge/deploy. **PR #16 continua sem merge.**
+
+## Complemento — Verificação mobile em 390 px
+
+Capturas no Chrome DevTools, vista responsiva 390 × 545 a 100%:
+- **Cardápio:** alerta de alergias recolhido e expandido visualizados; título, mensagem essencial e texto completo permanecem legíveis, sem corte lateral evidente. A expansão atende ao comportamento esperado.
+- **Receitas:** ficha Chá Cremoso de Cúrcuma exibindo duas porções, 1 lata de leite de coco, 1 colher de chá de cúrcuma, 2 cm de gengibre, 1 pitada de pimenta-caiena e 1 pitada de canela; adoçante a gosto e manteiga opcional sem quantidade. Valores visualmente coincidentes com a reconciliação do banco.
+- **Ressalva:** na última linha da ficha, a medida longa de manteiga fica espremida, com risco de sobreposição da coluna do ingrediente em 390 px. CSS ajustado no commit `672a745` para permitir quebra de linha das medidas; **build e revalidação visual desse commit ainda pendentes**.
+- O Console exibe `GET /favicon.ico 404`. Esse aviso não indica falha das consultas ou da receita, mas merece correção de ativo estático em uma etapa separada.
+
+Nenhuma nova migração ou alteração de ingredientes é requerida por essas capturas. Permanece o estado conservador de segurança alimentar e o PR #16 não deve ser mesclado ainda.
