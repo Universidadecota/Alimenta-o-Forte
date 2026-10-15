@@ -2,13 +2,15 @@ import {useEffect,useMemo,useState} from "react";
 import {supabase} from "./lib/supabase";
 
 type Food={id:string;name:string;published:boolean;editorial_status:string;nutrition_per_100g:Record<string,unknown>|null};
+type NutritionVariant={id:string;food_item_id:string;variant_name:string;food_state:string;source_name:string;source_reference:string};
 type RecipeIngredient={id:string;name:string;quantity:number|null;unit:string;measure_mode:string;is_optional:boolean;position:number};
 type MatchStatus="candidate"|"confirmed";
-type LinkEdit={food_item_id:string;match_status:MatchStatus;match_notes:string;total_mass_g:number|null;mass_evidence:string};
-const empty=():LinkEdit=>({food_item_id:"",match_status:"candidate",match_notes:"",total_mass_g:null,mass_evidence:""});
+type LinkEdit={food_item_id:string;nutrition_variant_id:string|null;match_status:MatchStatus;match_notes:string;total_mass_g:number|null;mass_evidence:string};
+const empty=():LinkEdit=>({food_item_id:"",nutrition_variant_id:null,match_status:"candidate",match_notes:"",total_mass_g:null,mass_evidence:""});
 export default function RecipeIngredientFoodLinks({recipeId}:{recipeId:string}){
  const [ingredients,setIngredients]=useState<RecipeIngredient[]>([]);
  const [foods,setFoods]=useState<Food[]>([]);
+ const [variants,setVariants]=useState<NutritionVariant[]>([]);
  const [edits,setEdits]=useState<Record<string,LinkEdit>>({});
  const [loading,setLoading]=useState(true);
  const [saving,setSaving]=useState<string|null>(null);
@@ -17,33 +19,37 @@ export default function RecipeIngredientFoodLinks({recipeId}:{recipeId:string}){
  useEffect(()=>{
   let active=true;
   const client=supabase;
-  setIngredients([]);setFoods([]);setEdits({});setLoading(true);setError("");setMessage("");
+  setIngredients([]);setFoods([]);setVariants([]);setEdits({});setLoading(true);setError("");setMessage("");
   if(!client){setLoading(false);setError("Supabase indisponível.");return;}
   void (async()=>{
    try{
-    const [itemResult,foodResult]=await Promise.all([
+    const [itemResult,foodResult,variantResult]=await Promise.all([
      client.from("recipe_ingredients").select("id,name,quantity,unit,measure_mode,is_optional,position").eq("recipe_id",recipeId).order("position"),
-     client.from("food_items").select("id,name,published,editorial_status,nutrition_per_100g").order("name")
+     client.from("food_items").select("id,name,published,editorial_status,nutrition_per_100g").order("name"),
+     client.from("cc_food_nutrition_variants").select("id,food_item_id,variant_name,food_state,source_name,source_reference").order("variant_name")
     ]);
     if(itemResult.error)throw itemResult.error;
     if(foodResult.error)throw foodResult.error;
+    if(variantResult.error)throw variantResult.error;
     const items=itemResult.data??[];
     const ids=items.map(item=>item.id);
-    let stored: Array<{ingredient_id:string;food_item_id:string;match_status:string;match_notes:string;total_mass_g:number|null;mass_evidence:string}>=[];
+    let stored: Array<{ingredient_id:string;food_item_id:string;nutrition_variant_id:string|null;match_status:string;match_notes:string;total_mass_g:number|null;mass_evidence:string}>=[];
     if(ids.length){
      const {data,error:linkError}=await client.from("cc_recipe_ingredient_food_links")
-      .select("ingredient_id,food_item_id,match_status,match_notes,total_mass_g,mass_evidence").in("ingredient_id",ids);
+      .select("ingredient_id,food_item_id,nutrition_variant_id,match_status,match_notes,total_mass_g,mass_evidence").in("ingredient_id",ids);
      if(linkError)throw linkError;
      stored=data??[];
     }
     if(!active)return;
     setIngredients(items);
     setFoods(foodResult.data??[]);
+    setVariants(variantResult.data??[]);
     const loaded:Record<string,LinkEdit>={};
     items.forEach(item=>{loaded[item.id]=empty();});
     stored.forEach(link=>{
      loaded[link.ingredient_id]={
-      food_item_id:link.food_item_id,match_status:link.match_status as MatchStatus,
+      food_item_id:link.food_item_id,nutrition_variant_id:link.nutrition_variant_id??null,
+      match_status:link.match_status as MatchStatus,
       match_notes:link.match_notes??"",total_mass_g:link.total_mass_g==null?null:Number(link.total_mass_g),
       mass_evidence:link.mass_evidence??""
      };
@@ -54,7 +60,7 @@ export default function RecipeIngredientFoodLinks({recipeId}:{recipeId:string}){
   })();
   return()=>{active=false;};
  },[recipeId]);
- const confirmed=useMemo(()=>ingredients.filter(item=>edits[item.id]?.match_status==="confirmed"&&edits[item.id]?.food_item_id).length,[ingredients,edits]);
+ const confirmed=useMemo(()=>ingredients.filter(item=>edits[item.id]?.match_status==="confirmed"&&edits[item.id]?.nutrition_variant_id).length,[ingredients,edits]);
  const patch=(id:string,change:Partial<LinkEdit>)=>{
   setEdits(current=>({...current,[id]:{...empty(),...current[id],...change}}));
   setMessage("");
@@ -63,6 +69,9 @@ export default function RecipeIngredientFoodLinks({recipeId}:{recipeId:string}){
   const edit=edits[item.id]??empty();
   if(!supabase||saving||!edit.food_item_id)return;
   setError("");setMessage("");
+  if(edit.match_status==="confirmed"&&!edit.nutrition_variant_id){
+   setError("Para confirmar, selecione a variante e o estado de preparo exatos.");return;
+  }
   if(edit.match_status==="confirmed"&&edit.match_notes.trim().length<3){
    setError("Explique a correspondência antes de confirmar o vínculo.");return;
   }
@@ -90,12 +99,24 @@ export default function RecipeIngredientFoodLinks({recipeId}:{recipeId:string}){
     <h4>{item.name}</h4>
     <p className="detail-note">Medida original: {item.measure_mode==="measured"?item.quantity+" "+item.unit:item.measure_mode==="taste"?"A gosto":"Quantidade não informada"}{item.is_optional?" · opcional":""}</p>
     <label>Alimento correspondente
-     <select value={edit.food_item_id} onChange={e=>patch(item.id,{food_item_id:e.target.value,match_status:"candidate",match_notes:"",total_mass_g:null,mass_evidence:""})}>
+     <select value={edit.food_item_id} onChange={e=>patch(item.id,{food_item_id:e.target.value,nutrition_variant_id:null,match_status:"candidate",match_notes:"",total_mass_g:null,mass_evidence:""})}>
       <option value="">Selecione apenas após identificar o alimento</option>
       {foods.map(f=><option key={f.id} value={f.id}>{f.name}{f.published?"":" · não publicado"}</option>)}
      </select>
     </label>
-    {food&&<p className="detail-note">Base nutricional: {food.editorial_status==="verified"&&food.nutrition_per_100g?"dados cadastrados, conferência técnica necessária":"ainda sem composição publicada/verificada"}.</p>}
+    {food&&<>
+     <label>Variante e estado de preparo
+      <select value={edit.nutrition_variant_id??""}
+       onChange={e=>patch(item.id,{nutrition_variant_id:e.target.value||null,match_status:"candidate",match_notes:"",total_mass_g:null,mass_evidence:""})}>
+       <option value="">Escolher variante exata; sem correspondência automática</option>
+       {variants.filter(v=>v.food_item_id===food.id).map(v=>
+        <option key={v.id} value={v.id}>{v.variant_name} · {v.source_reference||"fonte pendente"}</option>)}
+      </select>
+     </label>
+     {variants.every(v=>v.food_item_id!==food.id)&&
+      <p className="detail-note">Ainda não há variantes documentadas para este alimento. Cadastre-as antes de confirmar a correspondência.</p>}
+     <p className="detail-note">A identificação da variante não aprova o valor nutricional nem a segurança em alergias.</p>
+    </>}
     <label>Andamento da correspondência
      <select value={edit.match_status} onChange={e=>patch(item.id,{match_status:e.target.value as MatchStatus})}>
       <option value="candidate">Candidato — conferir</option>
