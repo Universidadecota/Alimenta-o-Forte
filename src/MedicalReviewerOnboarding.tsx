@@ -20,7 +20,7 @@ type MedicalCandidate={
  cfm_screenshot_date:string|null;
 };
 const credentialLabel:Record<string,string>={
- pending_official_check:"CRM e especialidade aguardando verificação oficial",
+ pending_official_check:"Validação documental e credenciamento interno ainda pendentes",
  crm_verified:"CRM verificado; especialidade aguardando RQE",
  specialty_verified:"Credenciais profissionais verificadas",
  rejected:"Verificação não concluída"
