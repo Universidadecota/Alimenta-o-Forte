@@ -38,7 +38,7 @@ export default function MedicalReviewerOnboarding(){
    const {data,error:loadError}=await client
     .from("cc_medical_reviewer_onboarding")
     .select("id,display_name,registration_region,registration_number,claimed_specialty,consent_reported,credential_status,invitation_status,rqe_number,auth_user_id,contact_email,contact_verified_at")
-    .order("created_at",{ascending:true});
+    .eq("onboarding_status","candidate").order("created_at",{ascending:true});
    if(!active)return;
    if(loadError)setError(loadError.message);
    else setCandidates((data??[]) as MedicalCandidate[]);
