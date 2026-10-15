@@ -22,7 +22,10 @@ export default function App(){
  const [editingId,setEditingId]=useState<string|null>(null);const [recipeForm,setRecipeForm]=useState(false);const [detailId,setDetailId]=useState<string|null>(null); const [recipes,setRecipes]=useState<Meal[]>([]); const [userId,setUserId]=useState<string|null>(null); const [userEmail,setUserEmail]=useState<string|null>(null); const [loading,setLoading]=useState(!!supabase); const [saving,setSaving]=useState(false);const [error,setError]=useState("");
  const [preferences,setPreferences]=useState<FoodPreferences>(defaultPreferences);
  const [page,setPage]=useState("Início"); const [week,setWeek]=useState(()=>startOfWeek(new Date())); const [selected,setSelected]=useState(()=>dateKey(new Date())); const [plan,setPlan]=useState<Plan>(safeLoad);const [done,setDone]=useState<string[]>([]);
- const [optionalOpen,setOptionalOpen]=useState(false);
+ const [recipeSearch,setRecipeSearch]=useState("");
+ const [recipeGroup,setRecipeGroup]=useState("Todos");
+ const [recipePage,setRecipePage]=useState(1);
+  const [optionalOpen,setOptionalOpen]=useState(false);
  const [pendingSnack,setPendingSnack]=useState<{recipeId:string;servings:number}|null>(null);
  const [snackTarget,setSnackTarget]=useState<Slot|"">("");
  const [purchased,setPurchased]=useState<{scope:string;keys:string[];loaded:boolean}>({scope:"",keys:[],loaded:false});
@@ -208,6 +211,25 @@ export default function App(){
   const saved=await update(selected,snackTarget,pendingSnack.recipeId,pendingSnack.servings);
   if(saved){setPendingSnack(null);setSnackTarget("");}
  };
+ const visibleRecipes=useMemo(()=>{
+  const normal=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
+  const query=normal(recipeSearch.trim());
+  return recipes.filter(recipe=>{
+   if(query&&!normal(recipe.title).includes(query))return false;
+   switch(recipeGroup){
+    case "Minhas":return Boolean(recipe.ownerId);
+    case "Saladas":return recipe.pilotSource?.kind==="salad";
+    case "Lanches":return recipe.pilotSource?.kind==="snack"||(!recipe.pilotSource&&recipe.category==="Lanche");
+    case "Ceias":return recipe.pilotSource?.kind==="supper";
+    case "Café da manhã":return recipe.category==="Café da manhã";
+    case "Almoço":return recipe.category==="Almoço"&&recipe.pilotSource?.kind!=="salad";
+    case "Jantar":return recipe.category==="Jantar";
+    default:return true;
+   }
+  });
+ },[recipes,recipeGroup,recipeSearch]);
+ const recipeTotalPages=Math.max(1,Math.ceil(visibleRecipes.length/18));
+ const visibleRecipePage=visibleRecipes.slice((Math.min(recipePage,recipeTotalPages)-1)*18,Math.min(recipePage,recipeTotalPages)*18);
  const shopping=useMemo(()=>consolidateShopping(days,plan,recipes),[days.map(dateKey).join("|"),plan,recipes]);
  const shoppingAnnotations=useMemo(()=>shoppingNotes(days,plan,recipes),[days.map(dateKey).join("|"),plan,recipes]);
  const purchasedScope=(userId??"")+"|"+weekStart;
@@ -269,7 +291,28 @@ export default function App(){
  {page==="Administração"&&isAdmin&&<AdminRecipes onRefresh={reloadRecipes}/> }
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
  {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} onClose={()=>setDetailId(null)} canAdd={!saving&&!loading} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;addFromRecipes(recipe,servings);}}/>:null}
- {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas para uso pessoal, acervo oficial em revisão e receitas particulares. O acervo piloto não está publicado comercialmente.</span></div><div className="toolbar-actions"><button className="secondary" disabled={archivedLoading||saving} onClick={()=>archivedOpen?setArchivedOpen(false):void loadArchived()}>{archivedLoading?"Consultando...":archivedOpen?"Ocultar arquivadas":"Minhas arquivadas"}</button><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div></div>{archivedOpen&&<section className="notice" aria-label="Minhas receitas arquivadas"><div><strong>Minhas receitas arquivadas</strong><p>Somente suas receitas pessoais aparecem aqui. Restaurar devolve a receita à biblioteca, sem alterar a fotografia ou os ingredientes.</p>{archivedRecipes.length===0?<p>Nenhuma receita arquivada.</p>:archivedRecipes.map(item=><div key={item.recipe_id} className="row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginTop:12}}><span>{item.recipe_title}</span><button className="secondary" disabled={saving||archivedLoading} onClick={()=>void restoreArchived(item.recipe_id)}>Restaurar</button></div>)}</div></section>}<div className="recipe-grid">{recipes.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":r.pilotSource?"Acervo piloto pessoal · "+r.pilotSource.sourceMeal:"Receita demonstrativa"} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.pilotSource?.originalIngredients??r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>addFromRecipes(r,r.servings)}><Plus size={16}/> {r.category==="Lanche"?"Escolher horário no cardápio":"Adicionar ao dia selecionado"}</button></div></article>)}</div></>}
+ {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas para uso pessoal, acervo oficial em revisão e receitas particulares. O acervo piloto não está publicado comercialmente.</span></div><div className="toolbar-actions"><button className="secondary" disabled={archivedLoading||saving} onClick={()=>archivedOpen?setArchivedOpen(false):void loadArchived()}>{archivedLoading?"Consultando...":archivedOpen?"Ocultar arquivadas":"Minhas arquivadas"}</button><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div></div>{archivedOpen&&<section className="notice" aria-label="Minhas receitas arquivadas"><div><strong>Minhas receitas arquivadas</strong><p>Somente suas receitas pessoais aparecem aqui. Restaurar devolve a receita à biblioteca, sem alterar a fotografia ou os ingredientes.</p>{archivedRecipes.length===0?<p>Nenhuma receita arquivada.</p>:archivedRecipes.map(item=><div key={item.recipe_id} className="row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginTop:12}}><span>{item.recipe_title}</span><button className="secondary" disabled={saving||archivedLoading} onClick={()=>void restoreArchived(item.recipe_id)}>Restaurar</button></div>)}</div></section>}<div className="cc-recipes-filterbar">
+ <label>Buscar receita
+  <input type="search" placeholder="Ex.: omelete, peixe, salada..." value={recipeSearch}
+   onChange={event=>{setRecipeSearch(event.target.value);setRecipePage(1);}}/>
+ </label>
+ <label>Tipo de refeição
+  <select value={recipeGroup} onChange={event=>{setRecipeGroup(event.target.value);setRecipePage(1);}}>
+   {["Todos","Café da manhã","Almoço","Jantar","Saladas","Lanches","Ceias","Minhas"].map(value=><option key={value} value={value}>{value}</option>)}
+  </select>
+ </label>
+ <span role="status">{visibleRecipes.length} {visibleRecipes.length===1?"receita encontrada":"receitas encontradas"}</span>
+</div>
+{visibleRecipes.length===0&&<div className="notice"><p>Nenhuma receita encontrada com estes filtros.</p></div>}
+<div className="recipe-grid">{visibleRecipePage.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":r.pilotSource?"Acervo piloto pessoal · "+r.pilotSource.sourceMeal:"Receita demonstrativa"} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.pilotSource?.originalIngredients??r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>addFromRecipes(r,r.servings)}><Plus size={16}/> {r.category==="Lanche"?"Escolher horário no cardápio":"Adicionar ao dia selecionado"}</button></div></article>)}</div>
+{recipeTotalPages>1&&<nav className="cc-recipe-pages" aria-label="Paginação de receitas">
+ <button type="button" className="secondary" disabled={recipePage<=1}
+  onClick={()=>setRecipePage(page=>Math.max(1,page-1))}>Anterior</button>
+ <span>Página {Math.min(recipePage,recipeTotalPages)} de {recipeTotalPages}</span>
+ <button type="button" className="secondary" disabled={recipePage>=recipeTotalPages}
+  onClick={()=>setRecipePage(page=>Math.min(recipeTotalPages,page+1))}>Próxima</button>
+</nav>}
+</>}
  {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Somatório dos ingredientes da semana {fmt(days[0])} a {fmt(days[6])}</span></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0?<div className="empty">{shoppingAnnotations.length?"Nenhum ingrediente com quantidade definida para calcular nesta semana. Veja as observações abaixo.":"Ainda não há ingredientes. Planeje suas refeições primeiro."}</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{formatIngredientAmount(item.quantity,item.unit)}</strong></button>;})}</div>{shoppingAnnotations.length>0&&<section className="cc-shopping-notes" aria-label="Ingredientes a gosto e opcionais">
   <h3>Ingredientes para conferência manual, a gosto e opcionais</h3>
   <p>Receitas importadas preservam o texto original e ainda não entram na soma de compras. Confira rendimento, ingredientes e quantidades no PDF antes de comprar.</p>
