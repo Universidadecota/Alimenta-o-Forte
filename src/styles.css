@@ -390,3 +390,17 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .cc-mapping-item .secondary{width:100%}
 }
 @media(max-width:420px){.cc-nutrient-grid{grid-template-columns:1fr}}
+
+/* Revisão técnica nutricional: pedido administrativo e histórico de pareceres. */
+.cc-nutrition-review-panel{display:grid;gap:12px;margin-top:16px;padding:18px;border:1px solid #d9e5dc;border-radius:15px;background:#fcfdfa}
+.cc-nutrition-review-panel>h4{margin:0;color:#194538}
+.cc-nutrition-review-panel .cc-tech-review p{margin:2px 0;overflow-wrap:anywhere}
+.cc-nutrition-review-panel .cc-tech-form{max-width:100%}
+.cc-nutrition-review-panel .cc-tech-form>.primary{justify-self:start}
+.cc-nutrition-review-history{padding:9px 0;border-top:1px solid #dce6de}
+.cc-nutrition-review-history summary{cursor:pointer;font-weight:700;color:#23503f}
+.cc-nutrition-review-history summary:focus-visible{outline:2px solid #245a49;outline-offset:3px}
+.cc-nutrition-review-history ol{padding-left:22px;margin:12px 0 0}
+.cc-nutrition-review-history li{padding:6px 0}
+.cc-nutrition-review-history li p{margin:4px 0;overflow-wrap:anywhere}
+@media(max-width:620px){.cc-nutrition-review-panel{padding:14px}.cc-nutrition-review-panel .cc-tech-form>.primary{width:100%}}
