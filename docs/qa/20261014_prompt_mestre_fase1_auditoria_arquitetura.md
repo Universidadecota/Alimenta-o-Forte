@@ -229,3 +229,32 @@ O usuário enviou duas capturas do planejador de terça-feira, 13/10, ao testar 
 O proprietário enviou captura de `localhost:5173` com **Cardápio**, terça-feira 13/10, almoço de frango, e ação **Mover refeição** aberta após as alterações até `7f3b9bc`. O popover é sobreposto ao cartão, **sem aumentar a altura da linha ou deslocar o jantar**. O seletor nativo de destino abriu e listou os demais dias, com o botão de continuar inativo até selecionar um dia. Os ícones de Copiar e Mover aparecem discretos ao lado do almoço.
 
 **Avaliação visual desktop: aprovada no cenário exibido.** Não foram feitos novos movimentos de refeições nem mudanças no banco neste teste; a captura não atesta o comportamento em telas de toque ou o clique fora do popover. Testes mobile, teclado, foco, Escape e saída por clique externo permanecem para a bateria de acessibilidade/responsividade. **Decisão de produto:** não dedicar mais ciclos a este refinamento no desktop antes de avançar nas necessidades essenciais da Fase 1.
+
+
+## Refeições opcionais — três períodos adicionais (15/10/2026)
+
+**Decisão autorizada pelo proprietário:** incluir lanche da manhã, lanche da tarde e ceia como períodos **opcionais**, sem tornar seis refeições obrigatórias e sem poluir o visual do Cardápio.
+
+**Verificação de compatibilidade feita no Supabase Cloud antes da mudança:** a restrição `planned_meals_slot_check` já permite `breakfast,lunch,dinner,morning_snack,afternoon_snack,supper`; nenhuma nova tabela ou alteração de constraint é necessária. Catálogo de receitas existente: quatro cafés, dois almoços, dois jantares e uma receita de categoria `snack`. O catálogo guarda o **tipo da receita**, que não é a mesma coisa que o horário em que a receita é planejada.
+
+**Alterações versionadas:**
+- `src/lib/planner.ts`: diferencia `RecipeCategory` (inclui Lanche) de `Slot` (6 períodos do dia). `slots` mantém os três principais para sugestões e contadores; `optionalSlots` guarda os três adicionais; `daySlots` define a ordem cronológica. Conversão de leitura/gravação usa os seis códigos realmente aceitos no Cloud.
+- `src/App.tsx`: painel `Adicionar lanche ou ceia` exibe opcionalmente os outros três campos; eles ficam recolhidos quando vazios, mas permanecem visíveis quando já planejados, mesmo com o painel recolhido. Os dias mostram os três principais + indicador de opcionais existentes. Escolha em receitas de categoria `Lanche` leva à seleção explícita do período antes de gravar. O gerador da semana só troca café, almoço e jantar; mensagem explicita que as refeições opcionais já gravadas permanecem.
+- `src/lib/shopping.ts`: consolidação usa os seis períodos, mantendo a lista de ingredientes simples. Não inclui compras parciais.
+- `src/HomeDashboard.tsx`: mantém indicador das três refeições principais, mas mostra cartões dos opcionais quando existem e indica o total de opcionais planejados.
+- `src/PersonalRecipeForm.tsx`: cadastro de receita continua classificando receitas nas quatro categorias originais, sem criar categoria incompatível de banco.
+- `src/styles.css`: controles opcionais discretos e responsivos.
+- `supabase/migrations/20261015002000_cc_move_optional_slots.sql`: extensão mínima da RPC transacional de Mover para aceitar os três códigos opcionais, preservando RLS e checagem de titularidade. Aplicada no Cloud como `cc_move_optional_slots_cloud`.
+
+**Verificações executadas:** Vercel retornou `success` no commit `8838727`. SQL temporário, transação `BEGIN/ROLLBACK`, demonstrou movimentação de `morning_snack` com duas porções e gravação dos três slots opcionais. Conexão via RLS `authenticated`; função é `SECURITY INVOKER`, executável por `authenticated` e não por `anon`. Conferência pós-teste: 24 refeições reais, 2 planos reais, 1 marcador de compra, 0 planos de QA e 0 refeições opcionais reais (ainda não cadastradas). Nenhuma receita ou preferência real foi modificada nesses testes.
+
+**Pendente para homologar no Windows:**
+1. `git pull --ff-only` e `npm run build`; conferir sem erros.
+2. Na semana 12–18/10 abrir **Cardápio** e mostrar `Adicionar lanche ou ceia`. Sem clicar, a tela inicial deve manter só as três refeições principais; após clicar, os 3 horários extras devem aparecer.
+3. Selecionar uma receita da categoria `Lanche` em um slot opcional (após conferir ingredientes/alergênicos e confirmar o aviso de segurança), salvar 1 porção e verificar após `Ctrl+Shift+R`.
+4. Recolher horários não preenchidos e confirmar que o opcional preenchido continua visível.
+5. Conferir que a lista de compras inclui seus ingredientes consolidados; o indicador de refeições principais segue `n/3`, com opcionais identificados separadamente.
+6. Confirmar opção Mover/Copiar no período opcional, apenas após testes visuais básicos; confirmar persistência e isolamento entre contas.
+7. Testar mobile e ações por teclado. **Não declarar Fase 1 concluída antes das pendências da matriz de aceite.**
+
+**Limites:** os lanches não são sugeridos automaticamente (a biblioteca ainda tem dados demonstrativos e não verificados). Não prometer ausência de alérgenos nem qualquer resultado clínico. Não realizar `supabase db push` ou merge PR #16 antes da reconciliação dos históricos de migrações local/remoto.
