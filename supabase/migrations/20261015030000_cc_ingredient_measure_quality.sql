@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION public.save_personal_recipe(p_id uuid, p_title text, 
  LANGUAGE plpgsql
  SET search_path TO ''
 AS $function$
-declare v_id uuid; v_item jsonb; v_count integer; v_pos integer := 0 v_mode text; v_optional boolean; v_quantity numeric;
+declare v_id uuid; v_item jsonb; v_count integer; v_pos integer := 0; v_mode text; v_optional boolean; v_quantity numeric;
 begin
  if (select auth.uid()) is null then raise exception 'Autenticação obrigatória'; end if;
  if length(trim(coalesce(p_title,''))) not between 2 and 180 or p_category not in ('breakfast','lunch','dinner','snack') or p_minutes not between 0 and 1440 or p_servings not between 1 and 20 then raise exception 'Campos inválidos'; end if;
@@ -108,7 +108,7 @@ CREATE OR REPLACE FUNCTION public.cc_save_official_recipe(p_id uuid, p_title tex
  SECURITY DEFINER
  SET search_path TO ''
 AS $function$
-declare v_id uuid; v_item jsonb; v_position int:=0 v_mode text; v_optional boolean; v_quantity numeric;
+declare v_id uuid; v_item jsonb; v_position int:=0; v_mode text; v_optional boolean; v_quantity numeric;
 begin
  if not public.cc_is_admin() then raise exception 'Sem permissão administrativa'; end if;
  if length(trim(coalesce(p_title,''))) not between 2 and 180 or p_category not in ('breakfast','lunch','dinner','snack') or p_minutes not between 0 and 1440 or p_servings not between 1 and 20 then raise exception 'Campos inválidos'; end if;
