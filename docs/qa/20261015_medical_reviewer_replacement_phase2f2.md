@@ -79,3 +79,17 @@ Evidência enviada pelo responsável no PowerShell:
 - Aviso não bloqueante do Rollup/Vite: alguns chunks ultrapassam **500 kB** após minificação. Melhorar code splitting em trabalho futuro; o aviso não reprova o build.
 
 **Classificação:** sincronização e compilação da interface médica com situação CFM e negociação separadas: **APROVADAS**. A captura visual da seção atualizada **não foi enviada ainda**, assim como não houve teste real de convite, aceite, acesso médico ou parecer; não atribuir esse estado como homologado. Não repetir este build nem os testes já concluídos. PR #16 continua em draft sem merge.
+
+## Homologação visual do cadastro médico — 15/10/2026
+
+**Evidência enviada:** captura do aplicativo local em `localhost:5173`, seção **Administração → Revisão médica · credenciamento de profissionais** aberta no computador. Confirma a exibição da candidata **Dra. Juliana Cristina Meireles Nogueira (CRM-SP 274950)** e dos estados separados abaixo:
+
+- **Área informada:** Não informada; **negociação:** Convidada para colaborar — negociação ainda não concluída;
+- **CFM (captura fornecida):** inscrição regular e médico sem especialidade registrada; consulta apresentada em 15/10/2026;
+- **Credenciamento interno:** validação documental e credenciamento interno ainda pendentes; captura não libera pareceres;
+- **Acesso:** Sem convite de acesso ao aplicativo; acordo não concluído; RQE não cadastrado; conta não vinculada; e-mail não informado e não confirmado;
+- O texto orienta concluir a negociação e definir o escopo clínico antes do credenciamento/convite, sem divulgar especialidade não registrada.
+
+**Classificação:** **APROVADO** para renderização e coerência das informações do cadastro no desktop. O build Windows correspondente foi aprovado separadamente (`tsc -b && vite build` em 9,61 s), com aviso não bloqueante do chunk principal de 501,14 kB.
+
+**Limites:** a captura não homologa envio de convite, negociação contratual, verificação independente do CRM/RQE, autenticação médica, emissão de parecer ou visualização mobile. Manter a candidata inativa, sem acesso ou aprovação nutricional. Não repetir o build nem a mesma inspeção visual. Próximo trabalho independente: avaliar divisão do bundle por carregamento sob demanda, preservando regras de acesso e conteúdos já aprovados. PR #16 continua em rascunho e sem merge.
