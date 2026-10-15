@@ -81,7 +81,11 @@ export async function loadRecipes():Promise<Meal[]>{
   ownerId:r.owner_user_id,imageIsAi:r.owner_user_id?Boolean(r.image_is_ai):true,
   pilotSource:sources.get(r.id),
   ingredients:(r.recipe_ingredients||[]).map(i=>({name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:i.measure_mode??"measured",optional:Boolean(i.is_optional)}))
- }));
+ })).sort((a,b)=>{
+  // Acervo pessoal em primeiro lugar; exemplos antigos permanecem identificados e por último.
+  const priority=(m:Meal)=>m.pilotSource?0:m.ownerId?1:2;
+  return priority(a)-priority(b)||a.title.localeCompare(b.title,"pt-BR");
+ });
 }
 export async function loadWeek(userId:string,weekStart:string):Promise<Plan>{
  if(!supabase)throw new Error("Supabase indisponível");
