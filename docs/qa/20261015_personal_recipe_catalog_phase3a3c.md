@@ -120,3 +120,17 @@ O responsável executou em PowerShell, no diretório do projeto Alimenta-o-Forte
 
 ### Roteiro curto
 No PowerShell: `git pull --ff-only` e `npm run build`. No `localhost:5173`: abrir **Compras**, localizar seção **Ingredientes das receitas do acervo pessoal**, conferir como item comprável a medida literal do `Leite dourado de coco` e testar a marcação de um item/recarga. Receitas e dia já incluídos não devem ser modificados. O relatório do teste visual não é homologação de código não compilado.
+
+## Homologação do build corrigido e da listagem de compras — 15/10/2026
+
+**Evidências fornecidas pelo responsável:**
+
+- Primeira execução na branch desatualizada até `6363877` falhou em `src/App.tsx:282`, `TS2345`. O novo `git pull --ff-only` avançou corretamente até **`8ba45e0`**, contendo a correção do narrow TypeScript e a lista de compras do piloto.
+- `npm run build` subsequente executou `tsc -b && vite build` **sem erros**: Vite 6.4.4, **1.646 módulos transformados**, concluído em **39,42 s**, CSS `index-mZtypeNP.css` **52,73 kB**, JS `index-rAgTdM6j.js` **509,58 kB**. Aviso de chunk superior a 500 kB é não bloqueante e fica pendente para otimização.
+- A captura da página **Compras** no `localhost:5173` apresenta **Ingredientes das receitas do acervo pessoal (7)**, com os sete fragmentos de ingredientes do **Leite dourado de coco** separados, preservando termos como `½ colher (chá) de canela` e `1 xícara de leite de coco`, exibindo origem da receita, `1 uso` e checkboxes visíveis.
+
+**Homologações aprovadas:** build Windows corrigido; visualização de sete itens individuais; texto literal, origem, ocorrência e controles de marcação na lista de compras. **Ainda não homologado:** clicar na marcação e confirmá-la após recarregar a página, persistência da marcação no Supabase, duplicação entre receitas distintas e consolidação quantitativa canônica de medidas compatíveis. Não afirmar que as 119 receitas possuem medidas estruturadas, nem que `1 uso` é quantidade física.
+
+**Próximo teste exclusivamente funcional:** marcar apenas um item da lista do piloto, atualizar o navegador e observar se o item permanece marcado, sem repetir build, filtro das ceias ou receitas cadastradas. 
+
+**Prioridade do piloto de três meses:** avançar com modelagem/extração fiel das medidas e agrupamento quantitativo quando as expressões forem inequivocamente compatíveis; manter alternativas, `a gosto`, medidas dependentes de produto e ambiguidade à vista, sem inventar conversões, mexer nos PDFs ou publicar receitas comercialmente. PR #16 permanece em rascunho e sem merge.
