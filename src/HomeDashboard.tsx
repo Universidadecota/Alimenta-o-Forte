@@ -1,5 +1,5 @@
 import { CalendarDays, ChefHat, ChevronRight, ClipboardList, Leaf, ShoppingBasket } from "lucide-react";
-import { dateKey, slots, type Meal, type Plan } from "./lib/planner";
+import { dateKey, slots, daySlots, optionalSlots, type Meal, type Plan } from "./lib/planner";
 
 type DashboardProps = {
   plan: Plan;
@@ -7,6 +7,7 @@ type DashboardProps = {
   loading: boolean;
   goal: string | null;
   plannedInWeek: number;
+  optionalInWeek: number;
   onOpenPlanner: () => void;
   onOpenShopping: () => void;
   onOpenRecipes: () => void;
@@ -26,17 +27,18 @@ const dateLabel = (date: Date) => new Intl.DateTimeFormat("pt-BR", {
 }).format(date);
 
 export default function HomeDashboard({
-  plan, recipes, loading, goal, plannedInWeek,
+  plan, recipes, loading, goal, plannedInWeek, optionalInWeek,
   onOpenPlanner, onOpenShopping, onOpenRecipes, onViewRecipe,
 }: DashboardProps) {
   const today = new Date();
   const todayKey = dateKey(today);
-  const meals = slots.map(slot => {
+  const meals = daySlots.filter(slot => slots.includes(slot) || Boolean(plan[todayKey]?.[slot])).map(slot => {
     const planned = plan[todayKey]?.[slot];
     const recipe = planned ? recipes.find(item => item.id === planned.id) : undefined;
     return { slot, planned, recipe };
   });
-  const plannedToday = meals.filter(meal => Boolean(meal.planned)).length;
+  const plannedToday = meals.filter(meal => slots.includes(meal.slot) && Boolean(meal.planned)).length;
+  const optionalToday = optionalSlots.filter(slot => Boolean(plan[todayKey]?.[slot]?.id)).length;
   const nextToPlan = meals.find(meal => !meal.planned)?.slot;
 
   return <div className="dashboard-home">
@@ -62,12 +64,12 @@ export default function HomeDashboard({
       <div className="dashboard-stat-card">
         <span>Refeições planejadas hoje</span>
         <strong>{loading ? "—" : plannedToday + " / " + slots.length}</strong>
-        <small>Você pode alterar suas escolhas quando quiser.</small>
+        <small>{optionalToday ? optionalToday + " refeição(ões) opcionais também planejadas." : "Lanches e ceia são opcionais."}</small>
       </div>
       <div className="dashboard-stat-card">
         <span>Cardápio da semana</span>
         <strong>{loading ? "—" : plannedInWeek + " / " + (slots.length * 7)}</strong>
-        <small>{slots.length} refeições por dia na versão atual.</small>
+        <small>{optionalInWeek ? optionalInWeek + " refeições opcionais na semana." : "Até 3 refeições principais por dia; lanches opcionais."}</small>
       </div>
       <div className="dashboard-stat-card">
         <span>Seu próximo passo</span>
