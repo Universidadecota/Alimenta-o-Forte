@@ -65,16 +65,16 @@ export function calculateRecipeNutrition(
    missing.push(ingredient.name+": falta quantidade numérica comprovada.");
    continue;
   }
-  if(ingredient.link?.status!=="confirmed"||
-     (ingredient.link.matchNotes??"").trim().length<3||!ingredient.food){
+  const link=ingredient.link;
+  if(!link||link.status!=="confirmed"||
+     link.matchNotes.trim().length<3||!ingredient.food){
    missing.push(ingredient.name+": identificação do alimento ainda não confirmada.");
    continue;
   }
   let mass:number|null=null;
   if(ingredient.unit==="g")mass=ingredient.quantity;
   else if(ingredient.unit==="kg")mass=ingredient.quantity*1000;
-  else if(ingredient.link.totalMassG!==null&&
-    (ingredient.link.massEvidence??"").trim().length>=3)mass=ingredient.link.totalMassG;
+  else if(link.totalMassG!==null&&link.massEvidence.trim().length>=3)mass=link.totalMassG;
   if(mass===null||!Number.isFinite(mass)||mass<=0){
    missing.push(ingredient.name+": conversão para gramas sem evidência.");
    continue;
