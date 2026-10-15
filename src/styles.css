@@ -249,3 +249,64 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 @media(max-width:920px){.cc-ingredient-editor{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-ingredient-editor>label:first-child{grid-column:1/-1}}
 @media(max-width:520px){.cc-ingredient-editor{grid-template-columns:minmax(0,1fr)}.cc-ingredient-editor>label:first-child{grid-column:auto}
  .cc-shopping-notes li{flex-direction:column;gap:4px}}
+
+
+/* Biblioteca de Alimentos — editorial leve, pesquisa e detalhes */
+.cc-food-library{width:100%;min-width:0}
+.cc-food-intro{display:flex;gap:18px;align-items:center;margin:8px 0 22px}
+.cc-food-intro-icon{width:65px;height:65px;border-radius:20px;display:grid;place-items:center;flex-shrink:0;background:#e4eee2;color:#183f35}
+.cc-food-kicker{color:#698770;letter-spacing:1.5px;font-size:10px;font-weight:800;margin:0 0 7px}
+.cc-food-intro h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(23px,2.6vw,33px);letter-spacing:-.5px}
+.cc-food-intro p:not(.cc-food-kicker){color:#6a7b6e;font-size:13px;line-height:1.65;max-width:690px;margin:8px 0 0}
+.cc-food-caution{display:flex;align-items:flex-start;gap:11px;background:#fff9ec;color:#846943;border:1px solid #ecdcb8;padding:13px 16px;border-radius:13px;font-size:12px;line-height:1.55;margin-bottom:19px}
+.cc-food-caution svg{flex-shrink:0}
+.cc-food-search{display:grid;gap:9px;border:1px solid #e2e8df;background:white;padding:18px;border-radius:16px}
+.cc-food-search label{color:#335846;font-size:13px;font-weight:700}
+.cc-food-search>div{display:flex;gap:10px;align-items:center;border:1px solid #d9e4d8;border-radius:11px;padding:5px 5px 5px 12px}
+.cc-food-search>div svg{color:#6f8a75;flex-shrink:0}
+.cc-food-search input{flex:1;width:100%;min-width:0;min-height:37px;border:0;outline:0;background:transparent;color:#26332d;font-size:14px}
+.cc-food-search>div:focus-within{outline:2px solid #a2bba5;outline-offset:2px}
+.cc-food-search .primary{min-height:40px}
+.cc-food-filters{display:flex;flex-wrap:wrap;gap:7px;margin:20px 0}
+.cc-food-filters button{border:1px solid #dfe8de;background:#fff;color:#49634e;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:650;min-height:39px}
+.cc-food-filters button.active,.cc-food-filters button[aria-pressed="true"]{background:#183f35;color:#fff;border-color:#183f35}
+.cc-food-filters button:focus-visible,.cc-food-card:focus-visible{outline:3px solid #e9a66a;outline-offset:3px}
+.cc-food-results-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:13px}
+.cc-food-results-heading p{font-size:12px;color:#718174;margin:0}
+.cc-food-results-heading button{border:0;background:transparent;color:#23573f;text-decoration:underline;font-size:12px}
+.cc-food-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cc-food-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:9px;border:1px solid #e0e9df;border-radius:17px;background:#fff;min-width:0;min-height:230px;padding:18px;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.cc-food-card:hover{border-color:#afc8b2;box-shadow:0 9px 27px #183f350b;transform:translateY(-1px)}
+.cc-food-card-art{display:grid;place-items:center;width:49px;height:49px;background:#edf3e9;border-radius:13px;color:#356348;margin-bottom:4px}
+.cc-food-card-category{color:#708574;font-size:11px}
+.cc-food-card strong{color:#183f35;font-size:18px;font-family:"Playfair Display",Georgia,serif;line-height:1.25}
+.cc-food-card-meta{font-size:11px;color:#829188}
+.cc-food-card-link{display:flex;align-items:center;gap:5px;color:#24533c;font-size:12px;font-weight:750;margin-top:auto}
+.cc-food-pages{display:flex;justify-content:center;align-items:center;gap:18px;margin:23px 0}
+.cc-food-pages span{color:#687d6c;font-size:12px;font-weight:650}
+.cc-food-pages button:disabled{opacity:.4;cursor:not-allowed}
+.cc-food-empty,.cc-food-error{text-align:center;border:1px dashed #dce7db;border-radius:15px;padding:38px;background:#fff;color:#667b6b}
+.cc-food-empty svg{color:#7d9d80}
+.cc-food-error p{margin:0 0 15px}
+.cc-food-back{display:inline-flex;align-items:center;gap:8px;margin:4px 0 21px;background:none;border:0;color:#36664d;font-weight:700;font-size:13px}
+.cc-food-detail{border:1px solid #e2e8e0;border-radius:20px;background:#fff;padding:clamp(19px,4vw,34px)}
+.cc-food-detail-header{display:flex;align-items:center;gap:19px;padding-bottom:24px;border-bottom:1px solid #e9eee7}
+.cc-food-detail-symbol{width:76px;height:76px;border-radius:20px;background:#e8f1e4;color:#245642;display:grid;place-items:center;flex-shrink:0}
+.cc-food-detail h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(24px,3vw,36px);margin:0 0 8px}
+.cc-food-category-label{font-size:12px;color:#627b67}
+.cc-food-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;padding-top:24px}
+.cc-food-detail-grid h3{font-family:"Playfair Display",Georgia,serif;color:#183f35;font-size:21px;margin:0 0 11px}
+.cc-food-detail-grid p{color:#566b5c;font-size:13px;line-height:1.75;margin:0 0 14px}
+.cc-food-detail-grid p strong{color:#264a36}
+.cc-food-safety{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:#fff9ec;border:1px solid #eedebc;color:#735b36;border-radius:12px;margin-top:15px}
+.cc-food-safety svg{flex-shrink:0}
+.cc-food-safety p{font-size:12px;line-height:1.6;margin:0}
+.cc-food-footnote{font-size:11px;color:#758376;line-height:1.6;margin:18px 0 0}
+@media(max-width:950px){.cc-food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.cc-food-intro{align-items:flex-start}.cc-food-grid{grid-template-columns:minmax(0,1fr)}.cc-food-card{min-height:186px}
+ .cc-food-search{padding:12px}.cc-food-search>div{flex-wrap:wrap;padding:9px}
+ .cc-food-search input{flex:1 1 calc(100% - 36px)}
+ .cc-food-search .primary{width:100%}
+ .cc-food-detail-grid{grid-template-columns:minmax(0,1fr)}.cc-food-detail-header{align-items:flex-start}.cc-food-detail-symbol{height:55px;width:55px}
+ .cc-food-pages{gap:8px}.cc-food-pages button{padding:9px}}
+@media(prefers-reduced-motion:reduce){.cc-food-card{transition:none}}
