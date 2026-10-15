@@ -10,6 +10,7 @@ export const nutrients=[
 export type NutrientKey=typeof nutrients[number];
 export type NutrientValues=Record<NutrientKey,number>;
 export type NutritionEvidence={
+ variantId:string;
  foodName:string;
  editorialStatus:string;
  per100g:Partial<Record<NutrientKey,number|null>>|null;
@@ -25,6 +26,7 @@ export type IngredientNutritionInput={
  optional:boolean;
  food?:NutritionEvidence;
  link?:{
+  variantId:string|null;
   status:string;
   matchNotes:string;
   totalMassG:number|null;
@@ -66,8 +68,9 @@ export function calculateRecipeNutrition(
    continue;
   }
   const link=ingredient.link;
-  if(!link||link.status!=="confirmed"||
-     link.matchNotes.trim().length<3||!ingredient.food){
+  if(!link||link.status!=="confirmed"||!link.variantId||
+     link.matchNotes.trim().length<3||!ingredient.food||
+     link.variantId!==ingredient.food.variantId){
    missing.push(ingredient.name+": identificação do alimento ainda não confirmada.");
    continue;
   }
