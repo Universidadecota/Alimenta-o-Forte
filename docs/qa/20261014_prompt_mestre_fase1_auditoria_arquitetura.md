@@ -258,3 +258,16 @@ O proprietário enviou captura de `localhost:5173` com **Cardápio**, terça-fei
 7. Testar mobile e ações por teclado. **Não declarar Fase 1 concluída antes das pendências da matriz de aceite.**
 
 **Limites:** os lanches não são sugeridos automaticamente (a biblioteca ainda tem dados demonstrativos e não verificados). Não prometer ausência de alérgenos nem qualquer resultado clínico. Não realizar `supabase db push` ou merge PR #16 antes da reconciliação dos históricos de migrações local/remoto.
+
+
+## Homologação em navegador — lanche opcional e consolidação das compras (15/10/2026)
+
+**Evidências visuais recebidas:** após atualização do navegador `localhost:5173` em 15/10/2026, o Cardápio da terça 13/10 manteve almoço demonstrativo de frango/arroz/feijão/salada (3 porções) e **Lanche da tarde · opcional: Chá Cremoso de Cúrcuma (2 porções)**. A seção de opcionais estava recolhida, mas o lanche preenchido permaneceu visível, como exigido. O dia aparece como `1/3 +1 opc.`. O Supabase Cloud já havia confirmado a linha da receita no slot `afternoon_snack` com 2 porções.
+
+Na aba **Compras**, semana 12–18/10, a lista incluiu os ingredientes do chá junto dos ingredientes dos almoços. As quantidades anteriores de **Alface 450 g**, **Arroz 720 g**, **Feijão 900 g**, **Peito de frango 1350 g** foram mantidas, e a caixa de Alface permaneceu marcada. Outros sete ingredientes da receita do chá foram adicionados, resultando em 11 linhas visíveis.
+
+**Aprovado no cenário:** persistência de refeição opcional após reload, exibição recolhida de horários não usados, soma dos ingredientes do lanche e preservação dos ingredientes e da marcação anteriores. Isto não conclui todos os testes da Fase 1.
+
+**Problema editorial/de dados identificado (pendente, sem mudanças automáticas):** o cadastro demonstrativo do Chá Cremoso de Cúrcuma mistura orientação no nome do ingrediente com quantidade/unidade numérica. A lista apresenta `2 cm de gengibre fresco, cortado em pedaços menores — 2 un`, `Adoçante a gosto — 2 un` e `Opcional: um pedacinho de manteiga — 2 un` para duas porções; essas quantidades não têm significado comercial ou culinário inequívoco. Também aparecem `2 pitada` e `2 lata`, que exigem revisão de pluralização e referência real de rendimento. **Não corrigir mediante suposições sobre quantidade, peso ou orientação nutricional**; definir regras para quantidades opcionais/a gosto, reestruturar ingredientes e revisar a receita com fontes e aprovação editorial antes da publicação comercial. Não alterar automaticamente nenhuma marcação de compra ou receita real.
+
+**Próxima prioridade sugerida:** auditoria da qualidade dos ingredientes e da biblioteca de receitas, antes de incrementar exportação, marketplace ou compras avançadas. A versão permanece em branch e PR sem merge.
