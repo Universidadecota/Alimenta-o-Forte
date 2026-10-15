@@ -75,3 +75,13 @@ A simulação foi feita em transação descartada (`ROLLBACK`); não substitui t
 **Conferência independente em SQL (somente leitura) após as capturas:** 0 registros em `cc_food_nutrition_drafts`, 0 em `cc_recipe_ingredient_food_links`, 0 alimentos com `nutrition_per_100g` preenchido. Catálogo total 49, publicados 34; 9 receitas ativas, 37 ingredientes, 25 refeições planejadas. Nenhum dado de teste de nutrição/vínculo ficou salvo. As duas tabelas continuam sob RLS administrativa.
 
 **Próximo passo:** revisão documental da composição em fonte primária (código, edição e estado cru/cozido), testes de gravação com informação editorial real e testes de permissões com conta comum. Não copiar dados por nomes genéricos nem publicar nutrientes preliminares. PR #16 permanece em rascunho e sem merge.
+
+## Conferência da fonte primária antes da importação
+
+A publicação primária **TACO (NEPA/UNICAMP, 4ª edição, 2011)**, disponível em https://nepa.unicamp.br/wp-content/uploads/sites/27/2023/10/taco_4_edicao_ampliada_e_revisada.pdf , foi consultada para definir o contrato de correspondência exata.
+
+- No quadro de composição da página impressa **30**, a TACO diferencia claramente **Abobrinha italiana, crua** (identificador de linha 71) de **Abobrinha paulista, crua** (linha 73) e da mesma italiana **cozida** (linha 70) ou **refogada** (linha 72). O nome genérico `Abobrinha` de `food_items` não informa qual variedade/estado usar.
+- A mesma página traz **Alface americana, crespa, lisa e roxa, todas cruas** (linhas 77–80). O nome genérico `Alface` não autoriza escolher uma arbitrariamente.
+- Na página impressa **32**, há **Cenoura cozida** (linha 109) e **Cenoura crua** (linha 110): fonte exata exige identificação do preparo.
+
+**Decisão:** nenhum desses números foi importado ou atribuído a alimentos genéricos nesta etapa. A próxima versão deve representar **variante/estado do alimento** na referência técnica, com código de origem, e só então permitir uso em cálculos com revisão; uma única linha de rascunho por nome genérico é insuficiente para armazenar simultaneamente as composições de cru e cozido. Manter `cc_food_nutrition_drafts` como cadastro preliminar até ampliar o esquema de variantes. Não confundir estado escolhido na tela com registro gravado.
