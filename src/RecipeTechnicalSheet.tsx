@@ -51,7 +51,7 @@ export default function RecipeTechnicalSheet({recipeId,recipeTitle,referenceServ
       ...initial,...technical.data,
       source_page:technical.data.source_page==null?null:Number(technical.data.source_page),
       reference_yield_quantity:technical.data.reference_yield_quantity==null?null:Number(technical.data.reference_yield_quantity)
-     }:{...initial});
+     } as Sheet:{...initial});
      setAllergens(allergenReview.data??null);
     }
    }catch(e){
@@ -60,7 +60,7 @@ export default function RecipeTechnicalSheet({recipeId,recipeTitle,referenceServ
   })();
   return()=>{active=false;};
  },[recipeId]);
- const patch=<K extends keyof Sheet>(key:K,value:Sheet[K])=>{setSheet(s=>({...s,[key]:value}));setMessage("");};
+ const patch=<K extends keyof Sheet,>(key:K,value:Sheet[K])=>{setSheet(s=>({...s,[key]:value}));setMessage("");};
  const save=async(e:FormEvent)=>{
   e.preventDefault();
   if(!supabase||busy)return;
