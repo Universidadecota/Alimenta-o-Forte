@@ -99,7 +99,7 @@ begin
   v_pos=v_pos+1;
  end loop;
  return v_id;
-end $function$
+end $function$;
 
 
 CREATE OR REPLACE FUNCTION public.cc_save_official_recipe(p_id uuid, p_title text, p_category text, p_description text, p_instructions text, p_minutes integer, p_servings integer, p_ingredients jsonb, p_published boolean, p_url text, p_image_is_ai boolean)
@@ -152,5 +152,5 @@ begin
   v_position:=v_position+1;
  end loop;
  return v_id;
-end $function$
+end $function$;
 
