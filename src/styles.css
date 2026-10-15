@@ -335,3 +335,13 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .notice[role="alert"]>strong{line-height:1.45}
  .notice[role="alert"]>span{line-height:1.65}
 }
+
+/* Alerta acessível e compacto; detalhes completos mediante expansão voluntária. */
+.notice.cc-allergy-alert{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:14px 16px}
+.cc-allergy-alert strong{color:#73532b;line-height:1.5}
+.cc-allergy-alert>span{line-height:1.6}
+.cc-allergy-alert details{width:100%;min-width:0}
+.cc-allergy-alert summary{width:fit-content;font-size:12px;font-weight:700;cursor:pointer;color:#225442;padding:6px 0;text-decoration:underline;text-underline-offset:3px}
+.cc-allergy-alert summary:focus-visible{outline:2px solid #225442;outline-offset:3px;border-radius:3px}
+.cc-allergy-alert details p{margin:8px 0 0;line-height:1.65;max-width:80ch}
+@media(max-width:620px){.notice.cc-allergy-alert{padding:12px 14px;gap:6px}}
