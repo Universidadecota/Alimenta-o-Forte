@@ -37,3 +37,34 @@ A pesquisa web de caráter público abriu o Guia Médico oficial do CREMESP e su
 5. Não mesclar PR #16 nem publicar dados nutricionais antes de credenciamento, revisão técnica e reconciliação das migrações locais/remotas.
 
 **Build já aprovado até commit `3063f34`** (Vite v6.4.4, build em 20,06s). **Novo código de substituição ainda não compilado no Windows.**
+
+
+## Fase 2F.3 — evidência CFM e negociação de colaboração ainda pendente
+
+Em **15/10/2026**, o responsável forneceu captura do **Portal CFM — Busca por Médicos** em `https://portal.cfm.org.br/busca-medicos/` com os seguintes dados visíveis:
+- **JULIANA CRISTINA MEIRELES NOGUEIRA**, **CRM 274950/SP**; inscrição **Principal**; situação **Regular**;
+- data da inscrição **08/07/2025** e primeira inscrição na UF **08/07/2025**;
+- campo **Especialidades/Áreas de Atuação: Médico sem especialidade registrada**.
+  
+**Interpretação:** os dados do registro principal e a situação regular constam da captura enviada pelo usuário, mas essa evidência visual não equivale a uma verificação documental independente, nem permite anunciar título de especialista/RQE. Não equiparar ausência de especialidade registrada a impossibilidade de exercício geral da medicina. Não criar aprovação médica ou nutricional.
+
+O responsável esclareceu que a profissional **foi convidada para negociar participação**, mas **o acordo ainda não foi concluído**. Isso **não é** convite enviado pela plataforma nem concordância contratual. Não procurar nem transferir o e-mail da médica anterior.
+
+### Migrações implementadas e aplicadas
+- `supabase/migrations/20261015233000_cc_medical_collaboration_cfm_evidence_phase2f3.sql`, aplicada como `cc_medical_collaboration_cfm_evidence_phase2f3_cloud`: `collaboration_status='invited_pending_negotiation'`, `cfm_screenshot_registration_status='regular'`, `cfm_screenshot_specialty_status='none_registered'`, `cfm_screenshot_date=2026-10-15`, fonte URL do Portal CFM, notas de evidência com ressalva de captura. `credential_status` **permanece** `pending_official_check`, enquanto não houver confirmação documental administrativa.
+- `supabase/migrations/20261015233500_cc_medical_invitation_after_agreement_phase2f3b.sql`, aplicada como `cc_medical_invitation_after_agreement_phase2f3b_cloud`: CHECK exige **`collaboration_status='agreed'` e `consent_reported=true`** para `invitation_status` passar a `invited` ou `active`. A função `cc_is_medical_reviewer()` também requer acordo, conta autenticada e credenciamento especializado, ainda ausentes.
+- Nenhum contato foi informado para esta profissional, nenhum convite foi enviado, nenhuma conta foi criada, nenhuma concessão de acesso foi realizada.
+
+### Interface
+`src/MedicalReviewerOnboarding.tsx` foi atualizado para mostrar separadamente o andamento da negociação e do convite de acesso, situação do CRM e ausência de especialidade registrada conforme captura, a data da consulta, e o credenciamento interno ainda pendente. A seção continua limitada a administradores. **Novo código ainda não homologado visualmente**.
+
+### Build Windows informado pelo responsável
+`git pull --ff-only` avançou de `3063f34` para `f14ea38`. `npm run build` (**`tsc -b && vite build`**) concluiu sem erros com Vite 6.4.4, **1.646 módulos transformados**, `index-nDeS1V6H.css`, `index-DIMbo6PB.js`, **20,06 segundos**. Esse resultado homologa o estado anterior à Fase 2F.3. Não exigir repetição de testes anteriores; apenas compilar a nova alteração de interface.
+
+### Verificação no Supabase após a mudança
+- Única candidata atual: CRM-SP 274950, negociação convidada/pendente, CRM regular e nenhuma especialidade registrada **conforme captura**.
+- `consent_reported=false`, `invitation_status='not_invited'`, `auth_user_id=NULL`, `contact_email=NULL`, `rqe_number=NULL`, `verified_at=NULL`.
+- **0** contas médicas ativas, **0** revisores nutricionais, **0** pareceres nutricionais e **0** nutrientes públicos; **25** refeições planejadas preservadas.
+- Simulação de sessão sem administração: **0** candidatas visíveis e função de revisão médica retorna `false`.
+
+**Próximas ações:** aguardar resultado da negociação; somente se o acordo for concluído, definir escopo de atuação (sem divulgar título de especialista não registrado), obter e confirmar canal de contato, realizar verificação documental final, preparar autenticação e convite individual. PR #16 permanece rascunho sem merge.
