@@ -44,7 +44,7 @@ export async function fetchFoodItems(
 ): Promise<{ items: FoodItem[]; total: number }> {
   if (!supabase) throw new Error("Biblioteca indisponível: configure a conexão com o Supabase.");
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
-  const normalizedSearch = search.trim().slice(0, 80);
+  const normalizedSearch = search.trim().slice(0, 80).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
   let query = supabase
     .from("food_items")
     .select("id,name,category,description,reference_portion_quantity,reference_portion_unit,nutrition_per_100g,nutrition_source,nutrition_reviewed_at,editorial_status", { count: "exact" })
@@ -56,7 +56,7 @@ export async function fetchFoodItems(
   if (normalizedSearch) {
     // \\ protege o filtro de caracteres com significado no LIKE.
     const escaped = normalizedSearch.replace(/[\\%_]/g, character => "\\" + character);
-    query = query.ilike("name", "%" + escaped + "%");
+    query = query.ilike("search_name", "%" + escaped + "%");
   }
   query = query.order("name", { ascending: true })
     .range((safePage - 1) * FOOD_PAGE_SIZE, safePage * FOOD_PAGE_SIZE - 1);
