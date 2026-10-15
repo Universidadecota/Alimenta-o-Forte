@@ -93,3 +93,30 @@ O responsável executou em PowerShell, no diretório do projeto Alimenta-o-Forte
 - A ficha passou a evitar repetir o rendimento no cabeçalho quando ele já consta de `originalTime`.
 
 **Cuidados:** nenhuma receita foi publicada para usuários externos. Preservar modo de preparo, ingredientes, alternativas, quantidade e rendimento dos PDFs. O novo código **precisa de `git pull --ff-only` e `npm run build`** antes da homologação visual da correção; não repetir o teste já aprovado do filtro das dez ceias. PR #16 permanece draft/sem merge.
+
+
+## Fase 3D — piloto funcional: compras marcáveis e correção de compilação
+
+**Data:** 15/10/2026. **Solicitação:** durante os próximos **3 meses de uso pessoal**, as 119 receitas devem funcionar no cardápio e nas compras, independentemente da futura publicação comercial, sem modificar nenhuma receita.
+
+### Evidências recebidas
+- Três capturas mostram alerta explícito sobre alergia/intolerância antes da inserção manual; a receita **Leite dourado de coco** foi selecionada na área **Ceia** e consta na lista de compras como observação original.
+- Supabase foi consultado após as capturas: **26 planejamentos**, sendo **1 receita do piloto**; **119 fontes**, **114 receitas planejáveis**, **1.073 expressões de ingredientes originais**, **0 receitas piloto públicas**, **34 alimentos públicos anteriores** e **0 nutrientes publicados**. Isso comprova gravação no banco, não prova de recarga de tela.
+- O usuário executou `git pull --ff-only` até `6363877`, mas `npm run build` falhou com **TS2345** na linha 282 de `src/App.tsx`, pois o TypeScript não estreita `Meal | undefined` usando `Boolean(meal)` antes de `recipeFitsSlot`.
+
+### Correções feitas no GitHub — ainda requerem novo build local
+1. **Correção TS2345:** `src/App.tsx` usa `meal !== undefined && recipeFitsSlot(meal,slot)`. Commit de correção `8b99e27`. O build anterior **não está homologado**.
+2. **Compras do piloto:** `src/lib/shopping.ts` apresenta os fragmentos literais das receitas incluídas na semana, no mesmo formato e com as medidas do documento original, em uma **lista própria de compras**, sem relegá-los a uma observação única por receita. Expressões idênticas aparecem agrupadas e mostram número de ocorrências; **não é soma de gramas nem escolha entre alternativas**.
+3. **Marcação persistente:** `src/App.tsx` usa o fluxo existente `purchaseKey`/`savePurchasedItem` para os novos itens, com prefixo `Piloto ·` na chave; o item é apresentado sem o prefixo, mostrando texto original e título(s) da receita. Os itens também entram em **Copiar lista**. Compras legadas estruturadas seguem iguais.
+4. **Rendimento correto:** `src/App.tsx` assegura que a seleção de receita piloto com medidas não estruturadas usa as **porções originais**, sem assumir `household_size` e sem multiplicar ingredientes arbitrariamente.
+5. **Identificação do ambiente:** cabeçalho administrativo indica **uso pessoal em testes**, sem declarar revisão técnica inexistente.
+6. **Estilo:** `src/styles.css` acrescenta apresentação responsiva para os ingredientes do piloto e a identificação das receitas usadas.
+
+### Limites explícitos
+- Todas as 114 refeições podem ser escolhidas e planejadas e seus ingredientes entram na lista marcável da semana. O **agrupamento por texto literal** é utilizável para compras, mas **não equivale ainda** a agregação quantitativa por ingrediente canônico (colheres/xícaras/g/ml) ou conversão de rendimentos. Em alternativas `ou`, a decisão é do usuário, que deve conferir produto e rótulo.
+- Como o usuário registrou alergia/intolerância, a advertência antes da seleção manual permanece. **Nenhuma** receita passou a ser classificada como segura em alergênicos; a geração automática de semanas permanece bloqueada nesta fase.
+- O cadastro de 172 alimentos preliminares continua distinto de avaliações nutricionais, links ingredient-food confirmados ou publicação comercial.
+- **Não repetir** teste visual das dez ceias, origem do texto, RLS ou fase médica. Testar apenas o build corrigido e a **nova lista de compras** após inserir uma receita pessoal. Verificar marcados após recarga. Não mesclar PR #16 sem homologação e conferências posteriores.
+
+### Roteiro curto
+No PowerShell: `git pull --ff-only` e `npm run build`. No `localhost:5173`: abrir **Compras**, localizar seção **Ingredientes das receitas do acervo pessoal**, conferir como item comprável a medida literal do `Leite dourado de coco` e testar a marcação de um item/recarga. Receitas e dia já incluídos não devem ser modificados. O relatório do teste visual não é homologação de código não compilado.
