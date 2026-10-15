@@ -37,7 +37,7 @@ export function collectPilotShopping(days:Date[],plan:Plan,recipes:Meal[]):Pilot
     if(!old.sourceRecipes.includes(meal.title))old.sourceRecipes.push(meal.title);
    }else{
     out.set(key,{
-     name:"Piloto · "+text,quantity:1,unit:"un",sourceText:text,
+     name:"Piloto · "+text.replace(/[.\\s]+$/g,""),quantity:1,unit:"un",sourceText:text,
      sourceRecipes:[meal.title]
     });
    }
