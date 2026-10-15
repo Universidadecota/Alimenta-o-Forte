@@ -55,3 +55,11 @@ A simulação foi feita em transação descartada (`ROLLBACK`); não substitui t
 6. Reconciliar histórico local/remoto de migrações antes de `db push`; PR #16 mantém-se em rascunho e sem merge.
 
 **Fora do escopo desta fase:** preenchimento automático dos 49 alimentos, avaliação clínica, identificação exaustiva de alergênicos, aprovação profissional, exibição de macro/micronutrientes ao consumidor, mudanças em cardápios e compras.
+
+## Build no Windows recebido — 15/10/2026
+
+**Evidência fornecida pelo proprietário:** `git pull --ff-only` avançou a branch `feat/revisao-alergenos-fase1-12out2026` de `8b541f3` para `0c4081b` (fast-forward). O comando `npm run build` executou `tsc -b && vite build` com **Vite 6.4.4**, **1.644 módulos transformados** e conclusão em **19,95 segundos**, sem erros informados. Artefatos locais: `index-Dun_Ac1e.css` e `index-FfrrOIu9.js`.
+
+**Resultado:** sincronização e compilação Windows **aprovadas**. Isso não comprova que os novos formulários carregam ou gravam corretamente no navegador. As próximas verificações ficam limitadas a (1) seção administrativa “Base nutricional dos alimentos” com campos inicialmente vazios e (2) vínculos de ingredientes na ficha técnica, com opções sem correspondência pré-selecionada. Não registrar nutrientes fictícios nem confirmar vínculos por aproximação.
+
+**PR #16:** permanece aberto, em rascunho e sem merge; não executar `supabase db push` até conciliar o histórico de migrações.
