@@ -1,5 +1,6 @@
 import {useEffect,useState,type FormEvent} from "react";
 import {supabase} from "./lib/supabase";
+import RecipeIngredientFoodLinks from "./RecipeIngredientFoodLinks";
 
 type ReviewStatus="pending"|"in_review"|"awaiting_specialist";
 type YieldUnit="porcoes"|"copos"|"unidades"|"g"|"ml";
@@ -134,6 +135,7 @@ export default function RecipeTechnicalSheet({recipeId,recipeTitle,referenceServ
     {message&&<p role="status" className="cc-tech-success">{message}</p>}
     <button type="submit" className="primary" disabled={busy}>{busy?"Salvando ficha…":"Salvar ficha técnica"}</button>
    </form>
+   <RecipeIngredientFoodLinks recipeId={recipeId}/>
   </>}
  </section>;
 }
