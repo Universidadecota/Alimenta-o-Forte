@@ -55,3 +55,18 @@ A primeira versão usa **34 nomes de alimentos comuns no Brasil, em 13 categoria
 - Integração a receitas somente com relações verificadas, sem cruzamentos automáticos por nome.
 - Layout responsivo e acessibilidade a homologar manualmente em dispositivo móvel.
 - Não executar `supabase db push` nem merge do PR #16 enquanto os históricos local/remoto de migrações não forem reconciliados e a regressão da Fase 1 não for concluída.
+
+## Evidências de homologação visual e regressão — 15/10/2026
+
+**Origem:** capturas de tela fornecidas pelo proprietário no Chrome em `localhost:5173`, incluindo emulação responsiva de 390 px com zoom de 100%. Os testes listados abaixo foram observados visualmente; não equivalem a testes automatizados nem em aparelho físico.
+
+- **Alimentos:** 34 registros exibidos; busca `feijao` retorna Feijão carioca/Feijão preto, e `maca` retorna Maçã; filtros Legumes e Cereais e tubérculos renderizam resultados; abertura e retorno da ficha individual confirmados; avisos sobre falta de validação nutricional e de alergênicos presentes.
+- **Paginação:** controles exibem páginas 1 de 2 e 2 de 2, com Anterior/Próxima habilitados ou bloqueados conforme a página; distribuição esperada: 18 + 16 alimentos.
+- **Mobile:** biblioteca, cartões, filtros e ficha legíveis e centralizados nas capturas de 390 px. Commit `a24e84a` compilado em Windows, conforme saída enviada pelo proprietário (`tsc -b && vite build`, 1.641 módulos).
+- **Cardápio:** semana 12–18/10 e refeição de almoço com 3 porções preservadas; lanche da tarde opcional Chá Cremoso de Cúrcuma com 2 porções preservado; avisos de alergênicos continuam visíveis. A captura de 390 px mostrou aviso de alergias em duas colunas estreitas, necessitando ajuste visual.
+- **Receitas:** listagem e cartões existentes visíveis sem defeitos aparentes de renderização. Abrir receita completa e testar salvamento pela interface não foram demonstrados nesta regressão.
+- **Compras:** confirmação visual da lista da semana 12–18/10 com Alface 450 g (marcada como comprada), Arroz 720 g, Feijão 900 g, Peito de frango 1.350 g, Gengibre 4 cm, Cúrcuma 2 colheres de chá, Canela 2 pitadas e Pimenta-caiena 2 pitadas. Bloco separado *A gosto e opcionais*: adoçante a gosto e manteiga com quantidade não informada, opcional. Botão Copiar lista visível, mas sua ação não foi retestada nesta etapa.
+
+**Correção visual aplicada após evidência:** commit `2f2c6a8` em `src/styles.css` dispõe apenas `.notice[role="alert"]` verticalmente em telas até 620 px, deixando o título acima do texto e preservando integralmente a mensagem. **Pendente:** novo `npm run build` no Windows e validação visual desse alerta em 390 px.
+
+**Não foi executada nova migração Supabase, modificação de conteúdo nutricional ou merge do PR #16.** Restam validação visual do alerta, abertura da receita completa e testes pertinentes de acessibilidade em telefone físico. A reconciliação dos históricos de migrações local/remoto continua condição separada para merge/deploy.
