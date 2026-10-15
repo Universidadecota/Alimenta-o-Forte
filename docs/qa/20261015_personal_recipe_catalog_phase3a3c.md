@@ -64,3 +64,16 @@ Conferência amostral de textos no banco: `Omelete de espinafre e tomate` (10 mi
 - **Estado de homologação:** SQL e RLS simulados aprovados conforme evidências; **frontend ainda não compilado/homologado no Windows** após as alterações desta fase. O próximo teste é `git pull --ff-only` seguido de `npm run build`; depois verificar a lista e seleção manual na interface. Não repetir os testes da fase médica.
 
 **Antes da eventual venda:** reconciliar formas dos ingredientes e suas medidas, revisar alimentos compostos e alergênicos, implementar permissões comerciais separadas do piloto, avaliar direitos do conteúdo original e obter validação técnico-profissional sem modificar as receitas enviadas. O uso pessoal durante três meses não demonstra eficácia ou segurança para outros usuários.
+
+## Homologação do build Windows — acervo pessoal (15/10/2026)
+
+O responsável executou em PowerShell, no diretório do projeto Alimenta-o-Forte:
+
+- `git pull --ff-only`: fast-forward de `1caf164` para `f17cc8b`, branch `feat/revisao-alergenos-fase1-12out2026`, com os quatro arquivos SQL de migração e os ajustes de catálogo/interface.
+- `npm run build` = `tsc -b && vite build`: **sem erro de TypeScript**, Vite v6.4.4, **1.646 módulos**, **20,00 segundos**.
+- Artefatos observados: `dist/assets/index-zRLd4xJs.css` = **52,15 kB** (gzip 11,25 kB); `dist/assets/index-D8RNzuoS.js` = **506,76 kB** (gzip 143,52 kB).
+- Aviso Rollup/Vite: bundle JavaScript minimizado ultrapassa 500 kB; **não bloqueia** a compilação, anotado para otimização posterior de carregamento por módulos.
+
+**Resultado:** sincronização local, TypeScript e build de produção da Fase 3A–3C **aprovados**. **Ainda pendente:** teste visual real da página Receitas filtrada por **Ceias** (dez receitas), conferência de ingredientes/preparo, seleção manual de uma ceia no horário adequado, e biblioteca privada de alimentos na sessão de administrador. Não declarar a interface homologada sem captura/evidência. Nenhuma nova receita foi publicada comercialmente ou atribuída automaticamente a datas.
+
+**Próximo passo do responsável:** atualizar `localhost:5173`, entrar na página **Receitas**, filtrar **Ceias** e enviar uma captura da listagem e, se possível, dos detalhes de uma ceia. Não repetir o build ou testes já aprovados.
