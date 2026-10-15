@@ -164,7 +164,7 @@ BEGIN
    v.food_state='unspecified' OR v.source_name='' OR v.source_reference=''
    OR v.energy_kcal IS NULL OR v.protein_g IS NULL OR v.carbohydrates_g IS NULL
    OR v.fats_g IS NULL OR v.fiber_g IS NULL
-   OR (v.sodium_mg IS NULL AND v.notes NOT ILIKE '%Tr%')
+   OR (v.sodium_mg IS NULL AND v.notes NOT ILIKE '%sodio = Tr%')
  ) THEN RAISE EXCEPTION 'Dados insuficientes para parecer favoravel'; END IF;
  UPDATE public.cc_food_nutrition_review_cases
  SET status=p_decision,reviewer_id=who,reviewed_at=now(),
@@ -184,13 +184,9 @@ REVOKE ALL ON public.cc_nutrition_reviewers, public.cc_food_nutrition_review_cas
 -- Administradores podem LER pedidos e historico, mas nao alterar pareceres.
 GRANT SELECT ON public.cc_food_nutrition_review_cases,public.cc_food_nutrition_review_events TO authenticated;
 CREATE POLICY cc_fnrc_admin_read ON public.cc_food_nutrition_review_cases
- FOR SELECT TO authenticated USING ((SELECT public.cc_is_admin()) OR
-   EXISTS (SELECT 1 FROM public.cc_nutrition_reviewers rr
-     WHERE rr.user_id=(SELECT auth.uid()) AND rr.active));
+ FOR SELECT TO authenticated USING ((SELECT public.cc_is_admin()));
 CREATE POLICY cc_fnre_admin_read ON public.cc_food_nutrition_review_events
- FOR SELECT TO authenticated USING ((SELECT public.cc_is_admin()) OR
-   EXISTS (SELECT 1 FROM public.cc_nutrition_reviewers rr
-     WHERE rr.user_id=(SELECT auth.uid()) AND rr.active));
+ FOR SELECT TO authenticated USING ((SELECT public.cc_is_admin()));
 -- Nunca expor cadastro de credenciais para usuarios normais ou administradores via PostgREST.
 REVOKE ALL ON FUNCTION public.cc_nutrition_variant_snapshot(public.cc_food_nutrition_variants)
  FROM public,anon,authenticated;
