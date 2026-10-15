@@ -68,3 +68,14 @@ O responsável esclareceu que a profissional **foi convidada para negociar parti
 - Simulação de sessão sem administração: **0** candidatas visíveis e função de revisão médica retorna `false`.
 
 **Próximas ações:** aguardar resultado da negociação; somente se o acordo for concluído, definir escopo de atuação (sem divulgar título de especialista não registrado), obter e confirmar canal de contato, realizar verificação documental final, preparar autenticação e convite individual. PR #16 permanece rascunho sem merge.
+
+## Homologação de build Windows — Fase 2F.3 (15/10/2026)
+
+Evidência enviada pelo responsável no PowerShell:
+
+- `git pull --ff-only`: fast-forward do commit `f14ea38` ao `1caf164`, na branch `feat/revisao-alergenos-fase1-12out2026`.
+- `npm run build`: `tsc -b && vite build` concluídos sem erro de TypeScript. Vite **6.4.4**, **1.646 módulos**, **9,61 s**.
+- Saídas: CSS `dist/assets/index-nDeS1V6H.css` (51,26 kB), JS `dist/assets/index-D-tmZV2k.js` (**501,14 kB**; gzip **141,84 kB**).
+- Aviso não bloqueante do Rollup/Vite: alguns chunks ultrapassam **500 kB** após minificação. Melhorar code splitting em trabalho futuro; o aviso não reprova o build.
+
+**Classificação:** sincronização e compilação da interface médica com situação CFM e negociação separadas: **APROVADAS**. A captura visual da seção atualizada **não foi enviada ainda**, assim como não houve teste real de convite, aceite, acesso médico ou parecer; não atribuir esse estado como homologado. Não repetir este build nem os testes já concluídos. PR #16 continua em draft sem merge.
