@@ -46,3 +46,13 @@ A simulação de usuário não administrador foi feita em SQL com transação `R
 6. Trabalhar importação nutricional controlada somente depois de checar alimento, unidade, estado, código da TACO e interpretação de valores especiais como `Tr` e `NA`. Não usar `0` em campos ausentes.
 
 **Limite do escopo:** nenhum nutriente verificado, nenhuma promessa de ausência de alergênicos, nenhum tratamento médico, nenhum merge. Histórico de migrações local/remoto requer reconciliação antes de `supabase db push`.
+
+## Compilação Windows da Fase 2C — homologação parcial
+
+Em 15/10/2026, o responsável enviou saídas do PowerShell confirmando:
+- `git pull --ff-only`: atualização fast-forward de `0c4081b` para `c9672dd`;
+- `npm run build`: `tsc -b && vite build` concluídos sem erros; Vite 6.4.4, primeira compilação em **22,58 segundos**;
+- novo `git pull --ff-only`: `Already up to date`;
+- segundo `npm run build`: **1.644 módulos transformados**, conclusão em **6,08 segundos**, `index-C4tDwXt4.js` e `index-Dun_Ac1e.css`.
+
+**Classificação:** sincronização e compilação TypeScript/Vite **aprovadas**. Ainda falta captura visual do seletor de 4 variantes de Abobrinha e dos campos sem nutrientes; ainda não foram testadas gravação/recuperação na interface, invalidação por mudança de ingrediente/variante ou permissões reais de sessão não administradora. Não repetir o build; prosseguir com homologação visual pontual. Sem liberação do PR #16 para merge ou deploy.
