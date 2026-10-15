@@ -11,6 +11,8 @@ type MedicalCandidate={
  credential_status:string;
  invitation_status:string;
  rqe_number:string|null;
+ contact_email:string|null;
+ contact_verified_at:string|null;
  auth_user_id:string|null;
 };
 const credentialLabel:Record<string,string>={
@@ -35,7 +37,7 @@ export default function MedicalReviewerOnboarding(){
   void (async()=>{
    const {data,error:loadError}=await client
     .from("cc_medical_reviewer_onboarding")
-    .select("id,display_name,registration_region,registration_number,claimed_specialty,consent_reported,credential_status,invitation_status,rqe_number,auth_user_id")
+    .select("id,display_name,registration_region,registration_number,claimed_specialty,consent_reported,credential_status,invitation_status,rqe_number,auth_user_id,contact_email,contact_verified_at")
     .order("created_at",{ascending:true});
    if(!active)return;
    if(loadError)setError(loadError.message);
@@ -55,6 +57,8 @@ export default function MedicalReviewerOnboarding(){
     <p>{invitationLabel[candidate.invitation_status]??"Situação de acesso a confirmar"}</p>
     <p>Concordância para participar: {candidate.consent_reported?"informada pelo responsável do aplicativo":"não registrada"}.</p>
     <p>RQE: {candidate.rqe_number??"aguardando conferência"}. Conta vinculada: {candidate.auth_user_id?"sim":"não"}.</p>
+    <p>E-mail indicado para convite: {candidate.contact_email??"não informado"}.</p>
+    <p>Confirmação do e-mail: {candidate.contact_verified_at?"verificada":"pendente"}. O cadastro não envia mensagens automaticamente.</p>
    </article>
   )}
   {!loading&&!error&&candidates.length===0&&<p className="detail-note">Nenhum profissional indicado.</p>}
