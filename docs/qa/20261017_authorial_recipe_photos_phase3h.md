@@ -92,3 +92,20 @@ A interface antiga de Administração usava `cc_save_official_recipe` até para 
 **Limitação e próxima etapa:** essa é uma correção de **exibição**, não uma migração de `quantity`/`unit` ou autorização de multiplicar porções. A estruturação quantitativa dos 1.073 fragmentos deve ocorrer **em estágio de revisão separado**, registrando texto literal, medida extraída, unidade original, ingrediente, opção/preparo e confiança editorial. Somente equivalências seguras podem ser confirmadas, sem sobrescrever a fonte, sem transformar ausência em zero e sem liberar cálculo nutricional. Priorizar os 747 prefixos numéricos e depois exceções do piloto.
 
 **Homologação pendente:** executar uma vez `git pull --ff-only` e `npm run build` no Windows e reabrir a **mesma pré-visualização** de Carne moída. Esperado: `150 g de carne bovina moída`, `¼ de cebola`, `1 dente de alho`, etc., **sem prefixo** `quantidade não informada —`. Não reenviar foto, não repetir testes de compras nem alterar receitas. PR #16 permanece aberto, em rascunho, sem merge.
+
+
+## Evidência visual final — pré-visualização, ficha e ampliação
+
+O responsável apresentou três capturas de `localhost:5173` em **17/10/2026**, usando a receita autoral **Agrião com tiras de fraldinha e chimichurri**.
+
+- **Pré-visualização administrativa**: lista mostra as expressões originais como `150 g de fraldinha`, `1 colher (chá) de manteiga`, `2 punhados de agrião`, `¼ de cebola roxa` e os componentes do chimichurri, **sem o prefixo incorreto `quantidade não informada`**. Renderiza `25 minutos · 1 porção`, comprovando também a correção de flexão singular.
+- **Ficha completa**: mostra a foto, identificação da receita, ingredientes originais e modo de preparo, mantendo o esclarecimento de que não há redimensionamento automático das porções.
+- **Ampliador de imagem**: exibe a fotografia em formato horizontal sem distorção perceptível, com identificação da receita na legenda.
+- A foto exibida já tinha sua existência WebP e URL confirmadas no Supabase em leitura anterior. Estas imagens não comprovam a origem por IA; respeitar o valor expresso do campo `image_is_ai`, sem inferir.
+- O teste original sugeria também verificar **Carne moída refogada com couve e abacate**; esta captura usa outra receita do mesmo componente administrativo. **O comportamento de renderização comum foi demonstrado**, sem afirmar um novo teste dessa outra receita.
+
+**Status**: apresentação literal dos ingredientes do piloto, singular da porção, exibição na ficha e ampliação da foto **homologados visualmente**. O build/console desta captura não foi fornecido; não atribuir resultado novo de compilação. Não repetir o upload, o zoom nem a exibição do modal.
+
+**Pontos editoriais a alinhar posteriormente, sem alterar dados:** a legenda administrativa ainda fala em `receita proveniente de material fornecido para uso pessoal`, embora o projeto já registre autoria declarada. A ficha ainda declara que não há `soma automática na lista de compras`, embora as Fases 3F/3G tenham somas **parciais e conservadoras** de medidas equivalentes. Ajustar a redação para comunicar corretamente que **somente a soma segura parcial existe** e que a estruturação completa/reescala de porções ainda não está disponível. Manter receitas e fotos intactas.
+
+**Próxima fase sugerida**: inventário e extração estruturada revisável das quantidades textuais de 1.073 fragmentos, sem sobrescrever os `name` originais ou assumir equivalências inseguras. PR #16 deve permanecer aberto, em rascunho, sem merge.
