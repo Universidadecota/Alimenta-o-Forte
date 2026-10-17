@@ -24,7 +24,7 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
    {recipe.pilotSource?<div className="cc-pilot-source-ingredients">
     <p><strong>Ingredientes conforme o documento original:</strong></p>
     <p>{recipe.pilotSource.originalIngredients}</p>
-    <p className="detail-note">As medidas originais ainda não estão estruturadas para redimensionamento ou soma automática na lista de compras.</p>
+    <p className="detail-note">As medidas originais são preservadas. A lista de compras já soma medidas compatíveis de forma conservadora, mas a estruturação completa e o redimensionamento das porções ainda exigem revisão.</p>
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
    {recipe.pilotSource?<p className="detail-note">Receita autoral em uso pessoal — preparo original preservado. Quantidades não são redimensionadas automaticamente; alergênicos e informações nutricionais ainda não foram verificados.</p>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
