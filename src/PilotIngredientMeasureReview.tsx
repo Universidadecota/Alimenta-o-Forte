@@ -1,6 +1,6 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
-import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
+import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
 
 type Review={
  ingredient_id:string;
@@ -32,7 +32,6 @@ function nestedName(v:{name:string}|{name:string}[]|null):string{
 function nestedTitle(v:{title:string}|{title:string}[]|null):string{
  return Array.isArray(v)?v[0]?.title??"Receita do piloto":v?.title??"Receita do piloto";
 }
-type DraftCandidate={ingredient_id:string;source_text:string;quantity:number;unit:string;ingredient:string};
 export default function PilotIngredientMeasureReview(){
  const [rows,setRows]=useState<Review[]>([]);
  const [status,setStatus]=useState("pending");
@@ -80,14 +79,7 @@ export default function PilotIngredientMeasureReview(){
    }
    if(all.length!==expected)throw new Error("A leitura foi incompleta. Nenhum resultado parcial foi aplicado; tente novamente.");
    const summary=summarizeMeasures(all);
-   const candidateList:DraftCandidate[]=all
-    .filter(row=>row.review_status==="pending")
-    .map(row=>({row,result:classifyMeasure(row.source_text)}))
-    .filter(({result})=>result.group==="simple"&&result.proposal!==null)
-    .map(({row,result})=>({ingredient_id:row.ingredient_id,source_text:row.source_text,
-     quantity:result.proposal!.quantity,unit:result.proposal!.unit,ingredient:result.proposal!.ingredient}))
-    .sort((a,b)=>a.source_text.localeCompare(b.source_text,"pt-BR")||a.ingredient_id.localeCompare(b.ingredient_id))
-    .slice(0,20);
+   const candidateList=prepareDraftCandidates(all,20);
    setDraftCandidates(candidateList);
    setBatchResult(summary);
   }catch(err){setError(err instanceof Error?err.message:"Não foi possível analisar o inventário.");}
@@ -216,8 +208,10 @@ export default function PilotIngredientMeasureReview(){
      {draftCandidates.length>0?<div className="cc-measure-draft-list">
       {draftCandidates.map(entry=><label key={entry.ingredient_id} className="cc-measure-draft-item">
        <input type="checkbox" checked={selectedDraftIds.includes(entry.ingredient_id)}
-        disabled={draftSaving} onChange={event=>setSelectedDraftIds(ids=>
-         event.target.checked?[...ids,entry.ingredient_id]:ids.filter(id=>id!==entry.ingredient_id))}/>
+        disabled={draftSaving} onChange={event=>{
+         const checked=event.target.checked;
+         setSelectedDraftIds(ids=>checked?[...ids,entry.ingredient_id]:ids.filter(id=>id!==entry.ingredient_id));
+        }}/>
        <span><strong>{entry.source_text}</strong>
         <small>Proposta não aprovada: {entry.quantity} · {measureUnitLabel(entry.unit)} · {entry.ingredient}</small>
        </span>
