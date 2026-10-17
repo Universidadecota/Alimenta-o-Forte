@@ -437,3 +437,15 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 /* Avisos de escolha e componentes originais de receitas no checklist. */
 .cc-pilot-shopping-attention{color:#805325!important;font-weight:650!important}
 .cc-pilot-shopping .cc-pilot-shopping-text small{overflow-wrap:anywhere}
+
+/* Destino explícito ao adicionar uma receita a um dia do cardápio. */
+.cc-recipe-target-date{display:flex;gap:18px;align-items:end;flex-wrap:wrap;padding:16px 18px;margin:14px 0 22px;border:1px solid #cbded1;border-radius:14px;background:#edf5ed;color:#23483b}
+.cc-recipe-target-summary{flex:1 1 260px;min-width:0}
+.cc-recipe-target-summary>strong{font-size:15px}
+.cc-recipe-target-summary p{font-size:14px;line-height:1.55;margin:7px 0 3px}
+.cc-recipe-target-summary p strong{color:#143c30}
+.cc-recipe-target-summary small{font-size:12px;color:#617868}
+.cc-recipe-target-date label{display:grid;gap:7px;flex:1 1 255px;max-width:360px;font-size:13px;font-weight:700}
+.cc-recipe-target-date select{width:100%;min-height:44px;border:1px solid #bed4c5;border-radius:10px;padding:9px 12px;background:#fff;color:#183f35}
+.cc-recipe-target-date>.secondary{min-height:44px}
+@media(max-width:640px){.cc-recipe-target-date{align-items:stretch;gap:13px}.cc-recipe-target-date label{max-width:none;flex-basis:100%}.cc-recipe-target-date>.secondary{width:100%}}
