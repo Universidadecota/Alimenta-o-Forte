@@ -67,3 +67,17 @@ As verificações de papéis foram feitas com `SET LOCAL ROLE authenticated` e i
 - Gradualmente estruturar ingredientes com títulos compostos, alternativas, frações contáveis, unidades por embalagem, marca/preparo e quantidades dependentes de porção, com revisão editorial.
 - Após revisão consistente, criar regras auditadas de escalonamento e compras, sem trocar as fontes. A confirmação de medida culinária **não** é verificação de dados nutricionais ou segurança para alergênicos.
 - Revisar textos de marketing e termos antes da venda; fase de piloto pessoal permanece privada.
+
+
+## Proteção imutável da fonte — Fase 3I.1
+
+Migração adicional aplicada: `supabase/migrations/20261017181000_cc_pilot_measure_source_guard_phase3i1.sql` como `cc_pilot_measure_source_guard_phase3i1_cloud`. Um trigger administrativo em `cc_pilot_ingredient_measure_reviews`:
+
+- Impede alterar `ingredient_id`, `recipe_id`, `source_text` ou `source_position` após a inclusão no inventário.
+- Antes de salvar qualquer revisão, confere novamente se o `source_text` ainda é idêntico ao `recipe_ingredients.name`; se houve divergência no original, bloqueia a edição para reconciliação.
+- Atualiza o horário de edição no banco; não permite que alterações de frontend contornem o snapshot protegido.
+- Foi exercitado em SQL transacional com papel `authenticated` e identidade de administrador simulado: alteração de `review_notes` foi aceita dentro da transação; tentativa de mudar o texto fonte produziu a exceção esperada; **`ROLLBACK` final**, sem alteração persistida.
+
+As 1.073 propostas permanecem `pending` até decisão editorial. A migração não confirmou medidas, não reescreveu a receita, não liberou escala de porções e não mexeu nas marcações de compras.
+
+**Status desta etapa:** migrações aplicadas, integridade e proteção de acesso verificadas. A compilação de `src/PilotIngredientMeasureReview.tsx` no Windows e a validação da interface ainda estão **pendentes**.
