@@ -59,7 +59,7 @@ export function classifyMeasure(text:string):{group:MeasureGroup;proposal:Measur
 export function summarizeMeasures(items:ReadonlyArray<BatchItem>,sampleSize=4):BatchResult{
  const groups=measureGroups.map(g=>g.key);
  const byGroup=Object.fromEntries(groups.map(group=>[group,0])) as Record<MeasureGroup,number>;
- const examples=Object.fromEntries(groups.map(group=>[group,[]])) as Record<MeasureGroup,BatchGroupSample[]>;
+ const examples:Record<MeasureGroup,BatchGroupSample[]>={simple:[],range:[],choice:[],compound:[],optional:[],manual:[]};
  let pending=0;
  for(const row of items){
   const classified=classifyMeasure(row.source_text);
