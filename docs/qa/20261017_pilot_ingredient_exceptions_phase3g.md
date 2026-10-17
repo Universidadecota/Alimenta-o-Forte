@@ -83,3 +83,14 @@ Nenhuma migração, receita, planejamento ou dado nutricional foi alterado nesta
 **Observação separada sobre Fase 3G:** as capturas de compras enviadas mostram itens compostos muito pequenos para confirmar inequivocamente a separação de manteiga e salsinha do chimichurri. Manter o teste visual dessa subdivisão como **pendente**, sem repetir os testes automatizados ou a soma de azeite e leite de coco, que já foram aprovados.
 
 **Próxima conferência:** executar apenas `git pull --ff-only` e `npm run build`; abrir Receitas e verificar a data completa, trocar o dia pelo seletor e confirmar que o botão mostra a data escolhida. Para esta correção de rótulo, **não é necessário salvar uma nova refeição** ou modificar planejamentos. PR #16 continua draft e sem merge.
+
+
+## Homologação parcial da data de destino — build Windows e botões
+
+**Evidências fornecidas:** o responsável atualizou o repositório por `git pull --ff-only`, avançando de `fa66344` até `da37777`, e executou `npm run build` (`tsc -b && vite build`) com sucesso, sem erros TypeScript, Vite 6.4.4, 1.646 módulos e conclusão em 16,96 s. Gerou `dist/assets/index-B6WLIc76.css` (54,06 kB, gzip 11,61 kB) e `dist/assets/index-sMGo1U0N.js` (508,16 kB, gzip 144,24 kB). Aviso de chunk acima de 500 kB não bloqueante.
+
+Na captura da tela **Receitas** no `localhost:5173`, os cartões mostram **`Adicionar em 16/10`** e **`Escolher horário · 16/10`**, confirmando a exibição da data efetivamente selecionada. Como a captura mostra o meio da página, **não há evidência visual ainda do painel e do seletor superiores** nem da atualização dinâmica do botão ao mudar o dia. Não confundir o dia selecionado (16/10) com o dia do relógio.
+
+**Resultado:** Git, TypeScript, build e **rótulo com data nos cartões aprovados**. **Pendente somente nesta correção:** captura mostrando o painel `Dia escolhido para o cardápio`, troca de 16/10 para outro dia livre (sem gravar nenhuma receita) e botão apresentando a nova data. O fluxo de proteção contra substituição foi implementado, mas não exercitado no navegador; não informar homologação funcional dessa confirmação.
+
+**Não repetir:** builds, teste automatizado de ingredientes, soma de azeite ou catalogação. Este registro é documental; não altera as 119 receitas, a lista de compras ou qualquer planejamento. PR #16 continua draft, sem merge.
