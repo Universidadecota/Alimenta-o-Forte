@@ -458,3 +458,22 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-admin-pilot-readonly summary{font-weight:650;cursor:pointer}
 .cc-admin-pilot-readonly ul{padding-left:22px;line-height:1.7;overflow-wrap:anywhere}
 .cc-admin-pilot-prep{white-space:pre-wrap;overflow-wrap:anywhere}
+
+
+/* Fase 3I: revisão privada e paginada de medidas, sem alterar receitas. */
+.cc-measure-review{display:grid;gap:14px;padding:14px 0}
+.cc-measure-review>p{font-size:13px;line-height:1.65;color:#486054;margin:0}
+.cc-measure-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.cc-measure-filters label{display:grid;gap:6px;flex:1 1 230px;font-size:13px;font-weight:650}
+.cc-measure-filters select,.cc-measure-filters input,.cc-measure-edit select,.cc-measure-edit input,.cc-measure-edit textarea{background:#fff;border:1px solid #cadacc;border-radius:9px;padding:10px;min-width:0;max-width:100%;color:#173e33}
+.cc-measure-queue{display:grid;gap:8px}
+.cc-measure-row{display:flex;align-items:start;gap:9px;flex-direction:column;padding:12px 14px;border:1px solid #dde8df;border-radius:10px;background:#fafcf9;min-width:0}
+.cc-measure-row>small{color:#687c6f;overflow-wrap:anywhere}
+.cc-measure-row>strong{color:#173d31;overflow-wrap:anywhere}
+.cc-measure-row>button{align-self:start}
+.cc-measure-edit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;width:100%;border-top:1px solid #e0e9e2;padding-top:10px}
+.cc-measure-edit p,.cc-measure-edit label:nth-last-of-type(1),.cc-measure-edit .cc-measure-actions{grid-column:1/-1}
+.cc-measure-edit p{margin:0;font-size:13px;color:#607467}
+.cc-measure-edit label{display:grid;gap:5px;font-size:12px;font-weight:650;min-width:0}
+.cc-measure-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:640px){.cc-measure-edit{grid-template-columns:minmax(0,1fr)}.cc-measure-edit p,.cc-measure-edit label:nth-last-of-type(1),.cc-measure-edit .cc-measure-actions{grid-column:1}}
