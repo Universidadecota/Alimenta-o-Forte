@@ -47,3 +47,17 @@ O responsável declarou que **todas as 119 receitas cadastradas foram criadas po
 3. Próxima fase funcional: **consolidação conservadora das medidas de compras**. Somar quantidades de um mesmo ingrediente apenas quando unidade, identificação, preparo e produto forem inequivocamente compatíveis; preservação de `a gosto`, opcionais, alternativas `ou` e quantidade não informada, sem conversões ou escolhas inventadas. Testes com casos reais dos 1.073 fragmentos.
 4. Antes da comercialização: confirmar autoria/documentação de direitos, revisar termos de uso, LGPD, publicidade, condições de assinatura/cancelamento e integridade dos cadastros. Revisão de nutricionista pode ser contratada pontualmente se houver conteúdo nutricional técnico; não tornar parceria médica obrigatória para uma biblioteca culinária.
 5. Manter PR #16 rascunho, sem merge. Conciliar migrações locais/remotas antes de deploy.
+
+
+## Homologação do build Windows — Fase 3E
+
+O responsável forneceu a saída do PowerShell após sincronizar a branch `feat/revisao-alergenos-fase1-12out2026` até o commit `2ee0761`:
+
+- `git pull --ff-only`: fast-forward de `8ba45e0` a `2ee0761`, sem conflitos.
+- `npm run build` (`tsc -b && vite build`): **aprovado**, nenhum erro TypeScript, Vite **6.4.4**, **1.644 módulos transformados**, conclusão em **39,21 segundos**.
+- Artefatos: `dist/assets/index-C94dBnbL.css` — **52,94 kB** (gzip **11,40 kB**); `dist/assets/index-DYC2Y4i2.js` — **500,28 kB** (gzip **141,37 kB**).
+- Aviso não bloqueante: chunk minimizado maior que **500 kB**. Registrado como otimização futura de divisão de bundle, sem alterar conteúdo das receitas.
+
+**Resultado:** build de produção da Fase 3E **APROVADO**. Os 119 registros do piloto continuam não publicados e os planos anteriores foram preservados conforme a auditoria de banco feita antes do build. **Ainda não homologadas visualmente:** exclusão de receitas legadas do filtro `Todos`, filtro administrativo `Legado`, início sem objetivos clínicos e ausência do painel médico na interface.
+
+**Próximo teste sem recompilar:** `localhost:5173` → **Receitas** → filtro **Todos**; verificar que aparecem as autorais e não os cartões `[Exemplo]`. Depois, selecionar **Legado** e confirmar que os exemplos continuam acessíveis ao administrador. Enviar uma captura com o resultado. Não repetir testes anteriores de receitas, ceia, compras ou RLS. PR #16 continua aberto, em rascunho e sem merge.
