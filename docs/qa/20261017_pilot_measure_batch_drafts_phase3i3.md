@@ -79,3 +79,21 @@ O responsável enviou o log de execução no PowerShell dentro do projeto `Alime
 **Única próxima verificação:** no `localhost:5173`, abrir Administração → Receitas oficiais → Medidas das receitas autorais · inventário e revisão; clicar `Analisar todos os ingredientes`, localizar `Preparar até 20 rascunhos de medidas simples` e confirmar que todos os checkboxes aparecem desmarcados inicialmente. Enviar somente captura da prévia. **Não selecionar, confirmar ou salvar rascunhos nesta etapa.** Não repetir build/testes já aprovados.
 
 Registro exclusivamente documental. Não altera receitas, ingredientes, fotos, planejamentos, revisões nem a RPC. PR #16 permanece draft, sem merge.
+
+
+## Homologação visual da prévia — 17/10/2026
+
+O responsável enviou **duas capturas de `localhost:5173`** após clicar em `Analisar todos os ingredientes`, na seção `Preparar até 20 rascunhos de medidas simples`.
+
+**Evidência visual:**
+- Seção da nova prévia visível e com orientação de que as propostas **não estão aprovadas** e **nenhuma está selecionada por padrão**.
+- Cartões distribuídos em duas colunas no desktop, com área rolável contendo **20 propostas**, suas quantidades e unidades legíveis; exemplos mostrados: `1 cebola`, `1 colher (chá) de açafrão-da-terra (cúrcuma) em pó`, `1 colher (chá) de azeite`, `1 colher (chá) de azeite de dendê`, `1 colher (chá) de cominho`.
+- **Todos os checkboxes visíveis desmarcados**, incluindo itens repetidos em receitas diferentes; opção `Marcar as 20 visíveis` e `Desmarcar todas` presentes.
+- Ação `Revisar e salvar 0 como rascunhos` corretamente **desabilitada** sem seleção.
+- Textos originais preservados; nenhuma confirmação ou salvamento foi realizado.
+
+**Conferência SQL somente leitura posterior:** `cc_pilot_ingredient_measure_reviews` contém **1.073 pending**, **0 draft**, **0 confirmed**. O item específico `1 colher (chá) de azeite de dendê` aparece **uma vez** no inventário, em `Moqueca de peixe com arroz de couve-flor`, e segue pendente sem proposta gravada.
+
+**Status:** prévia, seleção inicialmente vazia, quantidade de 20 por lote e trava de salvamento sem seleção **HOMOLOGADAS VISUALMENTE**; testes anteriores de TypeScript/Vite e de regressão já aprovados não precisam ser refeitos. O clique em confirmar e o salvamento real ainda **não foram homologados**.
+
+**Próxima validação pontual recomendada:** se o responsável autorizar o teste de uma gravação real, selecionar **somente o checkbox** de `1 colher (chá) de azeite de dendê` (item não duplicado na prévia), conferir a prévia da proposta `1 · colher (chá) · azeite de dendê`, clicar `Revisar e salvar 1 como rascunho` e aceitar a confirmação apenas se o texto e o destino estiverem corretos. Depois conferir em SQL que **exatamente esse registro** virou `draft`, os demais ficaram pendentes e `confirmed=0`. **Não selecionar as 20 opções nem alterar ingredientes originais.** PR #16 segue aberto em draft e sem merge.
