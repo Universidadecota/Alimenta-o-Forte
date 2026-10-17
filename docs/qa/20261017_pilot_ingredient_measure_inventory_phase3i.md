@@ -81,3 +81,10 @@ Migração adicional aplicada: `supabase/migrations/20261017181000_cc_pilot_meas
 As 1.073 propostas permanecem `pending` até decisão editorial. A migração não confirmou medidas, não reescreveu a receita, não liberou escala de porções e não mexeu nas marcações de compras.
 
 **Status desta etapa:** migrações aplicadas, integridade e proteção de acesso verificadas. A compilação de `src/PilotIngredientMeasureReview.tsx` no Windows e a validação da interface ainda estão **pendentes**.
+
+
+## Compatibilidade do painel e preparação para build
+
+Inspeção de código da nova interface confirmou uso do seletor paginado e da conferência do texto da fonte. O `tsconfig.json` do repositório usa **ES2020**; por isso foi corrigida preventivamente a busca textual para usar `replace(/[%_]/g,"")`, em vez de `String.replaceAll` (fora de ES2020).
+
+**Importante:** inspeção estática e testes de SQL **não equivalem a compilação do frontend**. Ainda é necessário que o responsável faça `git pull --ff-only` e `npm run build` no Windows. Se houver erro TypeScript ou de API, corrigir sem repetir testes anteriores e sem alterar ingredientes originais.
