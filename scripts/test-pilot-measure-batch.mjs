@@ -12,7 +12,7 @@ const ingredientUrl=url(getJavaScript("../src/lib/pilotIngredientReview.ts"));
 const batchCode=getJavaScript("../src/lib/pilotMeasureBatch.ts")
  .replace(/from ["']\.\/pilotMeasure["']/,()=> 'from "'+measurementUrl+'"')
  .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
-const {classifyMeasure,measureUnitLabel,suggestMeasure,summarizeMeasures}=await import(url(batchCode));
+const {classifyMeasure,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates}=await import(url(batchCode));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
 assert.equal(classifyMeasure("150 g de fraldinha").group,"simple");
@@ -41,4 +41,19 @@ assert.equal(summary.pending,6);
 assert.deepEqual(Object.values(summary.byGroup).sort((a,b)=>a-b),[1,1,1,1,1,1]);
 assert.equal(summary.examples.simple[0].proposal?.ingredient,"fraldinha");
 assert.equal(summary.otherStatuses,0);
-console.log("OK: agrupamento conservador em lote e unidades legíveis, sem gravar medidas.");
+const offered=[
+ ...Array.from({length:25},(_,i)=>({ingredient_id:String(i),source_text:"150 g de fraldinha",review_status:"pending"})),
+ {ingredient_id:"exclude1",source_text:"150 a 180 g de fraldinha",review_status:"pending"},
+ {ingredient_id:"exclude2",source_text:"1 colher (sopa) de azeite ou manteiga",review_status:"pending"},
+ {ingredient_id:"exclude3",source_text:"150 g de fraldinha",review_status:"draft"}
+];
+const candidates=prepareDraftCandidates(offered);
+assert.equal(candidates.length,20,"A prévia nunca pode ultrapassar vinte");
+assert.equal(candidates.every(item=>item.quantity===150&&item.unit==="g"),true);
+assert.equal(candidates.every(item=>item.source_text==="150 g de fraldinha"),true);
+assert.equal(prepareDraftCandidates(offered,3).length,3);
+assert.equal(prepareDraftCandidates(offered,0).length,0);
+assert.equal(prepareDraftCandidates(offered,999).length,20);
+assert.equal(prepareDraftCandidates(offered.filter(x=>x.review_status!=="pending")).length,0);
+console.log("OK: categorias e prévia de até 20 rascunhos, sem aprovar nem gravar.");
+
