@@ -1,6 +1,6 @@
 /**
  * Interpretação auxiliar para compras. NUNCA altera a receita armazenada.
- * Divide apenas cabeçalhos explícitos após ponto, seguidos por uma medida.
+ * Divide apenas cabeçalhos explícitos após ponto e dois-pontos, sem inferir ingredientes.
  */
 export type PilotIngredientSegment = {
  text:string;
@@ -20,7 +20,7 @@ const headings=[
  "Shimeji","Pão \\(por pessoa\\)",
 ];
 const headerRegex=new RegExp(
- "\\.\\s+("+headings.join("|")+"):\\s*(?=\\d|[½¼¾⅓⅔⅛⅜⅝⅞])",
+ "\\.\\s+("+headings.join("|")+"):\\s*(?=\\S)",
  "giu"
 );
 const isChoice=(value:string)=>/\bou\b/i.test(value);
