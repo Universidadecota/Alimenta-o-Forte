@@ -477,3 +477,24 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-measure-edit label{display:grid;gap:5px;font-size:12px;font-weight:650;min-width:0}
 .cc-measure-actions{display:flex;gap:8px;flex-wrap:wrap}
 @media(max-width:640px){.cc-measure-edit{grid-template-columns:minmax(0,1fr)}.cc-measure-edit p,.cc-measure-edit label:nth-last-of-type(1),.cc-measure-edit .cc-measure-actions{grid-column:1}}
+
+/* Pré-análise em lote da Fase 3I.2: somente leitura, sem aprovação automática. */
+.cc-measure-batch{border:1px solid #d5e1d7;background:#f7faf6;border-radius:13px;padding:14px;display:grid;gap:13px}
+.cc-measure-batch-header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.cc-measure-batch-header>div{flex:1 1 290px}
+.cc-measure-batch-header strong{color:#173f33;font-size:14px}
+.cc-measure-batch-header p,.cc-measure-batch>div>p{margin:7px 0 0;color:#5a7263;font-size:12px;line-height:1.6}
+.cc-measure-batch-header button{min-height:42px}
+.cc-measure-batch-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.cc-measure-batch-group{display:grid;align-content:start;gap:5px;background:#fff;border:1px solid #e1ebe4;border-radius:10px;padding:12px;min-width:0}
+.cc-measure-batch-group>strong{color:#154237;font-size:23px;line-height:1.2;font-variant-numeric:tabular-nums}
+.cc-measure-batch-group>span{font-size:13px;font-weight:700;color:#204d3d}
+.cc-measure-batch-group>small{color:#63776a;font-size:11px;line-height:1.5}
+.cc-measure-batch-group details{font-size:12px;border-top:1px solid #edf1ed;padding-top:7px}
+.cc-measure-batch-group summary{cursor:pointer;font-weight:650}
+.cc-measure-batch-group ul{padding-left:17px;display:grid;gap:8px;margin:7px 0 0}
+.cc-measure-batch-group li{overflow-wrap:anywhere}
+.cc-measure-batch-group li button{height:auto;max-width:100%;white-space:normal;text-align:left;padding:6px;font-size:11px}
+.cc-measure-batch-group li small{display:block;color:#65786b}
+@media(max-width:850px){.cc-measure-batch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.cc-measure-batch-grid{grid-template-columns:minmax(0,1fr)}.cc-measure-batch-header button{width:100%}}
