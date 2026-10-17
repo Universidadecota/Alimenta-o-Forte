@@ -58,3 +58,22 @@ A interface antiga de Administração usava `cc_save_official_recipe` até para 
 **Resultado:** build e interface do editor de fotos **APROVADOS**; upload, persistência da URL, miniatura e exibição nos cartões/ficha **ainda não homologados**. Não solicitar novamente compilação ou captura da tela de proteção. Prosseguir com **uma única foto de teste**, apropriada para a receita escolhida, usando o seletor, a confirmação e **Salvar somente fotografia**; após salvar, conferir na biblioteca e na ficha a imagem, sem alterar ingredientes. Verificar persistência da URL no banco e ausência de mudança no conteúdo, antes de cadastrar as demais fotografias.
 
 **Observação editorial secundária:** o texto de rendimento exibido na captura é `1 porções de referência`; ajustar a flexão singular/plural em um lote futuro, sem reabrir o teste de foto. PR #16 continua aberto em rascunho, **sem merge**.
+
+
+## Primeira fotografia homologada no cartão e correção do rótulo IA — 17/10/2026
+
+**Evidência visual enviada pelo responsável:** captura da página **Receitas**, `localhost:5173`, na qual a foto da receita autoral **Agrião com tiras de fraldinha e chimichurri** aparece no cartão correto, com enquadramento do prato, texto e botões legíveis. O cartão exibe `Imagem ilustrativa gerada por IA`; a abertura da ficha completa ainda não foi mostrada nessa captura.
+
+**Conferência somente leitura no Supabase:**
+- A receita continua **`published=false`** e associada ao `personal_pilot`.
+- O campo `url` está presente e aponta para o Storage público oficial `recipe-illustrations/official/<uuid>.webp`; o objeto existe com MIME **`image/webp`** e tamanho **188.516 bytes**.
+- A receita apresenta **13 registros de ingredientes**.
+- Totais do acervo: **119** receitas piloto, **1** fotografia vinculada, **0** receitas piloto publicadas, **1.073** registros de ingredientes. A consulta foi somente leitura; não alterou os planejamentos, que somavam **30** registros no momento da verificação.
+
+**Inconsistência detectada:** o campo persistido `recipes.image_is_ai` está **`false`**, mas `src/lib/planner.ts` anteriormente forçava `imageIsAi=true` para todas as receitas oficiais. Isso fazia a interface declarar que a foto era gerada por IA sem depender do dado armazenado, inclusive no catálogo autoral.
+
+**Correção versionada:** `src/lib/planner.ts` passa a respeitar `image_is_ai` para as receitas do `personal_pilot` e receitas particulares; mantida a apresentação ilustrativa legada para as sete receitas oficiais antigas. **O banco não foi alterado e a procedência da imagem não foi inferida a partir da aparência.** Se a fotografia foi efetivamente gerada por IA, o responsável deve marcar `Imagem ilustrativa gerada por IA` no editor e salvar a foto/atribuição; se é uma fotografia convencional, a legenda deixará de ser exibida após o próximo build.
+
+**Homologação:** upload/persistência no Storage e exibição da foto no cartão estão **aprovados**. **Pendentes:** novo build Windows da correção do rótulo, conferência visual do rótulo correspondente ao campo cadastrado e exibição na ficha completa. Não repetir o upload original nem modificar qualquer ingrediente, preparo ou planejamento.
+
+**PR #16** permanece aberto, em rascunho, sem merge. As demais 118 fotos deverão ser cadastradas somente após validar o rótulo e a ficha.
