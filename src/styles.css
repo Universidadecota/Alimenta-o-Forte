@@ -433,3 +433,7 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 
 /* Piloto culinário autoral: instrução não interativa em lugar de sugestão automática. */
 .cc-manual-planning-notice{display:inline-flex;align-items:center;max-width:350px;font-size:13px;line-height:1.45;color:#30584a;background:#eaf2eb;border:1px solid #dce9df;border-radius:10px;padding:9px 12px}
+
+/* Avisos de escolha e componentes originais de receitas no checklist. */
+.cc-pilot-shopping-attention{color:#805325!important;font-weight:650!important}
+.cc-pilot-shopping .cc-pilot-shopping-text small{overflow-wrap:anywhere}
