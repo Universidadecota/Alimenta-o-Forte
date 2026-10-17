@@ -64,3 +64,19 @@ Após os testes, consulta SQL somente leitura confirmou:
 5. **Não repetir** builds das fases anteriores, fotos, compras, cardápios, análise em lote ou a gravação inicial do único rascunho.
 
 **PR #16:** permanece aberto em rascunho e sem merge. Nenhuma alteração foi feita nos textos das 119 receitas.
+
+
+## Regressão do lote e verificação final
+
+Após restringir o UPDATE direto de `authenticated`, foi executado um **teste SQL transacional adicional**, usando um ingrediente simples e ainda pendente: `150 g de fraldinha`. A RPC anterior `cc_save_pilot_measure_drafts_batch` continuou salvando corretamente **um** draft na transação, mesmo com o novo bloqueio de atualização direta. O teste foi finalizado com `ROLLBACK`, preservando o inventário real.
+
+Verificação estática no GitHub confirma:
+- componente novo conectado à Administração, sem chamadas frontend de UPDATE direto;
+- RPC individual para edição de rascunho e RPC de decisão com fonte e versão conferidas;
+- obrigação de confirmação humana antes da ação e histórico administrativo;
+- entradas `confirmed` sem opção de reedição via interface;
+- documentação e estilos presentes, PR #16 mantido aberto em draft.
+
+**Situação real após os testes:** **1.073** registros, **1** draft, **1.072** pendentes, **0** confirmados, **0** eventos permanentes na nova trilha, pois nenhuma decisão real ocorreu ainda. O build novo **ainda não foi executado no Windows**; a homologação técnica de SQL não substitui a inspeção visual do frontend.
+
+**Atenção:** dados confirmados editorialmente não podem ser reeditados pelo administrador nessa primeira versão. Uma futura correção de parecer precisará de uma ação específica auditada, não da atualização direta da tabela. Não utilizar esta fase para validar alimentos em relação a alergias ou calcular valores nutricionais.
