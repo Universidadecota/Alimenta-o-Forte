@@ -307,17 +307,18 @@ export default function App(){
  {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0&&!pilotShopping.length?<div className="empty">{shoppingAnnotations.length?"Ingredientes sem quantidade numérica nas observações abaixo.":"Ainda não há ingredientes. Planeje suas refeições primeiro."}</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{formatIngredientAmount(item.quantity,item.unit)}</strong></button>;})}</div>
 {pilotShopping.length>0&&<section className="cc-pilot-shopping" aria-label="Ingredientes das receitas do acervo pessoal">
   <h3>Ingredientes das receitas do acervo pessoal ({pilotShopping.length})</h3>
-  <p>Use esta lista normalmente para suas compras. As quantidades são as expressões originais dos PDFs; ocorrências repetidas indicam quantas vezes a receita pede a mesma medida, sem converter unidades ou escolher entre alternativas.</p>
+  <p>Somamos quantidades somente quando o ingrediente e a unidade são iguais. Alternativas e medidas ambíguas permanecem separadas, sem conversões inventadas. As receitas originais não são modificadas.</p>
   <div className="shopping-list">{pilotShopping.map(item=>{const key=purchaseKey(item);return <button type="button" key={key}
    disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)}
    aria-pressed={purchasedKeys.includes(key)}
    className={purchasedKeys.includes(key)?"shopping-item checked":"shopping-item"}
    onClick={()=>void togglePurchased(item)}>
    <span className="checkmark">{purchasedKeys.includes(key)&&<Check size={14}/>}</span>
-   <span className="cc-pilot-shopping-text">{item.sourceText}
+   <span className="cc-pilot-shopping-text">{item.totalLabel??item.sourceText}
+    {item.totalLabel&&<small>Expressões originais: {item.sourceExpressions.join(" + ")}</small>}
     <small>Em: {item.sourceRecipes.join("; ")}</small>
    </span>
-   <strong>{item.quantity>1?item.quantity+" vezes":"1 uso"}</strong>
+   <strong>{item.quantity>1?item.quantity+" usos":"1 uso"}</strong>
   </button>;})}</div>
  </section>}
 {shoppingAnnotations.length>0&&<section className="cc-shopping-notes" aria-label="Ingredientes a gosto e opcionais">
@@ -329,7 +330,7 @@ export default function App(){
  </section>}
  {(shopping.length>0||pilotShopping.length>0||shoppingAnnotations.length>0)&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText([
   ...shopping.map(x=>x.name+": "+formatIngredientAmount(x.quantity,x.unit)),
-  ...(pilotShopping.length?["","Ingredientes das receitas do piloto (quantidades originais):",...pilotShopping.map(x=>x.sourceText+(x.quantity>1?" · "+x.quantity+" ocorrências na semana":"") +" · "+x.sourceRecipes.join("; "))]:[]),
+  ...(pilotShopping.length?["","Ingredientes das receitas do piloto (quantidades originais):",...pilotShopping.map(x=>(x.totalLabel??x.sourceText)+(x.totalLabel?" · Originais: "+x.sourceExpressions.join(" + "):"")+(x.quantity>1?" · "+x.quantity+" usos":"")+" · "+x.sourceRecipes.join("; "))]:[]),
   ...(shoppingAnnotations.length?["","A gosto e opcionais (sem quantidade automática):",...shoppingAnnotations.map(x=>x.name+": "+x.description)]:[])
  ].join("\n"))}>Copiar lista</button>}</>}
  </main><div className="mobile-nav">{nav.map(([name,Icon])=><button key={name} className={page===name?"active":""} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={21}/><small>{name}</small></button>)}</div></div>;
