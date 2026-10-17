@@ -50,3 +50,17 @@ npm run test:ingredients
 Se os comandos forem bem-sucedidos, validar visualmente um caso novo de ingrediente composto, por exemplo a receita **Fraldinha com chimichurri e escarola refogada**, ou a salada **Agrião com tiras de fraldinha e chimichurri**, em um dia escolhido para teste. A lista de compras deverá distinguir a manteiga/semente de girassol da salsa do chimichurri, com o texto original preservado e sem soma imprópria.
 
 **Não repetir** os testes da Fase 3F de azeite/leite de coco ou builds anteriores. A criação do teste automatizado **não comprova sua execução**; até receber o retorno, o status é **implementado, pendente de compilação, regressão e evidência visual**. PR #16 permanece aberto em draft, sem merge.
+
+
+## Build e regressão homologados no Windows — 17/10/2026
+
+O responsável forneceu a saída dos três comandos no PowerShell, na pasta do projeto Costa&Costa Alimentação Forte:
+
+- `git pull --ff-only`: atualização **`8c38c83..fa66344`** por fast-forward da branch `feat/revisao-alergenos-fase1-12out2026`, sem conflitos.
+- `npm run build` (`tsc -b && vite build`): **aprovado, sem erros de TypeScript**, Vite **6.4.4**, **1.646 módulos transformados**, conclusão em **36,24 s**; `dist/assets/index-C2AimQq9.css` **53,09 kB** (gzip 11,43 kB), `dist/assets/index-DnDLtONw.js` **506,26 kB** (gzip 143,76 kB).
+- Aviso não bloqueante: chunk maior que **500 kB**; otimização do carregamento fica para fase posterior.
+- `npm run test:ingredients`: **aprovado**, com saída `OK: verificações do parser, frações, alternativas e subtítulos, sem modificar receitas.` O script cobre os casos explicitamente codificados de medidas, alternativas, opções, cabeçalhos e porção. Não interpretar esse teste como validação integral dos 1.073 fragmentos.
+
+**Resultado:** sincronização, compilação de produção e teste automatizado da Fase 3G **homologados**. **Pendente:** somente evidência visual da lista de compras para um ingrediente composto real com subtítulo — por exemplo `Fraldinha com chimichurri e escarola refogada` — com ingredientes separados e texto original preservado. Não repetir comandos, build, testes Fase 3F ou exames médicos. Caso use uma data livre no cardápio para o teste, não substituir refeições já planejadas.
+
+Nenhuma migração, receita, planejamento ou dado nutricional foi alterado nesta etapa documental. O PR #16 permanece aberto, em draft e sem merge.
