@@ -16,6 +16,8 @@ const headings=[
  "Maionese caseira","Farofa de couve-flor","Por porção",
  "Acompanhamento","Chimichurri","Chermoula","Vinagrete",
  "Maionese","Tahine","Salada","Molho","Cenoura",
+ "Ovos","Couve","Abobrinha","Escarola","Para servir","Para o arroz",
+ "Shimeji","Pão \\(por pessoa\\)",
 ];
 const headerRegex=new RegExp(
  "\\.\\s+("+headings.join("|")+"):\\s*(?=\\d|[½¼¾⅓⅔⅛⅜⅝⅞])",
@@ -45,7 +47,7 @@ export function splitPilotIngredient(raw:string):PilotIngredientSegment[]{
   rawFragment:source,
   requiresChoice:isChoice(item.text),
   optional:isOptional(item.text),
-  ambiguousCompound:hasUnresolvedCompound(item.text),
+  ambiguousCompound:hasUnresolvedCompound(item.text)||Boolean(item.section&&/por (?:porção|pessoa)/i.test(item.section)),
   wasSplit:matches.length>0,
  }));
 }
