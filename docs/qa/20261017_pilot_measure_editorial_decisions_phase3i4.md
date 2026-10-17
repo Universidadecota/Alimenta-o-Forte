@@ -80,3 +80,21 @@ Verificação estática no GitHub confirma:
 **Situação real após os testes:** **1.073** registros, **1** draft, **1.072** pendentes, **0** confirmados, **0** eventos permanentes na nova trilha, pois nenhuma decisão real ocorreu ainda. O build novo **ainda não foi executado no Windows**; a homologação técnica de SQL não substitui a inspeção visual do frontend.
 
 **Atenção:** dados confirmados editorialmente não podem ser reeditados pelo administrador nessa primeira versão. Uma futura correção de parecer precisará de uma ação específica auditada, não da atualização direta da tabela. Não utilizar esta fase para validar alimentos em relação a alergias ou calcular valores nutricionais.
+
+
+## Homologação visual e build Windows — 17/10/2026
+
+O responsável executou `git pull --ff-only` (fast-forward de `a6dffa0` para `deedf1f`) e `npm run build` no Windows PowerShell. Compilação **APROVADA**, sem erros TypeScript: Vite 6.4.4, **1.649 módulos** transformados, **25,50 segundos**. Artefatos: CSS `index-DjGqeLyH.css` (60,83 kB; gzip 12,75 kB); JavaScript `index-DzDYZ12v.js` (532,41 kB; gzip 151,00 kB). Aviso de chunk maior que 500 kB é não bloqueante e não foi corrigido nesta fase.
+
+Duas capturas do `localhost:5173` confirmam a renderização da nova seção **Conferência editorial dos rascunhos**:
+- Exibe **Moqueca de peixe com arroz de couve-flor**, fonte **`1 colher (chá) de azeite de dendê`** e proposta **1 · colher (chá) · azeite de dendê**.
+- A opção **Conferir proposta** abre os detalhes com fonte, medida estruturada, nota anterior e campo **Justificativa editorial**.
+- Checkbox de conferência humana aparece **desmarcado**; campo de justificativa está vazio, e nenhuma decisão foi enviada.
+- Histórico apresenta **0 últimas ações**; a tela preserva a distinção entre confirmação **editorial** e aprovação médica, nutricional ou de alergênicos.
+- Filtro principal segue com **1.072 registros pendentes**, indicando que o único rascunho foi preservado.
+
+Auditoria SQL somente leitura, executada após as capturas, confirmou: **1.073 medidas** no inventário, **1.072 `pending`**, **1 `draft`**, **0 `confirmed`**, **0 `needs_manual_review`**, **0 eventos permanentes** na nova trilha e **0 divergências** entre texto fonte e ingrediente original.
+
+**Conclusão:** build Windows e abertura do painel/detalhes de revisão **HOMOLOGADOS**. **Não foi homologado ainda o clique efetivo em `Confirmar medida editorial` ou `Devolver para revisão manual` no navegador**; os testes transacionais com `ROLLBACK` cobriram os procedimentos do banco, mas não substituem uma decisão humana. Não solicitar repetição do build, das capturas nem dos testes anteriores. Eventual confirmação do azeite de dendê deve ocorrer **somente após conferência material do texto original e autorização expressa**, pois o status confirmado nesta primeira versão é bloqueado para edição direta.
+
+Este registro altera somente a documentação. PR #16 continua aberto em draft e sem merge; não publicar receitas nem ativar cálculos de porções, nutrição ou alergênicos.
