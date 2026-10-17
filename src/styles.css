@@ -498,3 +498,16 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-measure-batch-group li small{display:block;color:#65786b}
 @media(max-width:850px){.cc-measure-batch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.cc-measure-batch-grid{grid-template-columns:minmax(0,1fr)}.cc-measure-batch-header button{width:100%}}
+
+
+/* Fase 3I.3 — lote de rascunhos com seleção explícita, sem aprovação automática. */
+.cc-measure-draft-preview{margin-top:18px;padding:16px;border:1px solid #d9e3d9;background:#fff;border-radius:12px;display:grid;gap:12px}
+.cc-measure-draft-preview h4{margin:0;color:#19473a;font-size:15px}
+.cc-measure-draft-preview p{color:#5b7464;margin:0;font-size:12px;line-height:1.6}
+.cc-measure-draft-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:430px;overflow:auto}
+.cc-measure-draft-item{display:flex;gap:10px;align-items:start;min-width:0;padding:10px;border:1px solid #dfe7df;background:#f9fbf9;border-radius:9px;cursor:pointer}
+.cc-measure-draft-item input{margin:4px 0 0;flex:0 0 auto;width:17px;height:17px;accent-color:#19483a}
+.cc-measure-draft-item span{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.cc-measure-draft-item strong{color:#1c4337;font-size:12px}
+.cc-measure-draft-item small{color:#687d6c;font-size:11px;line-height:1.45}
+@media(max-width:670px){.cc-measure-draft-list{grid-template-columns:minmax(0,1fr)}}
