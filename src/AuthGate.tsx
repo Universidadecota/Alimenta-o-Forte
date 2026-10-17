@@ -3,7 +3,7 @@ import Onboarding from "./Onboarding";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
-import { Leaf, LogOut, Mail, Lock, UserRound } from "lucide-react";
+import { Leaf, Mail, Lock, UserRound } from "lucide-react";
 export default function AuthGate({children}:{children:ReactNode}){
  const [session,setSession]=useState<Session|null>(null);
  const [showAuth,setShowAuth]=useState(false);
@@ -35,7 +35,7 @@ export default function AuthGate({children}:{children:ReactNode}){
  if(loading)return <div className="auth-center">Carregando Costa&Costa...</div>;
  if(session&&onboarding==="checking")return <div className="auth-center">Preparando sua experiência Costa&Costa...</div>;
  if(session&&onboarding==="needed")return <Onboarding userId={session.user.id} onDone={()=>setOnboarding("done")}/>;
- if(session)return <><div className="session-bar"><span>Conectado como {session.user.email}</span><button type="button" onClick={()=>void supabase?.auth.signOut()}><LogOut size={15}/> Sair</button></div>{children}</>;
+ if(session)return <>{children}</>;
  if(!showAuth)return <PublicLanding onAuth={next=>{setMode(next);setShowAuth(true);setMessage("");}}/>;
  return <div className="auth-center"><form className="auth-card" onSubmit={submit}>
  <button className="auth-back-home" type="button" onClick={()=>setShowAuth(false)}>← Voltar para o início</button><div className="auth-logo"><Leaf size={25}/></div><h1>Costa&Costa</h1><p>Sua alimentação. Seu ritmo. Sua evolução.</p>
