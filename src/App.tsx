@@ -307,7 +307,7 @@ export default function App(){
  {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0&&!pilotShopping.length?<div className="empty">{shoppingAnnotations.length?"Ingredientes sem quantidade numérica nas observações abaixo.":"Ainda não há ingredientes. Planeje suas refeições primeiro."}</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{formatIngredientAmount(item.quantity,item.unit)}</strong></button>;})}</div>
 {pilotShopping.length>0&&<section className="cc-pilot-shopping" aria-label="Ingredientes das receitas do acervo pessoal">
   <h3>Ingredientes das receitas do acervo pessoal ({pilotShopping.length})</h3>
-  <p>Somamos quantidades somente quando o ingrediente e a unidade são iguais. Alternativas e medidas ambíguas permanecem separadas, sem conversões inventadas. As receitas originais não são modificadas.</p>
+  <p>Somamos medidas equivalentes somente com o mesmo ingrediente e unidade. Também organizamos preparos com subtítulos explícitos. Alternativas e trechos ambíguos são sinalizados, sem conversões ou escolhas inventadas; as receitas originais não são modificadas.</p>
   <div className="shopping-list">{pilotShopping.map(item=>{const key=purchaseKey(item);return <button type="button" key={key}
    disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)}
    aria-pressed={purchasedKeys.includes(key)}
@@ -316,6 +316,10 @@ export default function App(){
    <span className="checkmark">{purchasedKeys.includes(key)&&<Check size={14}/>}</span>
    <span className="cc-pilot-shopping-text">{item.totalLabel??item.sourceText}
     {item.totalLabel&&<small>Expressões originais: {item.sourceExpressions.join(" + ")}</small>}
+    {item.requiresChoice&&<small className="cc-pilot-shopping-attention">Alternativas no documento: escolha uma opção antes de comprar. Nada foi substituído automaticamente.</small>}
+    {item.optionalSource&&<small className="cc-pilot-shopping-attention">Ingrediente opcional: confira se será utilizado.</small>}
+    {item.ambiguousSource&&<small className="cc-pilot-shopping-attention">Trecho composto ou ambíguo: confira as instruções da receita.</small>}
+    {item.sourceRawFragments.length>0&&<small>Trecho original completo: {item.sourceRawFragments.join(" | ")}</small>}
     <small>Em: {item.sourceRecipes.join("; ")}</small>
    </span>
    <strong>{item.quantity>1?item.quantity+" usos":"1 uso"}</strong>
