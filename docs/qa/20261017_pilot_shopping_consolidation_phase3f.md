@@ -48,3 +48,16 @@ Aprimorar compras de receitas do piloto de três meses, **sem alterar os PDFs, i
 - Manter PR #16 sem merge até compilação, conferência das compras e organização do catálogo comercial.
 
 **Nenhuma migração SQL ou publicação necessária nesta fase**; as alterações são de apresentação/cálculo conservador no frontend.
+
+## Build Windows homologado — 17/10/2026
+
+O responsável forneceu logs de sincronização e build do PowerShell. O histórico incluiu um build anterior do commit `2ee0761` (Vite 6.4.4, 1.644 módulos, 39,21 s) e dois builds do código novo, ambos aprovados:
+
+- `git pull --ff-only`: fast-forward de `2ee0761` até **`8c38c83`** na branch `feat/revisao-alergenos-fase1-12out2026`, com novo parser `src/lib/pilotMeasure.ts` e ajustes no agrupamento e apresentação da lista de compras.
+- `npm run build` (`tsc -b && vite build`): **nenhum erro TypeScript**. Vite **6.4.4**, **1.645 módulos transformados**, geração `dist/assets/index-C94dBnbL.css` (**52,94 kB**, gzip 11,40 kB), `dist/assets/index-4koMuIYd.js` (**503,54 kB**, gzip 142,72 kB).
+- Primeira compilação do commit `8c38c83`: **24,37 s**; após `git pull --ff-only` responder `Already up to date`, segunda compilação idêntica: **7,92 s**.
+- Aviso Vite de chunk maior que 500 kB: **não bloqueante**, para otimização futura.
+
+**Classificação:** Git, TypeScript e build de produção da Fase 3F **APROVADOS**. **Não repetir build** desta versão; o registro documental não muda o código executável.
+
+**Teste ainda pendente:** confirmar na tela **Compras** a apresentação de um total efetivamente combinado ao planejar duas receitas autorais com o mesmo ingrediente e a mesma unidade, com as expressões originais preservadas, sem somar `colher (chá)` com `colher (sopa)`. Verificar que uma marcação antiga não se transmite indevidamente a novo total. Sem essa captura não declarar a soma operacional homologada. PR #16 permanece rascunho/sem merge.
