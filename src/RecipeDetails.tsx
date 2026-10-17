@@ -4,8 +4,8 @@ import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
 import { formatRecipeIngredient } from "./lib/ingredientMeasures";
 
-type Props={recipe:Meal;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean};
-export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
+type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean};
+export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd}:Props){
  const [servings,setServings]=useState(recipe.servings);
  const steps=recipe.instructions?.split(/(?:\\n|\r?\n)+/).map(s=>s.trim()).filter(Boolean)??[];
  return <section className="recipe-details">
@@ -29,7 +29,7 @@ export default function RecipeDetails({recipe,onClose,onAdd,canAdd}:Props){
    {recipe.pilotSource?<p className="detail-note">Receita autoral em uso pessoal — preparo original preservado. Quantidades não são redimensionadas automaticamente; alergênicos e informações nutricionais ainda não foram verificados.</p>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
    <section className="detail-panel"><h3>Modo de preparo</h3>{steps.length>0?<ol className="preparation">{steps.map((step,i)=><li key={i}>{step}</li>)}</ol>:<p className="detail-note">O modo de preparo desta receita ainda não foi cadastrado e revisado. Não vamos apresentar instruções inventadas como definitivas.</p>}
-   <button type="button" className="primary" disabled={!canAdd} onClick={()=>onAdd(servings)}><Plus size={16}/> {recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"?"Escolher horário no cardápio":"Adicionar ao dia selecionado"}</button>
+   <button type="button" className="primary" disabled={!canAdd} onClick={()=>onAdd(servings)}><Plus size={16}/> {recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"?"Escolher horário · "+destinationDateLabel:"Adicionar em "+destinationDateLabel}</button>
    </section>
   </div>
  </section>;
