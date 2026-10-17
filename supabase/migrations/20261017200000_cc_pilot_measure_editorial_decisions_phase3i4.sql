@@ -135,7 +135,7 @@ BEGIN
   (ingredient_id,actor_id,action,old_status,new_status,source_text,old_proposal,new_proposal,decision_note)
  VALUES(p_id,v_actor,CASE WHEN p_action='confirm' THEN 'editorially_confirmed' ELSE 'needs_manual_review' END,
   v_row.review_status,v_target,p_source_text,
-  jsonb_build_object('quantity',v_row.proposed_quantity,'unit',v_row.proposed_unit,'ingredient',v_row.proposed_ingredient),
+  jsonb_build_object('quantity',v_row.proposed_quantity,'unit',v_row.proposed_unit,'ingredient',v_row.proposed_ingredient,'previous_note',v_row.review_notes),
   jsonb_build_object('quantity',CASE WHEN p_action='confirm' THEN v_row.proposed_quantity ELSE NULL END,
   'unit',CASE WHEN p_action='confirm' THEN v_row.proposed_unit ELSE NULL END,
   'ingredient',CASE WHEN p_action='confirm' THEN v_row.proposed_ingredient ELSE NULL END,'decision_note',v_note),v_note);
