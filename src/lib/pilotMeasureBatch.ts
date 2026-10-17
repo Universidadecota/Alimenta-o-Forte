@@ -18,6 +18,24 @@ export const measureGroups:ReadonlyArray<{key:MeasureGroup;label:string;explanat
 export type MeasureProposal={quantity:number;unit:string;ingredient:string};
 export type BatchItem={ingredient_id:string;source_text:string;review_status:string};
 export type BatchGroupSample={id:string;text:string;proposal:MeasureProposal|null};
+export type DraftCandidate={ingredient_id:string;source_text:string;quantity:number;unit:string;ingredient:string};
+/** Apenas gera proposta local de até 20 itens pendentes; nunca grava rascunhos. */
+export function prepareDraftCandidates(items:ReadonlyArray<BatchItem>,limit=20):DraftCandidate[]{
+ const cap=Math.max(0,Math.min(20,Math.floor(limit)));
+ return items.filter(row=>row.review_status==="pending")
+  .map(row=>({row,result:classifyMeasure(row.source_text)}))
+  .filter(({result})=>result.group==="simple"&&result.proposal!==null)
+  .map(({row,result})=>({
+   ingredient_id:row.ingredient_id,
+   source_text:row.source_text,
+   quantity:result.proposal!.quantity,
+   unit:result.proposal!.unit,
+   ingredient:result.proposal!.ingredient
+  }))
+  .sort((a,b)=>a.source_text.localeCompare(b.source_text,"pt-BR")||
+   a.ingredient_id.localeCompare(b.ingredient_id))
+  .slice(0,cap);
+}
 export type BatchResult={
  total:number;
  byGroup:Record<MeasureGroup,number>;
