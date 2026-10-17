@@ -48,7 +48,7 @@ export function classifyMeasure(text:string):{group:MeasureGroup;proposal:Measur
  const s=text.trim();
  const parts=splitPilotIngredient(s);
  if(parts.length>1||/:\s*\S/u.test(s)||/;/.test(s))return {group:"compound",proposal:null};
- if(/(?:^|\s)\d+(?:,\d+)?\s+a\s+\d+(?:,\d+)?\s*(?:kg|g|ml|l|colher|xícara)/iu.test(s))
+ if(/(?:^|[\s(])\d+(?:,\d+)?\s+a\s+\d+(?:,\d+)?\s*(?:kg|g|ml|l|colher|xícara)/iu.test(s))
   return {group:"range",proposal:null};
  if(/\bou\b/iu.test(s))return {group:"choice",proposal:null};
  if(/\b(?:opcional|a gosto|quanto bastar|se preferir|se desejar|se precisar)\b/iu.test(s))
