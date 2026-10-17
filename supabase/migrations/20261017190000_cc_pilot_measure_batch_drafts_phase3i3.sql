@@ -26,7 +26,7 @@ BEGIN
   IF v_count<1 OR v_count>20 THEN
     RAISE EXCEPTION 'Selecione de 1 a 20 medidas por lote';
   END IF;
-  IF (SELECT count(DISTINCT x->>'ingredient_id') FROM jsonb_array_elements(p_items) x)<>v_count THEN
+  IF (SELECT count(DISTINCT entry.item->>'ingredient_id') FROM jsonb_array_elements(p_items) AS entry(item))<>v_count THEN
     RAISE EXCEPTION 'O lote contém ingredientes repetidos';
   END IF;
 
@@ -34,10 +34,10 @@ BEGIN
   LOOP
     IF jsonb_typeof(v_item)<>'object'
        OR coalesce(v_item->>'ingredient_id','') !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-       OR jsonb_typeof(v_item->'quantity')<>'number'
-       OR jsonb_typeof(v_item->'source_text')<>'string'
-       OR jsonb_typeof(v_item->'unit')<>'string'
-       OR jsonb_typeof(v_item->'ingredient')<>'string' THEN
+       OR coalesce(jsonb_typeof(v_item->'quantity'),'')<>'number'
+       OR coalesce(jsonb_typeof(v_item->'source_text'),'')<>'string'
+       OR coalesce(jsonb_typeof(v_item->'unit'),'')<>'string'
+       OR coalesce(jsonb_typeof(v_item->'ingredient'),'')<>'string' THEN
       RAISE EXCEPTION 'Item do lote inválido ou incompleto';
     END IF;
     v_id := (v_item->>'ingredient_id')::uuid;
