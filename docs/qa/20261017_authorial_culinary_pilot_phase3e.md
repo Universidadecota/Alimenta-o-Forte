@@ -61,3 +61,16 @@ O responsável forneceu a saída do PowerShell após sincronizar a branch `feat/
 **Resultado:** build de produção da Fase 3E **APROVADO**. Os 119 registros do piloto continuam não publicados e os planos anteriores foram preservados conforme a auditoria de banco feita antes do build. **Ainda não homologadas visualmente:** exclusão de receitas legadas do filtro `Todos`, filtro administrativo `Legado`, início sem objetivos clínicos e ausência do painel médico na interface.
 
 **Próximo teste sem recompilar:** `localhost:5173` → **Receitas** → filtro **Todos**; verificar que aparecem as autorais e não os cartões `[Exemplo]`. Depois, selecionar **Legado** e confirmar que os exemplos continuam acessíveis ao administrador. Enviar uma captura com o resultado. Não repetir testes anteriores de receitas, ceia, compras ou RLS. PR #16 continua aberto, em rascunho e sem merge.
+
+
+## Homologação visual do catálogo autoral e do filtro Legado — 17/10/2026
+
+**Evidências:** quatro capturas da página **Receitas**, `localhost:5173`, no computador, fornecidas pelo responsável em 17/10/2026.
+
+1. Filtro **Todos**: indicador `115 receitas encontradas`; exibição de cartões identificados como **Receita autoral** em lugar dos cartões com prefixo `[Exemplo]`, com ações `Ver receita completa` e inclusão no cardápio. Visualizada a página 1 de 7, paginação compatível com 18 itens por página.
+2. Filtro administrativo **Legado**: indicador `7 receitas encontradas`, incluindo exemplos de frango, iogurte, omelete, peixe, salada e sopa; essa consulta está separada do filtro padrão.
+3. **Reconciliado no Supabase** (SQL somente leitura): 114 receitas do piloto com `is_plannable=true` + 1 receita particular não arquivada = **115** em `Todos`; outros 5 registros do acervo são molhos complementares, não considerados refeições diárias. Existem 7 receitas oficiais legadas publicadas, contabilizadas separadamente. **26 refeições planejadas** permanecem registradas.
+
+**Resultado homologado:** separação e contagem visual do acervo autoral, filtro Legado e paginação no desktop, combinadas com confirmação quantitativa no banco. A tela inicial e a retirada do módulo médico da Administração **não foram observadas nessas capturas**. O filtro Legado preserva visualização administrativa; **não** equivale a despublicar os sete registros via API, pendência explícita antes da venda.
+
+**Próxima fase funcional:** consolidar medidas de ingredientes das receitas planejadas de forma conservadora (somente mesmo item, mesma unidade e estado/preparo compatíveis). Preservar alternativas, `a gosto` e expressões ambíguas intactas; não inventar quantidades ou conversões entre medidas. Não repetir os quatro testes visuais aprovados, build anterior, nem homologações de compras/ceias/médico. PR #16 continua aberto em rascunho e sem merge.
