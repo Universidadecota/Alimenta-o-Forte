@@ -56,6 +56,10 @@ assert.equal(portion[1].ambiguousCompound,true); // não somar sem saber o núme
 const salad=splitPilotIngredient("sal. Salada: ½ pepino fatiado");
 assert.equal(salad.length,2);
 assert.equal(salad[1].text,"½ pepino fatiado");
+const nonNumeric=splitPilotIngredient("cebolinha. Salada: folhas de alface");
+assert.equal(nonNumeric.length,2);
+assert.equal(nonNumeric[1].section,"Salada");
+assert.equal(nonNumeric[1].text,"folhas de alface");
 const unknown="1 colher (sopa) de azeite. Ingrediente desconhecido: 1 xícara de vegetais";
 const unresolved=splitPilotIngredient(unknown);
 assert.equal(unresolved.length,1);
