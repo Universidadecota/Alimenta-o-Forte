@@ -1,5 +1,6 @@
 import {type Meal,type Plan,type Slot,dateKey,daySlots} from "./planner";
 import {formatIngredientAmount,formatRecipeIngredient,formatUnit} from "./ingredientMeasures";
+import {parsePilotMeasure,formatPilotTotal,type ParsedPilotMeasure} from "./pilotMeasure";
 
 export {formatUnit,formatIngredientAmount};
 const aliases:Record<string,{base:string;factor:number}>={
@@ -11,41 +12,60 @@ const normalize=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
   .trim().toLocaleLowerCase("pt-BR").replace(/\s+/g," ");
 export type ShoppingItem={name:string;quantity:number;unit:string};
 export type ShoppingNote={name:string;description:string};
-export type PilotShoppingItem=ShoppingItem&{sourceText:string;sourceRecipes:string[]};
+export type PilotShoppingItem=ShoppingItem&{
+ sourceText:string;
+ sourceRecipes:string[];
+ sourceExpressions:string[];
+ totalLabel?:string;
+};
 /**
- * Lista de compra UTILIZÁVEL para o piloto pessoal.
- * Cada item contém a expressão literal usada na receita, inclusive medidas,
- * produtos alternativos e qualificadores. quantity = número de ocorrências
- * na semana, NÃO quantidade física, nem conversão de colher para gramas.
- * O prefixo na chave evita colisão com compras estruturadas anteriores.
+ * A fonte não é editada. Somamos apenas o mesmo ingrediente com a MESMA unidade
+ * literal. Por exemplo: 1 xícara + ½ xícara de leite de coco = 1 ½ xícara,
+ * mas não misturamos xícara com ml ou leite de coco com leite comum.
+ * Quando a leitura não é inequívoca, as expressões permanecem separadas.
  */
 export function collectPilotShopping(days:Date[],plan:Plan,recipes:Meal[]):PilotShoppingItem[]{
  const byId=new Map(recipes.map(recipe=>[recipe.id,recipe]));
- const out=new Map<string,PilotShoppingItem>();
+ const out=new Map<string,{item:PilotShoppingItem;measure:ParsedPilotMeasure|null;sum:number}>();
  days.forEach(day=>daySlots.forEach(slot=>{
   const entry=plan[dateKey(day)]?.[slot];
   const meal=entry?byId.get(entry.id):undefined;
   if(!meal?.pilotSource||meal.pilotSource.ingredientsReviewed)return;
-  // O rendimento permanece o da receita original até revisão das medidas.
+  // Rendimento e medidas são os originais, sem escalonar pelo tamanho da família.
   for(const ingredient of meal.ingredients){
    const text=ingredient.name.trim();
    if(!text)continue;
-   const key=normalize(text.replace(/[.\s]+$/g,""));
-   const old=out.get(key);
+   const cleaned=text.replace(/[.\s]+$/g,"");
+   const measure=parsePilotMeasure(text);
+   const groupKey=measure?"medida|"+measure.key:"literal|"+normalize(cleaned);
+   const old=out.get(groupKey);
    if(old){
-    old.quantity+=1;
-    if(!old.sourceRecipes.includes(meal.title))old.sourceRecipes.push(meal.title);
+    old.item.quantity+=1;
+    if(measure&&old.measure)old.sum+=measure.amount;
+    if(!old.item.sourceRecipes.includes(meal.title))old.item.sourceRecipes.push(meal.title);
+    if(!old.item.sourceExpressions.includes(text))old.item.sourceExpressions.push(text);
    }else{
-    out.set(key,{
-     name:"Piloto · "+text.replace(/[.\s]+$/g,""),quantity:1,unit:"un",sourceText:text,
-     sourceRecipes:[meal.title]
+    out.set(groupKey,{
+     measure,sum:measure?.amount??0,
+     item:{
+      name:"Piloto · "+cleaned,
+      quantity:1,unit:"un",sourceText:text,
+      sourceExpressions:[text],sourceRecipes:[meal.title]
+     }
     });
    }
   }
  }));
- return [...out.values()].sort((a,b)=>a.sourceText.localeCompare(b.sourceText,"pt-BR"));
+ return [...out.values()].map(({item,measure,sum})=>{
+  if(item.quantity>1){
+   // Requisito de segurança: se o total a comprar mudar, a chave do checkbox
+   // muda e não herda por engano o estado 'comprado' da quantidade anterior.
+   item.name="Piloto · "+(measure?.key??normalize(item.sourceText))+" · "+item.quantity+" usos";
+   if(measure)item.totalLabel=formatPilotTotal(measure,sum);
+  }
+  return item;
+ }).sort((a,b)=>(a.totalLabel??a.sourceText).localeCompare(b.totalLabel??b.sourceText,"pt-BR"));
 }
-
 
 /** Apenas ingredientes obrigatórios com quantidades confiáveis participam do total. */
 export function consolidateShopping(days:Date[],plan:Plan,recipes:Meal[]):ShoppingItem[]{
