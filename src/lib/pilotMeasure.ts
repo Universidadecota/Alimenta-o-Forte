@@ -20,7 +20,7 @@ const fractionValues:Record<string,number>={
 const unitSpecs:Array<{key:string;expression:RegExp;one:string;many:string}>=[
  {key:"colher-cha",expression:/^colher(?:es)?\s*(?:\(\s*chá\s*\)|de\s+chá)\s+de\s+/i,one:"colher (chá)",many:"colheres (chá)"},
  {key:"colher-sopa",expression:/^colher(?:es)?\s*(?:\(\s*sopa\s*\)|de\s+sopa)\s+de\s+/i,one:"colher (sopa)",many:"colheres (sopa)"},
- {key:"xicara",expression:/^xícaras?\s+de\s+/i,one:"xícara",many:"xícaras"},
+ {key:"xicara",expression:/^(?:de\s+)?xícaras?\s+de\s+/i,one:"xícara",many:"xícaras"},
  {key:"grama",expression:/^g\s+(?:de\s+)?/i,one:"g",many:"g"},
  {key:"quilograma",expression:/^kg\s+(?:de\s+)?/i,one:"kg",many:"kg"},
  {key:"mililitro",expression:/^ml\s+(?:de\s+)?/i,one:"ml",many:"ml"},
