@@ -24,7 +24,15 @@ export function prepareDraftCandidates(items:ReadonlyArray<BatchItem>,limit=20):
  const cap=Math.max(0,Math.min(20,Math.floor(limit)));
  return items.filter(row=>row.review_status==="pending")
   .map(row=>({row,result:classifyMeasure(row.source_text)}))
-  .filter(({result})=>result.group==="simple"&&result.proposal!==null)
+  .filter(({row,result})=>{
+   const proposed=result.proposal;
+   // Limites e precisão equivalentes à RPC/NUMERIC(12,4).
+   return result.group==="simple"&&proposed!==null&&
+    proposed.quantity>0&&proposed.quantity<=100000&&
+    Math.abs(proposed.quantity*10000-Math.round(proposed.quantity*10000))<1e-7&&
+    proposed.ingredient.trim().length>=2&&proposed.ingredient.trim().length<=180&&
+    row.source_text.length>=2;
+  })
   .map(({row,result})=>({
    ingredient_id:row.ingredient_id,
    source_text:row.source_text,
