@@ -67,7 +67,7 @@ export default function PilotIngredientMeasureReview(){
     .order("source_position",{ascending:true})
     .range(page*pageSize,(page+1)*pageSize-1);
    if(status!=="all")q=q.eq("review_status",status);
-   if(search.trim())q=q.ilike("source_text","%"+search.trim().replaceAll("%","")+"%");
+   if(search.trim())q=q.ilike("source_text","%"+search.trim().replace(/[%_]/g,"")+"%");
    const {data,error:dbError,count}=await q;
    if(dbError)throw dbError;
    setRows((data??[]) as unknown as Review[]);
