@@ -5,7 +5,6 @@ type DashboardProps = {
   plan: Plan;
   recipes: Meal[];
   loading: boolean;
-  goal: string | null;
   plannedInWeek: number;
   optionalInWeek: number;
   onOpenPlanner: () => void;
@@ -14,20 +13,12 @@ type DashboardProps = {
   onViewRecipe: (recipeId: string) => void;
 };
 
-const goalLabels: Record<string, string> = {
-  eat_better: "Comer melhor",
-  plan_meals: "Organizar refeições",
-  balanced_weight: "Cuidar do peso com equilíbrio",
-  build_habits: "Cultivar hábitos",
-  maintain_balance: "Manter equilíbrio",
-};
-
 const dateLabel = (date: Date) => new Intl.DateTimeFormat("pt-BR", {
   weekday: "long", day: "numeric", month: "long",
 }).format(date);
 
 export default function HomeDashboard({
-  plan, recipes, loading, goal, plannedInWeek, optionalInWeek,
+  plan, recipes, loading, plannedInWeek, optionalInWeek,
   onOpenPlanner, onOpenShopping, onOpenRecipes, onViewRecipe,
 }: DashboardProps) {
   const today = new Date();
@@ -48,7 +39,6 @@ export default function HomeDashboard({
         <h2 id="dashboard-title">Seu dia, mais organizado.</h2>
         <p className="dashboard-today">{dateLabel(today)}</p>
         <p>Seu cardápio, suas receitas e suas compras reunidos em um só lugar. Ajuste tudo ao seu ritmo.</p>
-        {goal && <p className="dashboard-goal">Objetivo cadastrado: {goalLabels[goal] ?? goal}</p>}
         <div className="dashboard-actions">
           <button type="button" className="primary light-button" onClick={onOpenPlanner}>
             <CalendarDays size={18}/> Ver meu cardápio
@@ -99,7 +89,7 @@ export default function HomeDashboard({
         </div>}
     </section>
     <section className="dashboard-shortcuts" aria-label="Atalhos">
-      <button type="button" onClick={onOpenShopping}><ShoppingBasket size={23}/><span><strong>Compras da semana</strong><small>Ingredientes calculados pelo cardápio</small></span><ChevronRight size={18}/></button>
+      <button type="button" onClick={onOpenShopping}><ShoppingBasket size={23}/><span><strong>Compras da semana</strong><small>Ingredientes e medidas das receitas escolhidas</small></span><ChevronRight size={18}/></button>
       <button type="button" onClick={onOpenRecipes}><ClipboardList size={23}/><span><strong>Biblioteca de receitas</strong><small>Veja receitas e adicione suas próprias</small></span><ChevronRight size={18}/></button>
     </section>
   </div>;
