@@ -18,7 +18,7 @@ const headings=[
  "Maionese","Tahine","Salada","Molho","Cenoura",
 ];
 const headerRegex=new RegExp(
- "\\.\\s+("+headings.join("|")+"):?\\s*(?=\\d|[½¼¾⅓⅔⅛⅜⅝⅞])",
+ "\\.\\s+("+headings.join("|")+"):\\s*(?=\\d|[½¼¾⅓⅔⅛⅜⅝⅞])",
  "giu"
 );
 const isChoice=(value:string)=>/\bou\b/i.test(value);
