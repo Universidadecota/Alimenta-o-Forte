@@ -188,8 +188,8 @@ export default function App(){
    setPage("Cardápio");
    return;
   }
-  setPage("Cardápio");setDetailId(null);
   if(recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"){
+   setPage("Cardápio");setDetailId(null);
    if(recipe.category==="Lanche")setOptionalOpen(true);
    setPendingPlacement({recipeId:recipe.id,servings});
    setPlacementTarget("");
@@ -199,6 +199,7 @@ export default function App(){
     const existingName=recipes.find(r=>r.id===existingId)?.title??"outra receita";
     if(!confirm("No dia "+selected.split("-").reverse().join("/")+" já existe '"+existingName+"' em "+recipe.category+". Deseja substituí-la por '"+recipe.title+"'?"))return;
    }
+   setPage("Cardápio");setDetailId(null);
    void update(selected,recipe.category,recipe.id,servings);
   }
  };
