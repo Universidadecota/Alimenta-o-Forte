@@ -77,3 +77,18 @@ A interface antiga de Administração usava `cc_save_official_recipe` até para 
 **Homologação:** upload/persistência no Storage e exibição da foto no cartão estão **aprovados**. **Pendentes:** novo build Windows da correção do rótulo, conferência visual do rótulo correspondente ao campo cadastrado e exibição na ficha completa. Não repetir o upload original nem modificar qualquer ingrediente, preparo ou planejamento.
 
 **PR #16** permanece aberto, em rascunho, sem merge. As demais 118 fotos deverão ser cadastradas somente após validar o rótulo e a ficha.
+
+
+## Correção da pré-visualização — quantidades textuais originais
+
+**Relato e evidências:** em 17/10/2026 o responsável forneceu duas capturas da pré-visualização de **Carne moída refogada com couve e abacate**, mostrando linhas como `quantidade não informada — 150 g de carne bovina moída`, `quantidade não informada — ¼ de cebola`, `quantidade não informada — 1 dente de alho`. A redação era enganosa: o próprio fragmento já incluía uma quantidade, mas o componente antepunha uma etiqueta gerada de um campo numérico ainda não estruturado.
+
+**Causa confirmada no código:** `src/AdminRecipes.tsx` aplicava `formatRecipeIngredient(item)` a todos os ingredientes, independentemente da fase de importação; `src/lib/ingredientMeasures.ts` traduz `quantity=null` ou `measure_mode='unspecified'` para `quantidade não informada`. A fonte original está salva em `cc_official_recipe_source_records.original_ingredients` e cada fragmento em `recipe_ingredients.name`.
+
+**Auditoria SQL somente leitura:** entre os **1.073** fragmentos de ingredientes das **119** receitas do piloto, os **1.073** registros têm `quantity=NULL`; **747** já começam com números ou frações em `name`. Isso não prova que os demais 326 não tenham medidas; alguns são `sal`/`pimenta`, alternativas, expressões com outra gramática ou subpreparos. Os nove ingredientes da receita das capturas foram conferidos individualmente; todo o texto, incluindo as medidas de `150 g`, `¼`, `1 dente`, `2 folhas`, `1 colher (sopa)` e `½`, permanece cadastrado.
+
+**Correção aplicada no GitHub:** `src/AdminRecipes.tsx` apresenta na pré-visualização das receitas do piloto **apenas cada expressão original `item.name`**, com aviso de que a medida está no texto e o redimensionamento automático ainda não foi disponibilizado. Receitas legadas estruturadas continuam com `formatRecipeIngredient`. Corrigido também singular/plural (`1 porção` no modal e `1 porção de referência` na leitura protegida). Não mudou receita, ingredientes, quantidade, modo de preparo, foto ou dia.
+
+**Limitação e próxima etapa:** essa é uma correção de **exibição**, não uma migração de `quantity`/`unit` ou autorização de multiplicar porções. A estruturação quantitativa dos 1.073 fragmentos deve ocorrer **em estágio de revisão separado**, registrando texto literal, medida extraída, unidade original, ingrediente, opção/preparo e confiança editorial. Somente equivalências seguras podem ser confirmadas, sem sobrescrever a fonte, sem transformar ausência em zero e sem liberar cálculo nutricional. Priorizar os 747 prefixos numéricos e depois exceções do piloto.
+
+**Homologação pendente:** executar uma vez `git pull --ff-only` e `npm run build` no Windows e reabrir a **mesma pré-visualização** de Carne moída. Esperado: `150 g de carne bovina moída`, `¼ de cebola`, `1 dente de alho`, etc., **sem prefixo** `quantidade não informada —`. Não reenviar foto, não repetir testes de compras nem alterar receitas. PR #16 permanece aberto, em rascunho, sem merge.
