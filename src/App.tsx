@@ -183,6 +183,11 @@ export default function App(){
  const plannedCount=days.reduce((n,d)=>n+slots.filter(slot=>Boolean(plan[dateKey(d)]?.[slot]?.id)).length,0);
  const optionalCount=days.reduce((n,d)=>n+optionalSlots.filter(slot=>Boolean(plan[dateKey(d)]?.[slot]?.id)).length,0);
  const addFromRecipes=(recipe:Meal,servings:number)=>{
+  if(!days.some(day=>dateKey(day)===selected)){
+   setError("Selecione um dia válido da semana no Cardápio antes de adicionar a receita.");
+   setPage("Cardápio");
+   return;
+  }
   setPage("Cardápio");setDetailId(null);
   if(recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"){
    if(recipe.category==="Lanche")setOptionalOpen(true);
@@ -251,6 +256,9 @@ export default function App(){
   if(dateKey(todayWeek)!==weekStart){setPlan({});setWeek(todayWeek);}
   setSelected(dateKey(today));setPage("Início");
  };
+ const recipeTargetDate=days.find(day=>dateKey(day)===selected)??days[0];
+ const recipeTargetLong=recipeTargetDate.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+ const recipeTargetShort=recipeTargetDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
  const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Alimentos",Apple],["Compras",ShoppingBasket],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
  return <div className="shell"><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav>{nav.map(([name,Icon])=><button className={page===name?"active":""} key={name} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={19}/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1>{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div>{supabase?<div className="cc-account-controls"><span className="cc-account-email" title={userEmail??"Minha conta"}>{userEmail??"Minha conta"}</span><button type="button" onClick={()=>void supabase?.auth.signOut()} aria-label="Sair da conta"><LogOut size={16}/> Sair</button></div>:<div className="avatar">C&C</div>}</header><div className="notice"><Leaf size={15}/> {isAdmin?"Piloto pessoal · Receitas autorais para organizar seu cardápio e suas compras. Confira ingredientes e rótulos: alergênicos e composição nutricional ainda não foram verificados.":"Biblioteca culinária em testes · Organize receitas e compras; nenhuma sugestão constitui prescrição de dieta."}</div>
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
@@ -280,8 +288,24 @@ export default function App(){
  </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small><strong>{current?.title||"Escolha uma refeição"}</strong><span>{current?(current.pilotSource?.originalTime??current.minutes+" minutos de preparo"):"Sem refeição planejada"}</span>{current&&current.pilotSource&&!current.pilotSource.ingredientsReviewed?<span className="detail-note">Rendimento original: {current.pilotSource.originalYield}. Quantidades não redimensionadas.</span>:null}{current&&(!current.pilotSource||current.pilotSource.ingredientsReviewed)&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>recipeFitsSlot(r,slot)&&(Boolean(r.pilotSource)||Boolean(r.ownerId)||r.id===current?.id)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
  {page==="Alimentos"&&<FoodLibrary/>}
  {page==="Administração"&&isAdmin&&<AdminRecipes onRefresh={reloadRecipes}/> }
+ {page==="Receitas"&&!recipeForm&&<section className="cc-recipe-target-date" aria-label="Dia escolhido para adicionar receitas">
+  <div className="cc-recipe-target-summary">
+   <strong>Dia escolhido para o cardápio</strong>
+   <p role="status">As receitas serão adicionadas a <strong>{recipeTargetLong}</strong>.</p>
+   <small>Semana de {fmt(days[0])} a {fmt(days[6])}.</small>
+  </div>
+  <label htmlFor="cc-recipe-day-select">Alterar dia
+   <select id="cc-recipe-day-select" value={selected} disabled={loading||saving}
+    onChange={event=>setSelected(event.target.value)}>
+    {days.map(day=><option key={dateKey(day)} value={dateKey(day)}>
+     {day.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"})}
+    </option>)}
+   </select>
+  </label>
+  <button className="secondary" type="button" disabled={loading||saving} onClick={()=>setPage("Cardápio")}>Escolher outra semana</button>
+ </section>}
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
- {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} onClose={()=>setDetailId(null)} canAdd={!saving&&!loading} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;addFromRecipes(recipe,servings);}}/>:null}
+ {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} destinationDateLabel={recipeTargetShort} onClose={()=>setDetailId(null)} canAdd={!saving&&!loading} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;addFromRecipes(recipe,servings);}}/>:null}
  {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas autorais Costa&Costa para escolher livremente e planejar suas refeições. O catálogo piloto é privado e ainda não está à venda.</span></div><div className="toolbar-actions"><button className="secondary" disabled={archivedLoading||saving} onClick={()=>archivedOpen?setArchivedOpen(false):void loadArchived()}>{archivedLoading?"Consultando...":archivedOpen?"Ocultar arquivadas":"Minhas arquivadas"}</button><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div></div>{archivedOpen&&<section className="notice" aria-label="Minhas receitas arquivadas"><div><strong>Minhas receitas arquivadas</strong><p>Somente suas receitas pessoais aparecem aqui. Restaurar devolve a receita à biblioteca, sem alterar a fotografia ou os ingredientes.</p>{archivedRecipes.length===0?<p>Nenhuma receita arquivada.</p>:archivedRecipes.map(item=><div key={item.recipe_id} className="row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginTop:12}}><span>{item.recipe_title}</span><button className="secondary" disabled={saving||archivedLoading} onClick={()=>void restoreArchived(item.recipe_id)}>Restaurar</button></div>)}</div></section>}<div className="cc-recipes-filterbar">
  <label>Buscar receita
   <input type="search" placeholder="Ex.: omelete, peixe, salada..." value={recipeSearch}
@@ -295,7 +319,7 @@ export default function App(){
  <span role="status">{visibleRecipes.length} {visibleRecipes.length===1?"receita encontrada":"receitas encontradas"}</span>
 </div>
 {visibleRecipes.length===0&&<div className="notice"><p>Nenhuma receita encontrada com estes filtros.</p></div>}
-<div className="recipe-grid">{visibleRecipePage.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":r.pilotSource?"Receita autoral · "+r.pilotSource.sourceMeal:"Receita de exemplo (legado)"} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.pilotSource?.originalIngredients??r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>addFromRecipes(r,r.servings)}><Plus size={16}/> {r.category==="Lanche"||r.pilotSource?.kind==="salad"?"Escolher horário no cardápio":"Adicionar ao dia selecionado"}</button></div></article>)}</div>
+<div className="recipe-grid">{visibleRecipePage.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":r.pilotSource?"Receita autoral · "+r.pilotSource.sourceMeal:"Receita de exemplo (legado)"} · {r.minutes} min</small><h3>{r.title}</h3><p>{r.pilotSource?.originalIngredients??r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>setDetailId(r.id)}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>addFromRecipes(r,r.servings)}><Plus size={16}/> {r.category==="Lanche"||r.pilotSource?.kind==="salad"?"Escolher horário · "+recipeTargetShort:"Adicionar em "+recipeTargetShort}</button></div></article>)}</div>
 {recipeTotalPages>1&&<nav className="cc-recipe-pages" aria-label="Paginação de receitas">
  <button type="button" className="secondary" disabled={recipePage<=1}
   onClick={()=>setRecipePage(page=>Math.max(1,page-1))}>Anterior</button>
