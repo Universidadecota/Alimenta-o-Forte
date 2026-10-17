@@ -88,3 +88,16 @@ As 1.073 propostas permanecem `pending` até decisão editorial. A migração n�
 Inspeção de código da nova interface confirmou uso do seletor paginado e da conferência do texto da fonte. O `tsconfig.json` do repositório usa **ES2020**; por isso foi corrigida preventivamente a busca textual para usar `replace(/[%_]/g,"")`, em vez de `String.replaceAll` (fora de ES2020).
 
 **Importante:** inspeção estática e testes de SQL **não equivalem a compilação do frontend**. Ainda é necessário que o responsável faça `git pull --ff-only` e `npm run build` no Windows. Se houver erro TypeScript ou de API, corrigir sem repetir testes anteriores e sem alterar ingredientes originais.
+
+## Homologação do build Windows — 17/10/2026
+
+O responsável apresentou a saída dos comandos no PowerShell, executados na pasta do projeto:
+
+- `git pull --ff-only`: atualização em fast-forward da branch `feat/revisao-alergenos-fase1-12out2026` de `c069f22` para `d1ed224`; arquivos de frontend, migrações e relatório da Fase 3I sincronizados sem conflito.
+- `npm run build` (`tsc -b && vite build`): **aprovado sem erros de TypeScript**, Vite **6.4.4**, **1.647 módulos transformados**, compilação em **53,56 segundos**.
+- `dist/assets/index-Y35eUA39.css`: **56,14 kB** (gzip 11,97 kB); `dist/assets/index-DtsfEjsh.js`: **518,03 kB** (gzip 147,07 kB).
+- O aviso do Vite sobre chunk maior que 500 kB é **não bloqueante**. A otimização deve ser tratada em etapa futura, não como motivo para repetir o build.
+
+**Resultado:** sincronização Git e build da Fase 3I homologados. **Pendente apenas visualmente nesta etapa:** abrir Administração → Receitas oficiais → `Medidas das receitas autorais · inventário e revisão`, pesquisar `fraldinha` e confirmar na interface a expressão `150 g de fraldinha` com proposta temporária `150 · g · fraldinha`. **Não salvar proposta nem confirmar medidas** nessa verificação. Não repetir testes prévios das imagens, lista de compras ou cardápio.
+
+Este registro é exclusivamente documental. Nenhuma receita, ingrediente, fotografia, planejamento ou revisão foi modificada por ele. Manter PR #16 aberto em draft, sem merge.
