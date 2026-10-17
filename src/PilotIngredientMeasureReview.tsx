@@ -100,7 +100,7 @@ export default function PilotIngredientMeasureReview(){
  const begin=(r:Review)=>{
   const proposal=suggestMeasure(r.source_text);
   setActive(r.ingredient_id);
-  setQuantity(r.proposed_quantity==null?(proposal?.quantity??""):String(r.proposed_quantity));
+  setQuantity(r.proposed_quantity!=null?String(r.proposed_quantity):proposal?String(proposal.quantity):"");
   setUnit(r.proposed_unit??proposal?.unit??"");
   setIngredient(r.proposed_ingredient??proposal?.ingredient??"");
   setNotes(r.review_notes??"");
@@ -189,7 +189,7 @@ export default function PilotIngredientMeasureReview(){
   <div className="cc-measure-queue">
    {rows.map(r=>{
     const unchanged=nestedName(r.recipe_ingredients)===r.source_text;
-    const proposal=suggest(r.source_text);
+    const proposal=suggestMeasure(r.source_text);
     return <article key={r.ingredient_id} className="cc-measure-row">
      <small>{nestedTitle(r.recipes)} · {statuses.find(([value])=>value===r.review_status)?.[1]??r.review_status}</small>
      <strong>{r.source_text}</strong>
