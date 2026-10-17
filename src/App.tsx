@@ -194,6 +194,11 @@ export default function App(){
    setPendingPlacement({recipeId:recipe.id,servings});
    setPlacementTarget("");
   }else{
+   const existingId=plan[selected]?.[recipe.category]?.id;
+   if(existingId&&existingId!==recipe.id){
+    const existingName=recipes.find(r=>r.id===existingId)?.title??"outra receita";
+    if(!confirm("No dia "+selected.split("-").reverse().join("/")+" já existe '"+existingName+"' em "+recipe.category+". Deseja substituí-la por '"+recipe.title+"'?"))return;
+   }
    void update(selected,recipe.category,recipe.id,servings);
   }
  };
@@ -201,6 +206,11 @@ export default function App(){
   if(!pendingPlacement || !placementTarget || !daySlots.includes(placementTarget))return;
   const selectedRecipe=recipes.find(r=>r.id===pendingPlacement.recipeId);
   if(!selectedRecipe||!recipeFitsSlot(selectedRecipe,placementTarget))return;
+  const existingId=plan[selected]?.[placementTarget]?.id;
+  if(existingId&&existingId!==selectedRecipe.id){
+   const existingName=recipes.find(r=>r.id===existingId)?.title??"outra receita";
+   if(!confirm("No dia "+selected.split("-").reverse().join("/")+" já existe '"+existingName+"' em "+placementTarget+". Deseja substituí-la por '"+selectedRecipe.title+"'?"))return;
+  }
   const saved=await update(selected,placementTarget,pendingPlacement.recipeId,pendingPlacement.servings);
   if(saved){setPendingPlacement(null);setPlacementTarget("");}
  };
