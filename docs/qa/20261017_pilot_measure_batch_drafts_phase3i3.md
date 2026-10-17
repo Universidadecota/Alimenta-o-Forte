@@ -97,3 +97,20 @@ O responsável enviou **duas capturas de `localhost:5173`** após clicar em `Ana
 **Status:** prévia, seleção inicialmente vazia, quantidade de 20 por lote e trava de salvamento sem seleção **HOMOLOGADAS VISUALMENTE**; testes anteriores de TypeScript/Vite e de regressão já aprovados não precisam ser refeitos. O clique em confirmar e o salvamento real ainda **não foram homologados**.
 
 **Próxima validação pontual recomendada:** se o responsável autorizar o teste de uma gravação real, selecionar **somente o checkbox** de `1 colher (chá) de azeite de dendê` (item não duplicado na prévia), conferir a prévia da proposta `1 · colher (chá) · azeite de dendê`, clicar `Revisar e salvar 1 como rascunho` e aceitar a confirmação apenas se o texto e o destino estiverem corretos. Depois conferir em SQL que **exatamente esse registro** virou `draft`, os demais ficaram pendentes e `confirmed=0`. **Não selecionar as 20 opções nem alterar ingredientes originais.** PR #16 segue aberto em draft e sem merge.
+
+
+## Homologação da primeira gravação real de rascunho — 17/10/2026
+
+O responsável confirmou que selecionou **somente** o ingrediente `1 colher (chá) de azeite de dendê` e clicou na opção de salvar e **confirmou a gravação**, embora não tenha capturado a janela de confirmação. A captura posterior de `localhost:5173` apresenta `1.073 expressões analisadas`, com **`1.072 continuam aguardando revisão`** e **`1 já possui outro status editorial`**.
+
+**Auditoria SQL somente leitura, realizada após a captura:**
+
+- Inventário `cc_pilot_ingredient_measure_reviews`: exatamente **1** registro `draft` e **1.072** `pending`; nenhum `confirmed`.
+- Único registro não pendente: **`1 colher (chá) de azeite de dendê`**, pertencente a **`Moqueca de peixe com arroz de couve-flor`**.
+- Proposta persistida: `proposed_quantity=1.0000`, `proposed_unit='colher_cha'`, `proposed_ingredient='azeite de dendê'`, `review_status='draft'`. `reviewed_at` permanece **NULL** e a nota do banco indica que é proposta em lote ainda sujeita a confirmação editorial individual.
+- Comparação da origem: `recipe_ingredients.name='1 colher (chá) de azeite de dendê'`, `recipe_ingredients.quantity IS NULL`, `measure_mode='unspecified'`; a receita continua `published=false`. O texto original não foi estruturado nem sobrescrito.
+- Auditoria global: **119** receitas de `personal_pilot`, **1.073** ingredientes e **0** divergências entre `source_text` e `recipe_ingredients.name`; nenhuma receita piloto publicada.
+
+**Resultado:** primeira gravação real de um rascunho da **Fase 3I.3 homologada por evidência visual e banco**. Não exigir novo print da confirmação, não refazer o mesmo registro nem repetir testes já aprovados. Nenhuma medida foi aprovada. **Não ampliar automaticamente para lotes de 20 sem definir primeiro uma rotina de revisão editorial dos rascunhos.**
+
+Este é somente um registro documental; nenhuma mutação de ingrediente, medida ou planejamento foi executada durante a auditoria. PR #16 continua aberto em draft, sem merge.
