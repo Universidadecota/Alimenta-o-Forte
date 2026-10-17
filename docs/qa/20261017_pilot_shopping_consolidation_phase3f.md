@@ -61,3 +61,21 @@ O responsável forneceu logs de sincronização e build do PowerShell. O histór
 **Classificação:** Git, TypeScript e build de produção da Fase 3F **APROVADOS**. **Não repetir build** desta versão; o registro documental não muda o código executável.
 
 **Teste ainda pendente:** confirmar na tela **Compras** a apresentação de um total efetivamente combinado ao planejar duas receitas autorais com o mesmo ingrediente e a mesma unidade, com as expressões originais preservadas, sem somar `colher (chá)` com `colher (sopa)`. Verificar que uma marcação antiga não se transmite indevidamente a novo total. Sem essa captura não declarar a soma operacional homologada. PR #16 permanece rascunho/sem merge.
+
+
+## Homologação visual da consolidação de compras — 17/10/2026
+
+**Evidências do usuário:** quatro capturas do app local `localhost:5173` mostrando:
+
+- `Cardápio`: **Sopa cremosa de couve-flor com noz-moscada** como **Ceia** da sexta-feira, **16/10/2026**, e **Gazpacho verde de pepino e abacate** como **Ceia** de sábado, **17/10/2026**. Ambas com rendimento original de 2 porções e sem redimensionamento de ingredientes.
+- `Compras`: **20 itens do acervo pessoal** na semana 12–18/10/2026, incluindo **`2 colheres (sopa) de azeite`** com **2 usos** e as duas expressões `1 colher (sopa) de azeite` de origem. Visualizados também **`1½ xícaras de leite de coco`** com duas expressões de fonte e **`1½ dentes de alho`** com expressões diferentes, preservadas.
+- Ingredientes com especificações diferentes permaneceram separados na listagem: **`½ xícara de água`** e **`½ xícara de água gelada`**. Quantidades ausentes como `sal`, `pimenta` e `noz-moscada` não foram inventadas.
+- A nova linha consolidada de leite de coco aparece **desmarcada** na captura. Isso é consistente com a proteção contra herdar o status comprado do item anterior de `1 xícara de leite de coco`; não é prova de todos os cenários de alteração de compra.
+
+**Conferência independente somente leitura no Supabase:** os dois planejamentos aparecem gravados exatamente em `2026-10-16`/`supper` (sopa) e `2026-10-17`/`supper` (gazpacho), cada qual com `servings=2`. Total de **28 registros de refeições planejadas** após as inclusões, **119 receitas fonte preservadas**, **0 receitas do piloto publicadas**. Nada foi alterado pela auditoria.
+
+**Resultado homologado:** incorporação das duas receitas ao cardápio, persistência no Supabase e exibição visual do total correto de azeite, leite de coco e alho com medidas compatíveis e referências de origem, sem modificação dos textos de receitas. **Não repetir esse cenário** ou os builds já aprovados.
+
+**Limites:** este teste não valida todas as 1.073 expressões nem qualquer equivalência de unidades diferentes. Alergênicos e composição nutricional seguem sem verificação; checklist marcado/não marcado depende de testes adicionais para todos os casos. O bundle Vite ainda gera aviso não bloqueante de chunk acima de 500 kB. Próximas tarefas podem priorizar exceções de normalização (alternativas, gramática, ingredientes compostos) e otimização de performance sem refazer a homologação existente.
+
+**PR #16:** continua aberto, em rascunho e sem merge. Não publicar receitas comerciais nem alterar as refeições efetivamente planejadas pelo usuário.
