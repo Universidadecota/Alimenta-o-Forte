@@ -1,6 +1,6 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
-import {parsePilotMeasure} from "./lib/pilotMeasure";
+import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
 
 type Review={
  ingredient_id:string;
@@ -32,15 +32,6 @@ function nestedName(v:{name:string}|{name:string}[]|null):string{
 function nestedTitle(v:{title:string}|{title:string}[]|null):string{
  return Array.isArray(v)?v[0]?.title??"Receita do piloto":v?.title??"Receita do piloto";
 }
-function suggest(source:string):{quantity:string;unit:string;ingredient:string}|null{
- const parsed=parsePilotMeasure(source);
- if(!parsed)return null;
- const unit=parsed.unitKey.startsWith("un-")?parsed.unitKey.slice(3):
-  ({grama:"g",quilograma:"kg",mililitro:"ml",litro:"l",
-    xicara:"xicara","colher-cha":"colher_cha","colher-sopa":"colher_sopa"} as Record<string,string>)[parsed.unitKey]??parsed.unitKey;
- if(!units.some(([key])=>key===unit))return null;
- return {quantity:String(parsed.amount),unit,ingredient:parsed.ingredient};
-}
 export default function PilotIngredientMeasureReview(){
  const [rows,setRows]=useState<Review[]>([]);
  const [status,setStatus]=useState("pending");
@@ -56,7 +47,37 @@ export default function PilotIngredientMeasureReview(){
  const [unit,setUnit]=useState("");
  const [ingredient,setIngredient]=useState("");
  const [notes,setNotes]=useState("");
+ const [batchBusy,setBatchBusy]=useState(false);
+ const [batchProgress,setBatchProgress]=useState(0);
+ const [batchResult,setBatchResult]=useState<BatchResult|null>(null);
  const pageSize=25;
+ // Lê todo o inventário em páginas menores que o limite padrão do PostgREST.
+ // Nenhuma chamada de análise atualiza receitas, medidas ou notas.
+ const analyzeAll=async()=>{
+  if(!supabase||batchBusy)return;
+  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);setError("");setMessage("");
+  try{
+   const all:BatchItem[]=[];
+   const size=250;
+   let expected=0;
+   for(let offset=0;offset<expected||offset===0;offset+=size){
+    const {data,count,error:readError}=await supabase
+     .from("cc_pilot_ingredient_measure_reviews")
+     .select("ingredient_id,source_text,review_status",{count:"exact"})
+     .order("ingredient_id",{ascending:true})
+     .range(offset,offset+size-1);
+    if(readError)throw readError;
+    if(offset===0)expected=count??0;
+    if(expected>10000)throw new Error("Inventário maior que o limite de análise. Solicite paginação adicional.");
+    all.push(...((data??[]) as BatchItem[]));
+    setBatchProgress(all.length);
+    if(expected>0&&(data??[]).length===0)break;
+   }
+   if(all.length!==expected)throw new Error("A leitura foi incompleta. Nenhum resultado parcial foi aplicado; tente novamente.");
+   setBatchResult(summarizeMeasures(all));
+  }catch(err){setError(err instanceof Error?err.message:"Não foi possível analisar o inventário.");}
+  finally{setBatchBusy(false);}
+ };
  const load=async()=>{
   if(!supabase)return;
   setLoading(true);setError("");
@@ -77,7 +98,7 @@ export default function PilotIngredientMeasureReview(){
  };
  useEffect(()=>{void load();},[page,status,search]);
  const begin=(r:Review)=>{
-  const proposal=suggest(r.source_text);
+  const proposal=suggestMeasure(r.source_text);
   setActive(r.ingredient_id);
   setQuantity(r.proposed_quantity==null?(proposal?.quantity??""):String(r.proposed_quantity));
   setUnit(r.proposed_unit??proposal?.unit??"");
@@ -120,6 +141,37 @@ export default function PilotIngredientMeasureReview(){
  };
  return <section className="cc-measure-review">
   <p>Inventário das 1.073 expressões originais. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
+  <section className="cc-measure-batch" aria-label="Análise em lote dos ingredientes">
+   <div className="cc-measure-batch-header">
+    <div>
+     <strong>Pré-análise do acervo completo</strong>
+     <p>Classifica as expressões em medidas simples, intervalos, alternativas, preparos compostos, opcionais e casos manuais. <strong>Não salva nem aprova nada.</strong></p>
+    </div>
+    <button type="button" disabled={batchBusy||loading} onClick={()=>void analyzeAll()}>
+     {batchBusy?"Analisando…":"Analisar todos os ingredientes"}
+    </button>
+   </div>
+   {batchBusy&&<p role="status">Lidos {batchProgress} registros. Sem alterações no banco.</p>}
+   {batchResult&&<div aria-live="polite">
+    <p><strong>{batchResult.total} expressões analisadas.</strong> {batchResult.pending} continuam aguardando revisão. {batchResult.otherStatuses} já possuem outro status editorial.</p>
+    <div className="cc-measure-batch-grid">
+     {measureGroups.map(group=><article className="cc-measure-batch-group" key={group.key}>
+      <strong>{batchResult.byGroup[group.key]}</strong>
+      <span>{group.label}</span>
+      <small>{group.explanation}</small>
+      {batchResult.examples[group.key].length>0&&<details>
+       <summary>Ver exemplos</summary>
+       <ul>{batchResult.examples[group.key].map(entry=><li key={entry.id}>
+        <button type="button" className="secondary" onClick={()=>{
+         setPage(0);setStatus("all");setSearch(entry.text);setActive(null);
+        }}>{entry.text}</button>
+        {entry.proposal&&<small> {entry.proposal.quantity} · {measureUnitLabel(entry.proposal.unit)} · {entry.proposal.ingredient}</small>}
+       </li>)}</ul>
+      </details>}
+     </article>)}
+    </div>
+   </div>}
+  </section>
   <div className="cc-measure-filters">
    <label>Situação
     <select value={status} onChange={e=>{setPage(0);setStatus(e.target.value);setActive(null);}}>
@@ -142,7 +194,7 @@ export default function PilotIngredientMeasureReview(){
      <small>{nestedTitle(r.recipes)} · {statuses.find(([value])=>value===r.review_status)?.[1]??r.review_status}</small>
      <strong>{r.source_text}</strong>
      {!unchanged?<p className="error">Texto alterado depois do inventário: revisão bloqueada.</p>
-      :<small>{proposal?"Leitura sugerida: "+proposal.quantity+" · "+proposal.unit+" · "+proposal.ingredient:"Sem extração inequívoca: requer conferência manual."}</small>}
+      :<small>{proposal&&classifyMeasure(r.source_text).group==="simple"?"Leitura sugerida (não aprovada): "+proposal.quantity+" · "+measureUnitLabel(proposal.unit)+" · "+proposal.ingredient:"Sem extração inequívoca: requer conferência manual."}</small>}
      {active===r.ingredient_id&&unchanged?<div className="cc-measure-edit">
       <p>Confira a expressão original antes de registrar. A medida permanecerá em rascunho.</p>
       <label>Quantidade
