@@ -64,3 +64,22 @@ O responsável forneceu a saída dos três comandos no PowerShell, na pasta do p
 **Resultado:** sincronização, compilação de produção e teste automatizado da Fase 3G **homologados**. **Pendente:** somente evidência visual da lista de compras para um ingrediente composto real com subtítulo — por exemplo `Fraldinha com chimichurri e escarola refogada` — com ingredientes separados e texto original preservado. Não repetir comandos, build, testes Fase 3F ou exames médicos. Caso use uma data livre no cardápio para o teste, não substituir refeições já planejadas.
 
 Nenhuma migração, receita, planejamento ou dado nutricional foi alterado nesta etapa documental. O PR #16 permanece aberto, em draft e sem merge.
+
+
+## Fase 3G.1 — Dia de destino visível antes de adicionar receita
+
+**Evidência de uso, 17/10/2026:** o responsável compartilhou imagens da busca e seleção da receita **Fraldinha com chimichurri e escarola refogada**, do alerta prévio de alergias e da tela de cardápio. Identificou uma falha de usabilidade: o comando dizia **"Adicionar ao dia selecionado"**, mas a página **Receitas** não informava qual dia estava selecionado, podendo gerar adição em data diferente da esperada.
+
+**Ajustes implementados, ainda sem build Windows nesta fase:**
+- `src/App.tsx`: na biblioteca e na ficha, painel **Dia escolhido para o cardápio** com data completa em português, **seletor dos sete dias da semana atual**, intervalo semanal visível e atalho **Escolher outra semana**, que abre o Cardápio.
+- Cartões e detalhes da receita exibem a data no próprio botão (ex.: **Adicionar em 17/10**; para lanches/saladas **Escolher horário · 17/10**), independentemente de o usuário ter rolado a lista e não estar vendo o painel.
+- Antes de abrir a inclusão, o frontend confirma se a data selecionada pertence à semana atual. Se a data estiver inválida, conduz à escolha no Cardápio.
+- Se já existir **outra receita no mesmo dia e horário**, a inclusão iniciada pela biblioteca pede confirmação de substituição, indicando dia, horário e as duas receitas. Cancelar na inclusão direta mantém a pessoa na página Receitas.
+- `src/RecipeDetails.tsx`: prop controlada `destinationDateLabel` para mostrar a mesma data na ficha completa; `src/styles.css`: painel responsivo, com rótulos explícitos.
+- O estado selecionado continua sendo o mesmo do Cardápio; a implementação não altera ou migra dados, receitas, porções, fontes ou planejamento existente.
+
+**Status:** alterações de código versionadas, **sem confirmação de build Windows ou teste visual**. Não considerar esta correção homologada antes do próximo build.
+
+**Observação separada sobre Fase 3G:** as capturas de compras enviadas mostram itens compostos muito pequenos para confirmar inequivocamente a separação de manteiga e salsinha do chimichurri. Manter o teste visual dessa subdivisão como **pendente**, sem repetir os testes automatizados ou a soma de azeite e leite de coco, que já foram aprovados.
+
+**Próxima conferência:** executar apenas `git pull --ff-only` e `npm run build`; abrir Receitas e verificar a data completa, trocar o dia pelo seletor e confirmar que o botão mostra a data escolhida. Para esta correção de rótulo, **não é necessário salvar uma nova refeição** ou modificar planejamentos. PR #16 continua draft e sem merge.
