@@ -1,6 +1,7 @@
 import {type Meal,type Plan,type Slot,dateKey,daySlots} from "./planner";
 import {formatIngredientAmount,formatRecipeIngredient,formatUnit} from "./ingredientMeasures";
 import {parsePilotMeasure,formatPilotTotal,type ParsedPilotMeasure} from "./pilotMeasure";
+import {splitPilotIngredient} from "./pilotIngredientReview";
 
 export {formatUnit,formatIngredientAmount};
 const aliases:Record<string,{base:string;factor:number}>={
@@ -16,6 +17,10 @@ export type PilotShoppingItem=ShoppingItem&{
  sourceText:string;
  sourceRecipes:string[];
  sourceExpressions:string[];
+ sourceRawFragments:string[];
+ requiresChoice:boolean;
+ optionalSource:boolean;
+ ambiguousSource:boolean;
  totalLabel?:string;
 };
 /**
@@ -33,26 +38,38 @@ export function collectPilotShopping(days:Date[],plan:Plan,recipes:Meal[]):Pilot
   if(!meal?.pilotSource||meal.pilotSource.ingredientsReviewed)return;
   // Rendimento e medidas são os originais, sem escalonar pelo tamanho da família.
   for(const ingredient of meal.ingredients){
-   const text=ingredient.name.trim();
-   if(!text)continue;
-   const cleaned=text.replace(/[.\s]+$/g,"");
-   const measure=parsePilotMeasure(text);
-   const groupKey=measure?"medida|"+measure.key:"literal|"+normalize(cleaned);
-   const old=out.get(groupKey);
-   if(old){
-    old.item.quantity+=1;
-    if(measure&&old.measure)old.sum+=measure.amount;
-    if(!old.item.sourceRecipes.includes(meal.title))old.item.sourceRecipes.push(meal.title);
-    if(!old.item.sourceExpressions.includes(text))old.item.sourceExpressions.push(text);
-   }else{
-    out.set(groupKey,{
-     measure,sum:measure?.amount??0,
-     item:{
-      name:"Piloto · "+cleaned,
-      quantity:1,unit:"un",sourceText:text,
-      sourceExpressions:[text],sourceRecipes:[meal.title]
-     }
-    });
+   for(const segment of splitPilotIngredient(ingredient.name)){
+    const text=segment.text.trim();
+    const cleaned=text.replace(/[.\s]+$/g,"");
+    const measure=segment.requiresChoice||segment.optional||segment.ambiguousCompound
+     ?null:parsePilotMeasure(text);
+    const groupKey=measure?"medida|"+measure.key:"literal|"+normalize(cleaned);
+    const fromSource=segment.section?segment.section+": "+text:text;
+    const old=out.get(groupKey);
+    if(old){
+     old.item.quantity+=1;
+     if(measure&&old.measure)old.sum+=measure.amount;
+     if(!old.item.sourceRecipes.includes(meal.title))old.item.sourceRecipes.push(meal.title);
+     if(!old.item.sourceExpressions.includes(fromSource))old.item.sourceExpressions.push(fromSource);
+     if(segment.wasSplit&&!old.item.sourceRawFragments.includes(segment.rawFragment))
+      old.item.sourceRawFragments.push(segment.rawFragment);
+     old.item.requiresChoice ||= segment.requiresChoice;
+     old.item.optionalSource ||= segment.optional;
+     old.item.ambiguousSource ||= segment.ambiguousCompound;
+    }else{
+     out.set(groupKey,{
+      measure,sum:measure?.amount??0,
+      item:{
+       name:"Piloto · "+cleaned,
+       quantity:1,unit:"un",sourceText:text,
+       sourceExpressions:[fromSource],sourceRecipes:[meal.title],
+       sourceRawFragments:segment.wasSplit?[segment.rawFragment]:[],
+       requiresChoice:segment.requiresChoice,
+       optionalSource:segment.optional,
+       ambiguousSource:segment.ambiguousCompound
+      }
+     });
+    }
    }
   }
  }));
@@ -60,7 +77,8 @@ export function collectPilotShopping(days:Date[],plan:Plan,recipes:Meal[]):Pilot
   if(item.quantity>1){
    // Requisito de segurança: se o total a comprar mudar, a chave do checkbox
    // muda e não herda por engano o estado 'comprado' da quantidade anterior.
-   item.name="Piloto · "+(measure?.key??normalize(item.sourceText))+" · "+item.quantity+" usos";
+   item.name="Piloto · "+(measure?.key??normalize(item.sourceText))+" · "+item.quantity+" usos"
+    +(measure?" · total "+Number(sum.toFixed(6)):"");
    if(measure)item.totalLabel=formatPilotTotal(measure,sum);
   }
   return item;
