@@ -1,5 +1,6 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
+import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
 import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
 
 type Review={
@@ -147,23 +148,29 @@ export default function PilotIngredientMeasureReview(){
   const numeric=quantity.trim()?Number(quantity.replace(",",".")):null;
   if(mode==="draft"&&(
     numeric==null||!Number.isFinite(numeric)||numeric<=0||numeric>100000
+    ||Math.abs(numeric*10000-Math.round(numeric*10000))>1e-7
     ||!unit||!ingredient.trim()||ingredient.trim().length>180
   )){
    setError("Para salvar um rascunho, informe quantidade positiva, unidade e nome do ingrediente.");
    return;
   }
+  if(mode==="needs_manual_review"&&notes.trim().length<8){
+   setError("Informe o motivo da conferência manual (pelo menos 8 caracteres).");return;
+  }
+  if(row.review_status==="confirmed"){
+   setError("Medidas confirmadas são somente leitura.");return;
+  }
   setBusy(true);setError("");setMessage("");
   try{
-   const {error:dbError}=await supabase.from("cc_pilot_ingredient_measure_reviews").update({
-    proposed_quantity:mode==="draft"?numeric:null,
-    proposed_unit:mode==="draft"?unit:null,
-    proposed_ingredient:mode==="draft"?ingredient.trim():null,
-    review_status:mode,
-    review_notes:notes.trim().slice(0,1200),
-    reviewed_by:null,
-    reviewed_at:null,
-    updated_at:new Date().toISOString(),
-   }).eq("ingredient_id",row.ingredient_id).eq("source_text",row.source_text);
+   const {error:dbError}=await supabase.rpc("cc_save_pilot_measure_draft_single",{
+    p_id:row.ingredient_id,
+    p_source_text:row.source_text,
+    p_quantity:mode==="draft"?numeric:null,
+    p_unit:mode==="draft"?unit:null,
+    p_ingredient:mode==="draft"?ingredient.trim():null,
+    p_notes:notes.trim(),
+    p_status:mode,
+   });
    if(dbError)throw dbError;
    setActive(null);
    setMessage(mode==="draft"?"Rascunho registrado. Ainda não aprovado para cálculos.":"Ingrediente encaminhado para conferência manual.");
@@ -228,6 +235,7 @@ export default function PilotIngredientMeasureReview(){
     </section>
    </div>}
   </section>
+  <PilotMeasureEditorialReview/>
   <div className="cc-measure-filters">
    <label>Situação
     <select value={status} onChange={e=>{setPage(0);setStatus(e.target.value);setActive(null);}}>
@@ -251,7 +259,7 @@ export default function PilotIngredientMeasureReview(){
      <strong>{r.source_text}</strong>
      {!unchanged?<p className="error">Texto alterado depois do inventário: revisão bloqueada.</p>
       :<small>{proposal&&classifyMeasure(r.source_text).group==="simple"?"Leitura sugerida (não aprovada): "+proposal.quantity+" · "+measureUnitLabel(proposal.unit)+" · "+proposal.ingredient:"Sem extração inequívoca: requer conferência manual."}</small>}
-     {active===r.ingredient_id&&unchanged?<div className="cc-measure-edit">
+     {active===r.ingredient_id&&unchanged&&r.review_status!=="confirmed"?<div className="cc-measure-edit">
       <p>Confira a expressão original antes de registrar. A medida permanecerá em rascunho.</p>
       <label>Quantidade
        <input value={quantity} onChange={e=>setQuantity(e.target.value)} inputMode="decimal" placeholder="Ex.: 1,5"/>
@@ -273,7 +281,7 @@ export default function PilotIngredientMeasureReview(){
        <button type="button" className="secondary" disabled={busy} onClick={()=>void save(r,"needs_manual_review")}>Exige revisão manual</button>
        <button type="button" className="secondary" disabled={busy} onClick={()=>setActive(null)}>Cancelar</button>
       </div>
-     </div>:<button type="button" className="secondary" disabled={!unchanged||busy} onClick={()=>begin(r)}>Revisar medida</button>}
+     </div>:r.review_status==="confirmed"?<small>Confirmada editorialmente · somente leitura. Sem liberação nutricional.</small>:<button type="button" className="secondary" disabled={!unchanged||busy} onClick={()=>begin(r)}>Revisar medida</button>}
     </article>;
    })}
    {!loading&&rows.length===0&&<p>Nenhum ingrediente encontrado para este filtro.</p>}
