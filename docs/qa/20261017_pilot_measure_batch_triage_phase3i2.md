@@ -45,3 +45,21 @@ Evitar abrir os **1.073 fragmentos** um a um apenas para descobrir o tipo de rev
 4. **Não salvar nenhuma proposta nessa homologação.** Enviar uma única captura do resumo. Evitar repetir os testes das fotos, compras, cardápio, pesquisa de fraldinha e build anterior.
 
 **PR #16:** permanecer em draft, sem merge até homologação funcional desta nova etapa.
+
+## Correção de compilação e tela em branco — 17/10/2026
+
+O responsável apresentou capturas do Chrome DevTools em visualização mobile (390 × 545) com a área administrativa em branco e o erro **`Uncaught ReferenceError: suggest is not defined`** em `PilotIngredientMeasureReview.tsx:192`. O `favicon.ico` retornou 404, erro independente e não bloqueante para o funcionamento da fila.
+
+No PowerShell, após atualização **`d1ed224..b310d01`**, `npm run build` falhou com três erros claros:
+
+1. **`src/lib/pilotMeasureBatch.ts:62` — TS2352:** `Object.fromEntries(... [])` inferia `never[]` e não era compatível com `Record<MeasureGroup,BatchGroupSample[]>`. Corrigido com objeto tipado explícito com as seis categorias.
+2. **`src/PilotIngredientMeasureReview.tsx:103` — TS2345:** `setQuantity` recebia valor possivelmente numérico de `proposal.quantity`. Corrigido para converter sempre em `String(...)`, mantendo o estado como texto.
+3. **`src/PilotIngredientMeasureReview.tsx:192` — TS2304:** uma ocorrência antiga `suggest(r.source_text)` permaneceu após a substituição por `suggestMeasure`. Corrigida para `suggestMeasure(r.source_text)`. O mesmo erro causou a falha de renderização observada no navegador.
+
+O comando `npm run test:measure-batch` do usuário retornou **OK** na versão anterior; isso valida os exemplos do algoritmo puro, mas não a compilação TypeScript do componente nem a renderização React. O sucesso desse teste não deve ser descrito como homologação total.
+
+**Correções no GitHub:** `77a5264` (tipagem explícita), `b9d42dc` (estado de texto e referência de função). Inspeção estática posterior confirmou que `suggest(` não aparece mais no componente, `suggestMeasure(` aparece nas duas ocorrências corretas, a quantidade é texto e a coleção de exemplos tem todas as seis chaves.
+
+**Status:** as três causas reportadas foram corrigidas no código, porém **o build Windows posterior às correções e a renderização mobile ainda estão pendentes de homologação**. Nenhuma migração ou atualização de dados foi executada; inventário e receitas permanecem preservados, sem confirmação automática.
+
+**Teste novo e suficiente:** `git pull --ff-only` + `npm run build`; o teste `npm run test:measure-batch` **não precisa ser repetido**, pois já passou. Após compilar, atualizar a página (`Ctrl+Shift+R` se necessário), abrir **Administração → Medidas das receitas autorais · inventário e revisão → Analisar todos os ingredientes**, conferir resumo com 1.073 registros e seis grupos em modo desktop/mobile. Enviar uma captura do resultado ou um novo erro específico. Não salvar nenhum rascunho ainda, não refazer os testes do catálogo ou fotografias. PR #16 deve permanecer draft, sem merge.
