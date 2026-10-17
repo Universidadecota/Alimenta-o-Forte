@@ -78,7 +78,7 @@ export async function loadRecipes():Promise<Meal[]>{
   id:r.id,title:r.title,category:toRecipeCategory[r.category],minutes:r.prep_minutes,servings:r.servings,
   description:r.description,instructions:r.instructions,
   imageUrl:r.url?.startsWith("personal-recipe-images/")?(signed.get(r.url.slice("personal-recipe-images/".length))??null):r.url,
-  ownerId:r.owner_user_id,imageIsAi:r.owner_user_id?Boolean(r.image_is_ai):true,
+  ownerId:r.owner_user_id,imageIsAi:(Boolean(r.owner_user_id)||sources.has(r.id))?Boolean(r.image_is_ai):true,
   pilotSource:sources.get(r.id),
   ingredients:(r.recipe_ingredients||[]).map(i=>({name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:i.measure_mode??"measured",optional:Boolean(i.is_optional)}))
  })).sort((a,b)=>{
