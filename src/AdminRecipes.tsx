@@ -107,7 +107,7 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
    <h4>{form.title}</h4><p>{form.prep_minutes} minutos · {form.servings} porções de referência</p>
    <details><summary>Consultar ingredientes originais (sem edição)</summary><ul>{form.recipe_ingredients.map((item,i)=><li key={i}>{item.name}</li>)}</ul></details>
    <details><summary>Consultar preparo (sem edição)</summary><p className="cc-admin-pilot-prep">{form.instructions}</p></details>
-  </section>:<>}
+  </section>:<>
  <label>Nome<input required minLength={2} maxLength={180} value={form.title} onChange={e=>field("title",e.target.value)}/></label>
  <div className="personal-form-grid"><label>Categoria<select value={form.category} onChange={e=>setForm(v=>({...v,category:e.target.value}))}><option value="breakfast">Café da manhã</option><option value="lunch">Almoço</option><option value="dinner">Jantar</option><option value="snack">Lanche</option></select></label><label>Preparo (min)<input type="number" min="0" max="1440" value={form.prep_minutes} onChange={e=>setForm(v=>({...v,prep_minutes:Number(e.target.value)}))}/></label><label>Porções<input type="number" min="1" max="20" value={form.servings} onChange={e=>setForm(v=>({...v,servings:Number(e.target.value)}))}/></label></div>
  <label>Descrição<textarea value={form.description} maxLength={2000} onChange={e=>field("description",e.target.value)}/></label>
