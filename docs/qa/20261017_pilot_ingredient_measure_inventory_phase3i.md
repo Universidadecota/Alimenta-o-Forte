@@ -101,3 +101,18 @@ O responsável apresentou a saída dos comandos no PowerShell, executados na pas
 **Resultado:** sincronização Git e build da Fase 3I homologados. **Pendente apenas visualmente nesta etapa:** abrir Administração → Receitas oficiais → `Medidas das receitas autorais · inventário e revisão`, pesquisar `fraldinha` e confirmar na interface a expressão `150 g de fraldinha` com proposta temporária `150 · g · fraldinha`. **Não salvar proposta nem confirmar medidas** nessa verificação. Não repetir testes prévios das imagens, lista de compras ou cardápio.
 
 Este registro é exclusivamente documental. Nenhuma receita, ingrediente, fotografia, planejamento ou revisão foi modificada por ele. Manter PR #16 aberto em draft, sem merge.
+
+## Homologação visual do inventário e da pesquisa — 17/10/2026
+
+O responsável enviou **duas capturas** de `localhost:5173`, em **Administração → Receitas oficiais → Medidas das receitas autorais · inventário e revisão**.
+
+- A fila aparece expandida, apresenta **1.073 registros na seleção** e paginação **página 1 de 43** (25 linhas por página). A prévia exibe o nome da receita, o texto original e uma proposta de leitura, sem confirmação automática.
+- Com o termo de pesquisa **`fraldinha`**, são encontrados **2 registros**, ambos com a associação correta à receita de origem: **Fraldinha com chimichurri e escarola refogada** (`150 a 180 g de fraldinha`) e **Agrião com tiras de fraldinha e chimichurri** (`150 g de fraldinha`).
+- O trecho com intervalo **`150 a 180 g de fraldinha`** mostra **`Sem extração inequívoca: requer conferência manual`**, conforme a proteção contra inferir um valor único.
+- Para **`150 g de fraldinha`**, a interface apresenta **`Leitura sugerida: 150 · g · fraldinha`**, sem salvamento, confirmação ou aplicação a receitas.
+
+**Conferência independente no Supabase, somente leitura:** tabela de revisão com **1.073 registros**, todos em `pending`, **0** em `draft`, **0** em `confirmed`, **2** textos contendo `fraldinha`. Portanto os testes visuais não alteraram revisões.
+
+**Classificação:** listagem, paginação, pesquisa, associação à receita e interpretação segura de número simples ou intervalo **APROVADAS visualmente**. **Ainda não homologados:** abertura do editor de uma medida e persistência de um rascunho, nem qualquer confirmação posterior. Não repetir este cenário visual e não inserir aprovação em massa.
+
+**Próxima etapa:** priorizar um fluxo editorial prático para tratar medidas simples e faixas/alternativas com uma fila de exceções; exibir unidades com rótulos legíveis (ex.: `colher (sopa)`, em vez de `colher_sopa`). Tudo sem mudar o texto original e sem liberar redimensionamento de porções antes de revisão. PR #16 permanece aberto, em rascunho e sem merge.
