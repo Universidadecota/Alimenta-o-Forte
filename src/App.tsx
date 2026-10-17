@@ -5,13 +5,13 @@ import CopyMealAction from "./CopyMealAction";
 import RecipeImage from "./RecipeImage";
 import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientAmount,type ShoppingItem} from "./lib/shopping";
 import {purchaseKey,loadPurchasedKeys,savePurchasedItem} from "./lib/shoppingProgress";
-import {proposeWeek,defaultPreferences,type FoodPreferences} from "./lib/suggestions";
+import {defaultPreferences,type FoodPreferences} from "./lib/suggestions";
 import PersonalRecipeForm from "./PersonalRecipeForm";
 import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
 import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, saveMeal, removeMeal, moveMeal } from "./lib/planner";
-import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, RefreshCcw, LogOut, Apple } from "lucide-react";
+import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, LogOut, Apple } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
  const [isAdmin,setIsAdmin]=useState(false);
@@ -180,26 +180,6 @@ export default function App(){
    catch{setError("Não foi possível confirmar o estado do cardápio. Atualize a página antes de tentar novamente.");}
   }finally{setSaving(false);}
  };
- const generate=async()=>{
-  if(!supabase||!userId||loading||saving)return;
-  if(recipes.some(recipe=>recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed)){
-   setError("As receitas do acervo pessoal estão disponíveis para escolha manual no cardápio. A sugestão automática da semana permanece bloqueada até a estruturação fiel das medidas e a revisão necessária, evitando sugestões com receitas demonstrativas.");
-   return;
-  }
-  setSaving(true);setError("");
-  try{
-   const {data,error:prefError}=await supabase.from("user_preferences").select("goal,liked_foods,disliked_foods,allergies,household_size,cooking_minutes").eq("user_id",userId).maybeSingle();
-   if(prefError)throw prefError;
-   const prefs:FoodPreferences={...defaultPreferences,...(data??{})};
-   setPreferences(prefs);
-   if(prefs.allergies.length){setError("Não é possível sugerir uma semana automaticamente: sua conta possui alergias ou intolerâncias cadastradas, e as receitas ainda não têm informações verificadas de alérgenos. Para sua segurança, escolha as refeições manualmente após conferir os ingredientes e eventuais riscos de contaminação cruzada.");return;}
-   const proposal=proposeWeek(recipes,prefs,days);
-   if(!confirm("Atualizar café da manhã, almoço e jantar desta semana com as sugestões? Lanches e ceia opcionais já cadastrados serão preservados."))return;
-   for(const d of days){const key=dateKey(d);for(const slot of slots){const item=proposal[key]?.[slot];if(item)await saveMeal(userId,weekStart,key,slot,item.id,item.servings);}}
-   setPlan(await loadWeek(userId,weekStart));
-  }catch(err){setError(err instanceof Error?err.message:"Não foi possível gerar a semana.");try{setPlan(await loadWeek(userId,weekStart));}catch{setError("Falha ao recarregar o cardápio. Atualize a página.");}}
-  finally{setSaving(false);}
- };
  const plannedCount=days.reduce((n,d)=>n+slots.filter(slot=>Boolean(plan[dateKey(d)]?.[slot]?.id)).length,0);
  const optionalCount=days.reduce((n,d)=>n+optionalSlots.filter(slot=>Boolean(plan[dateKey(d)]?.[slot]?.id)).length,0);
  const addFromRecipes=(recipe:Meal,servings:number)=>{
@@ -223,6 +203,9 @@ export default function App(){
   const normal=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
   const query=normal(recipeSearch.trim());
   return recipes.filter(recipe=>{
+   const legacyOfficial=!recipe.pilotSource&&!recipe.ownerId;
+   if(recipeGroup==="Legado")return isAdmin&&legacyOfficial&&(!query||normal(recipe.title).includes(query));
+   if(legacyOfficial)return false;
    if(query&&!normal(recipe.title).includes(query))return false;
    switch(recipeGroup){
     case "Minhas":return Boolean(recipe.ownerId);
@@ -235,7 +218,7 @@ export default function App(){
     default:return true;
    }
   });
- },[recipes,recipeGroup,recipeSearch]);
+ },[recipes,recipeGroup,recipeSearch,isAdmin]);
  const recipeTotalPages=Math.max(1,Math.ceil(visibleRecipes.length/18));
  const visibleRecipePage=visibleRecipes.slice((Math.min(recipePage,recipeTotalPages)-1)*18,Math.min(recipePage,recipeTotalPages)*18);
  const shopping=useMemo(()=>consolidateShopping(days,plan,recipes),[days.map(dateKey).join("|"),plan,recipes]);
@@ -279,9 +262,7 @@ export default function App(){
   onOpenRecipes={()=>{setRecipeForm(false);setDetailId(null);setPage("Receitas");}}
   onViewRecipe={id=>{setRecipeForm(false);setEditingId(null);setDetailId(id);setPage("Receitas");}}
  />}
- {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button>{recipes.some(r=>r.pilotSource&&!r.pilotSource.ingredientsReviewed)
- ?<span className="cc-manual-planning-notice">Escolha suas receitas livremente para cada dia.</span>
- :<button className="primary" onClick={()=>void generate()} disabled={loading||saving||recipes.length===0}><RefreshCcw size={16}/> Sugerir semana</button>}</div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
+ {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><span className="cc-manual-planning-notice">Você escolhe as receitas para cada dia, sem sugestão automática de dieta.</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
  <div><strong>Em qual horário deseja adicionar esta receita?</strong>
  <p>{recipes.find(r=>r.id===pendingPlacement.recipeId)?.title??"Receita selecionada"} · {pendingPlacement.servings} {pendingPlacement.servings===1?"porção":"porções"} · {selected.split("-").reverse().join("/")}</p></div>
  <label>Horário<select aria-label="Horário para a receita selecionada" value={placementTarget} disabled={loading||saving}
@@ -296,7 +277,7 @@ export default function App(){
  <button type="button" className="secondary" disabled={loading||saving}
  aria-expanded={optionalOpen} onClick={()=>setOptionalOpen(value=>!value)}>
  {optionalOpen?"Ocultar horários não preenchidos":"Adicionar lanche ou ceia"}
- </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small><strong>{current?.title||"Escolha uma refeição"}</strong><span>{current?(current.pilotSource?.originalTime??current.minutes+" minutos de preparo"):"Sem refeição planejada"}</span>{current&&current.pilotSource&&!current.pilotSource.ingredientsReviewed?<span className="detail-note">Rendimento original: {current.pilotSource.originalYield}. Quantidades não redimensionadas.</span>:null}{current&&(!current.pilotSource||current.pilotSource.ingredientsReviewed)&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>recipeFitsSlot(r,slot)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
+ </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small><strong>{current?.title||"Escolha uma refeição"}</strong><span>{current?(current.pilotSource?.originalTime??current.minutes+" minutos de preparo"):"Sem refeição planejada"}</span>{current&&current.pilotSource&&!current.pilotSource.ingredientsReviewed?<span className="detail-note">Rendimento original: {current.pilotSource.originalYield}. Quantidades não redimensionadas.</span>:null}{current&&(!current.pilotSource||current.pilotSource.ingredientsReviewed)&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>recipeFitsSlot(r,slot)&&(Boolean(r.pilotSource)||Boolean(r.ownerId)||r.id===current?.id)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
  {page==="Alimentos"&&<FoodLibrary/>}
  {page==="Administração"&&isAdmin&&<AdminRecipes onRefresh={reloadRecipes}/> }
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
@@ -308,7 +289,7 @@ export default function App(){
  </label>
  <label>Tipo de refeição
   <select value={recipeGroup} onChange={event=>{setRecipeGroup(event.target.value);setRecipePage(1);}}>
-   {["Todos","Café da manhã","Almoço","Jantar","Saladas","Lanches","Ceias","Minhas"].map(value=><option key={value} value={value}>{value}</option>)}
+   {["Todos","Café da manhã","Almoço","Jantar","Saladas","Lanches","Ceias","Minhas",...(isAdmin?["Legado"]:[])].map(value=><option key={value} value={value}>{value}</option>)}
   </select>
  </label>
  <span role="status">{visibleRecipes.length} {visibleRecipes.length===1?"receita encontrada":"receitas encontradas"}</span>
