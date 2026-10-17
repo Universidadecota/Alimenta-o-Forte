@@ -9,6 +9,7 @@ export type ParsedPilotMeasure = {
  key:string;
  ingredient:string;
  unitKey:string;
+ bare?:boolean;
  singular:string;
  plural:string;
 };
@@ -34,6 +35,11 @@ const unitSpecs:Array<{key:string;expression:RegExp;one:string;many:string}>=[
  {key:"unidade",expression:/^unidades?\s+de\s+/i,one:"unidade",many:"unidades"},
  {key:"punhado",expression:/^punhados?\s+de\s+/i,one:"punhado",many:"punhados"},
 ];
+const bareCounts:Array<{key:string;expression:RegExp;one:string;many:string}>=[
+ {key:"ovo",expression:/^ovos?$/i,one:"ovo",many:"ovos"},
+ {key:"cebola",expression:/^cebolas?$/i,one:"cebola",many:"cebolas"},
+ {key:"tomate",expression:/^tomates?$/i,one:"tomate",many:"tomates"},
+];
 const normalize=(value:string)=>value.normalize("NFD")
  .replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR")
  .replace(/\s+/g," ").trim().replace(/[.\s]+$/,"");
@@ -47,11 +53,13 @@ function numericPart(value:string):number|null{
  return null;
 }
 export function parsePilotMeasure(text:string):ParsedPilotMeasure|null{
- const s=text.trim().replace(/[.\s]+$/,"");
+ const s=text.trim().replace(/[.\s]+$/,"").replace(/^(\d+)([½¼¾⅓⅔⅛⅜⅝⅞])(?=\s)/u,"$1 $2");
+ // Nomes como "150g" e "200ml" são apenas espaçados; não se faz conversão.
+ const separated=s.replace(/^(\d+(?:,\d+)?)(kg|g|ml|l)\b/i,"$1 $2");
  // Protege casos com opções, listas ou escolhas não resolvidas.
  if(/\b(ou|opcional|aproximad\w*|a gosto|se preferir|se desejar|quanto bastar)\b/i.test(normalize(s))
    ||/[;:]/.test(s) || /\s+e\s+/i.test(s))return null;
- const found=s.match(/^(\d+(?:,\d+)?|\d+\/\d+|[½¼¾⅓⅔⅛⅜⅝⅞])(?:\s+([½¼¾⅓⅔⅛⅜⅝⅞]|\d+\/\d+))?\s+(.+)$/u);
+ const found=separated.match(/^(\d+(?:,\d+)?|\d+\/\d+|[½¼¾⅓⅔⅛⅜⅝⅞])(?:\s+([½¼¾⅓⅔⅛⅜⅝⅞]|\d+\/\d+))?\s+(.+)$/u);
  if(!found)return null;
  const first=numericPart(found[1]);
  const rest=found[2]?numericPart(found[2]):0;
@@ -59,6 +67,13 @@ export function parsePilotMeasure(text:string):ParsedPilotMeasure|null{
  const amount=first+rest;
  if(!Number.isFinite(amount)||amount<=0||amount>10000)return null;
  const tail=found[3];
+ for(const bare of bareCounts){
+  if(bare.expression.test(tail)){
+   return {amount,unitKey:"un-"+bare.key,ingredient:bare.one,
+    singular:bare.one,plural:bare.many,bare:true,
+    key:"un-"+bare.key};
+  }
+ }
  for(const spec of unitSpecs){
   const m=tail.match(spec.expression);
   if(!m)continue;
@@ -83,5 +98,5 @@ export function formatPilotTotal(measure:ParsedPilotMeasure,total:number):string
  ] as const;
  const matched=fractions.find(([,v])=>near(frac,v));
  const amount=matched?(whole?String(whole)+" "+matched[0]:matched[0]):String(rounded).replace(".",",");
- return amount+" "+(near(rounded,1)?measure.singular:measure.plural)+" de "+measure.ingredient;
+ return amount+" "+(near(rounded,1)?measure.singular:measure.plural)+(measure.bare?"":" de "+measure.ingredient);
 }
