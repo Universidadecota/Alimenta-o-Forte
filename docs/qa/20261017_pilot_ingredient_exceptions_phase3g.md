@@ -94,3 +94,14 @@ Na captura da tela **Receitas** no `localhost:5173`, os cartões mostram **`Adic
 **Resultado:** Git, TypeScript, build e **rótulo com data nos cartões aprovados**. **Pendente somente nesta correção:** captura mostrando o painel `Dia escolhido para o cardápio`, troca de 16/10 para outro dia livre (sem gravar nenhuma receita) e botão apresentando a nova data. O fluxo de proteção contra substituição foi implementado, mas não exercitado no navegador; não informar homologação funcional dessa confirmação.
 
 **Não repetir:** builds, teste automatizado de ingredientes, soma de azeite ou catalogação. Este registro é documental; não altera as 119 receitas, a lista de compras ou qualquer planejamento. PR #16 continua draft, sem merge.
+
+
+## Homologação dos botões após troca da data de destino — 17/10/2026
+
+O responsável apresentou nova captura de `localhost:5173` na página **Receitas**, após a captura anterior com destino **16/10**. Nos mesmos cartões do catálogo autoral, agora aparecem as ações **`Adicionar em 17/10`** e **`Escolher horário · 17/10`**.
+
+**Conclusão:** demonstrada a **atualização da data exibida nos botões** ao passar do destino 16/10 para 17/10, sem cadastrar nova refeição. O build Windows do commit `da37777` já havia sido aprovado (Vite 6.4.4, TypeScript sem erros).
+
+A captura mostra os cartões, **não o seletor de datas situado acima deles**. Portanto a aparência/uso direto desse seletor e o fluxo de confirmação antes de substituir uma refeição permanecem sem evidência visual específica; não há necessidade de repetir a simples troca de data nos botões. O objetivo central da correção — deixar claro o dia da inclusão no próprio botão — está **homologado**.
+
+Este registro é exclusivamente documental. Não alterar os planos, receitas ou marcações, nem repetir build, fase 3F ou testes já aprovados. PR #16 segue aberto em rascunho, sem merge.
