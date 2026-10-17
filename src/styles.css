@@ -449,3 +449,12 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-recipe-target-date select{width:100%;min-height:44px;border:1px solid #bed4c5;border-radius:10px;padding:9px 12px;background:#fff;color:#183f35}
 .cc-recipe-target-date>.secondary{min-height:44px}
 @media(max-width:640px){.cc-recipe-target-date{align-items:stretch;gap:13px}.cc-recipe-target-date label{max-width:none;flex-basis:100%}.cc-recipe-target-date>.secondary{width:100%}}
+
+/* Fotografia do piloto: texto culinário somente leitura para evitar reimportação. */
+.cc-admin-pilot-readonly{padding:16px 18px;border:1px solid #dce8de;border-radius:12px;background:#f8fbf8;display:grid;gap:10px}
+.cc-admin-pilot-readonly h4{margin:0;color:#194437}
+.cc-admin-pilot-readonly p{margin:0;line-height:1.6}
+.cc-admin-pilot-readonly details{padding:9px 0;border-top:1px solid #e1e8df}
+.cc-admin-pilot-readonly summary{font-weight:650;cursor:pointer}
+.cc-admin-pilot-readonly ul{padding-left:22px;line-height:1.7;overflow-wrap:anywhere}
+.cc-admin-pilot-prep{white-space:pre-wrap;overflow-wrap:anywhere}
