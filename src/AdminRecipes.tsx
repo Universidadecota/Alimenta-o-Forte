@@ -3,7 +3,6 @@ import {supabase} from "./lib/supabase";
 import IngredientEditor from "./IngredientEditor";
 import RecipeTechnicalSheet from "./RecipeTechnicalSheet";
 import FoodNutritionAdmin from "./FoodNutritionAdmin";
-import MedicalReviewerOnboarding from "./MedicalReviewerOnboarding";
 import type {Ingredient} from "./lib/planner";
 import {formatRecipeIngredient} from "./lib/ingredientMeasures";
 type Row={id:string;title:string;category:string;description:string|null;instructions:string|null;prep_minutes:number;servings:number;published:boolean;url:string|null;image_is_ai:boolean;recipe_ingredients:Array<{name:string;quantity:number|null;unit:string;measure_mode:string;is_optional:boolean}>};
@@ -58,10 +57,9 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
   finally{setBusy(false);}
  };
  const field=(key:"title"|"description"|"instructions"|"url",value:string)=>setForm(v=>({...v,[key]:value}));
- return <section className="cc-admin"><h2>Gestão de receitas oficiais</h2><p>Somente administradores podem cadastrar, revisar e publicar receitas Costa&Costa. A coleção EDV não é alterada por este painel.</p>
+ return <section className="cc-admin"><h2>Gestão do catálogo de receitas</h2><p>Organização culinária das receitas autorais Costa&Costa. As receitas do piloto pessoal continuam privadas: preparar uma receita não é prescrever uma dieta, e este painel não oferece atendimento médico ou nutricional.</p>
  <div className="cc-admin-tabs" role="group" aria-label="Área de receitas"><button type="button" className={section==="official"?"selected":""} aria-pressed={section==="official"} onClick={()=>setSection("official")}>Receitas oficiais</button><button type="button" className={section==="mine"?"selected":""} aria-pressed={section==="mine"} onClick={()=>setSection("mine")}>Minhas receitas particulares</button></div>
  {section==="mine"?<div className="cc-admin-private"><h3>Minhas receitas particulares</h3><p>Esta seção exibe somente as receitas vinculadas à sua própria conta. Receitas de outros usuários permanecem privadas e não são disponibilizadas aos administradores por este painel.</p><p>Para editar ou arquivar suas receitas particulares, use a área <strong>Receitas</strong> do aplicativo. Nenhuma receita particular é publicada como oficial automaticamente.</p>{mineLoading?<p role="status">Carregando suas receitas…</p>:mineError?<p role="alert">{mineError}</p>:mine.length?<ul>{mine.map(r=><li key={r.id}><strong>{r.title}</strong><span>Receita pessoal · {r.category==="breakfast"?"Café da manhã":r.category==="lunch"?"Almoço":r.category==="dinner"?"Jantar":r.category==="snack"?"Lanche":r.category}</span></li>)}</ul>:<p>Você não possui receitas particulares ativas nesta conta.</p>}</div>:<>
- <details className="cc-food-nutrition-section"><summary>Revisão médica · credenciamento de profissionais</summary><MedicalReviewerOnboarding/></details>
  <details className="cc-food-nutrition-section"><summary>Base nutricional dos alimentos · revisão administrativa</summary><FoodNutritionAdmin/></details>
  <div className="cc-admin-list"><input placeholder="Buscar receita oficial" aria-label="Buscar receita" value={search} onChange={e=>setSearch(e.target.value)}/><button type="button" className="secondary" onClick={()=>{setFile(null);setRemovePhoto(false);setEditing(null);setForm({...initial,recipe_ingredients:[{name:"",quantity:1,unit:"g"}]});}}>Nova receita oficial</button></div>
  <div className="cc-admin-items">{rows.filter(r=>r.title.toLowerCase().includes(search.toLowerCase())).map(r=><button type="button" key={r.id} className={editing===r.id?"selected":""} onClick={()=>choose(r)}><span>{r.title}</span><small>{r.published?"Publicada":"Rascunho"}</small></button>)}</div>
