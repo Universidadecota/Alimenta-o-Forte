@@ -63,3 +63,17 @@ O comando `npm run test:measure-batch` do usuário retornou **OK** na versão an
 **Status:** as três causas reportadas foram corrigidas no código, porém **o build Windows posterior às correções e a renderização mobile ainda estão pendentes de homologação**. Nenhuma migração ou atualização de dados foi executada; inventário e receitas permanecem preservados, sem confirmação automática.
 
 **Teste novo e suficiente:** `git pull --ff-only` + `npm run build`; o teste `npm run test:measure-batch` **não precisa ser repetido**, pois já passou. Após compilar, atualizar a página (`Ctrl+Shift+R` se necessário), abrir **Administração → Medidas das receitas autorais · inventário e revisão → Analisar todos os ingredientes**, conferir resumo com 1.073 registros e seis grupos em modo desktop/mobile. Enviar uma captura do resultado ou um novo erro específico. Não salvar nenhum rascunho ainda, não refazer os testes do catálogo ou fotografias. PR #16 deve permanecer draft, sem merge.
+
+## Build Windows corrigido e aprovado — 17/10/2026
+
+O responsável executou novamente `git pull --ff-only` no PowerShell, atualizando a branch de `b310d01` a `5b610a2` sem conflitos; em seguida, executou `npm run build` com resultado positivo:
+
+- `tsc -b && vite build`: **sem erros de TypeScript**, confirmando a correção dos três problemas anteriores (`TS2352`, `TS2345`, `TS2304`).
+- Vite `6.4.4`; **1.648 módulos transformados**; build concluído em **16,71 segundos**.
+- Arquivos gerados: `dist/assets/index-CFO06f9I.css` (57,84 kB; gzip 12,26 kB) e `dist/assets/index--6XNEiZu.js` (522,52 kB; gzip 148,54 kB).
+- Aviso sobre chunk superior a 500 kB **não bloqueante**; otimização reservada para trabalho posterior.
+- O teste separado `npm run test:measure-batch` já havia retornado **OK** na versão anterior à correção; não solicitar nova repetição desnecessária.
+
+**Estado de homologação:** sincronização e compilação TypeScript/Vite agora **aprovadas**. A restauração da renderização da página administrativa e a análise completa dos 1.073 ingredientes **ainda requerem evidência no navegador**. Próxima verificação única: recarregar o `localhost:5173`, entrar em Administração → Medidas das receitas autorais → clicar `Analisar todos os ingredientes`; confirmar os 1.073 registros distribuídos em seis grupos e encaminhar captura. Nenhum rascunho deve ser salvo nesse teste.
+
+Este registro é exclusivamente documental. Não modifica receitas, ingredientes, fotografias, dados nutricionais ou planejamento. PR #16 permanece aberto em draft, sem merge.
