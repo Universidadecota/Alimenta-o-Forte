@@ -77,3 +77,27 @@ O responsável executou novamente `git pull --ff-only` no PowerShell, atualizand
 **Estado de homologação:** sincronização e compilação TypeScript/Vite agora **aprovadas**. A restauração da renderização da página administrativa e a análise completa dos 1.073 ingredientes **ainda requerem evidência no navegador**. Próxima verificação única: recarregar o `localhost:5173`, entrar em Administração → Medidas das receitas autorais → clicar `Analisar todos os ingredientes`; confirmar os 1.073 registros distribuídos em seis grupos e encaminhar captura. Nenhum rascunho deve ser salvo nesse teste.
 
 Este registro é exclusivamente documental. Não modifica receitas, ingredientes, fotografias, dados nutricionais ou planejamento. PR #16 permanece aberto em draft, sem merge.
+
+## Homologação visual do resumo completo — 17/10/2026
+
+O responsável enviou duas capturas de `localhost:5173` na seção **Administração → Medidas das receitas autorais · inventário e revisão**. A tela voltou a ser renderizada após a correção de `suggest is not defined`, mostra a lista de ingredientes com nomes de unidade legíveis, o botão `Analisar todos os ingredientes` e o painel de pré-análise após a execução.
+
+**Resultado mostrado no navegador (classificação preliminar, não aprovação):**
+
+| Categoria | Registros |
+|---|---:|
+| Medida identificada | **468** |
+| Intervalo de medidas | **9** |
+| Alternativas | **57** |
+| Preparos compostos | **40** |
+| Opcionais e a gosto | **5** |
+| Outras medidas para revisão | **494** |
+| **Total** | **1.073** |
+
+A soma `468 + 9 + 57 + 40 + 5 + 494 = 1.073` corresponde à contagem exibida. A captura declara que **1.073 continuam aguardando revisão** e que **zero possuem outro status editorial**.
+
+**Verificação independente no Supabase (consulta somente leitura):** `cc_pilot_ingredient_measure_reviews` contém **1.073** registros `pending`, **0** `draft`, **0** `confirmed`, **0** `needs_manual_review`. Portanto clicar `Analisar todos os ingredientes` não gravou nenhuma alteração de revisão.
+
+**Status:** renderização administrativa recuperada, classificação integral dos 1.073 registros em seis grupos, rótulos de unidade legíveis e análise sem gravação **homologados visualmente**. A classificação é uma heurística, não corresponde a validação editorial das 468 medidas simples. Não repetir o build anterior, os testes automáticos já executados nem esse resumo visual.
+
+**Próxima etapa sugerida (não implementada aqui):** implementar preparação controlada de rascunhos **apenas para medidas simples**, com prévia explícita do conjunto, limites de lote, detecção de origem divergente e salvamento somente após confirmação do administrador. Casos com intervalo, alternativa, compostos, opcionais e 494 casos manuais ficam em fila separada. Nenhuma atualização nas 119 receitas, porções, compras ou nutrição poderá decorrer desses rascunhos sem revisão posterior; manter PR #16 aberto em draft, sem merge.
