@@ -44,3 +44,17 @@ A interface antiga de Administração usava `cc_save_official_recipe` até para 
 - A rotina permite fotografias individuais por receita. Um fluxo de importação em lote para 119 fotos demandaria desenho próprio, consentimento e tratamento de nomes/associação, evitando associações erradas.
 - **Próximo teste:** `git pull --ff-only`, `npm run build`; entrar em Administração → Gestão do catálogo de receitas, abrir uma receita do piloto e conferir que aparecem **Salvar somente fotografia** e campos culinários bloqueados. Antes de subir arquivos em massa, homologar um único upload com foto cujo nome corresponda à receita.
 - Não repetir testes já homologados de filtro, ceias, compras e data de destino; não mesclar PR #16 antes da homologação.
+
+
+## Homologação do build Windows e visual do editor — 17/10/2026
+
+**Evidência enviada pelo responsável:** captura de `localhost:5173` na Administração, com a receita **Agrião com tiras de fraldinha e chimichurri** selecionada; log de `git pull --ff-only` avançando a branch de `da37777` até **`13a073b`** sem conflitos, seguido de `npm run build`.
+
+- **Build aprovado**: `tsc -b && vite build`, Vite **6.4.4**, **1.646 módulos transformados**, sem erros TypeScript, concluído em **33,68 segundos**.
+- Arquivos gerados: `dist/assets/index-DukKnRnr.css` **54,58 kB** (gzip **11,70 kB**) e `dist/assets/index-CQzZxyIJ.js` **510,21 kB** (gzip **144,81 kB**). Aviso Vite de chunk acima de 500 kB é **não bloqueante**.
+- **Interface visual aprovada**: receita do piloto apresenta mensagem de proteção dos dados, título, tempo/rendimento, consultas somente leitura de ingredientes e preparo, seletor de fotografia, orientação **1200 × 800 px** e WebP, controle **Imagem ilustrativa gerada por IA**, status **Piloto pessoal · privado** e botão **Salvar somente fotografia**.
+- **Consulta SQL somente leitura**: **119** receitas do `personal_pilot`, **0** publicadas e **0** com foto vinculada no momento da consulta; nenhuma fotografia real foi enviada nessa homologação.
+
+**Resultado:** build e interface do editor de fotos **APROVADOS**; upload, persistência da URL, miniatura e exibição nos cartões/ficha **ainda não homologados**. Não solicitar novamente compilação ou captura da tela de proteção. Prosseguir com **uma única foto de teste**, apropriada para a receita escolhida, usando o seletor, a confirmação e **Salvar somente fotografia**; após salvar, conferir na biblioteca e na ficha a imagem, sem alterar ingredientes. Verificar persistência da URL no banco e ausência de mudança no conteúdo, antes de cadastrar as demais fotografias.
+
+**Observação editorial secundária:** o texto de rendimento exibido na captura é `1 porções de referência`; ajustar a flexão singular/plural em um lote futuro, sem reabrir o teste de foto. PR #16 continua aberto em rascunho, **sem merge**.
