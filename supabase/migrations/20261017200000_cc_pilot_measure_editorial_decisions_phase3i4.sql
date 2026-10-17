@@ -74,10 +74,10 @@ BEGIN
  VALUES
   (p_id,v_actor,CASE WHEN p_status='draft' THEN 'draft_saved' ELSE 'needs_manual_review' END,
    v_row.review_status,p_status,p_source_text,
-   jsonb_build_object('quantity',v_row.proposed_quantity,'unit',v_row.proposed_unit,'ingredient',v_row.proposed_ingredient),
+   jsonb_build_object('quantity',v_row.proposed_quantity,'unit',v_row.proposed_unit,'ingredient',v_row.proposed_ingredient,'previous_note',v_row.review_notes),
    jsonb_build_object('quantity',CASE WHEN p_status='draft' THEN p_quantity ELSE NULL END,
     'unit',CASE WHEN p_status='draft' THEN p_unit ELSE NULL END,
-    'ingredient',CASE WHEN p_status='draft' THEN v_name ELSE NULL END),
+    'ingredient',CASE WHEN p_status='draft' THEN v_name ELSE NULL END,'decision_note',v_note),
    v_note);
  RETURN p_status;
 END $fn$;
@@ -98,7 +98,7 @@ BEGIN
  IF p_expected_updated_at IS NULL OR p_expected_quantity IS NULL OR
   p_expected_unit IS NULL OR p_expected_ingredient IS NULL THEN RAISE EXCEPTION 'Prévia incompleta'; END IF;
  IF length(v_note)>1200 THEN RAISE EXCEPTION 'Observação muito longa'; END IF;
- IF p_action='return' AND length(v_note)<8 THEN RAISE EXCEPTION 'Explique a devolução para revisão manual'; END IF;
+ IF length(v_note)<8 THEN RAISE EXCEPTION 'Registre a justificativa da decisão editorial'; END IF;
 
  SELECT rv.*,ri.name AS current_name,ri.position AS current_position,r.published AS recipe_published,s.use_stage
  INTO v_row
@@ -138,7 +138,7 @@ BEGIN
   jsonb_build_object('quantity',v_row.proposed_quantity,'unit',v_row.proposed_unit,'ingredient',v_row.proposed_ingredient),
   jsonb_build_object('quantity',CASE WHEN p_action='confirm' THEN v_row.proposed_quantity ELSE NULL END,
   'unit',CASE WHEN p_action='confirm' THEN v_row.proposed_unit ELSE NULL END,
-  'ingredient',CASE WHEN p_action='confirm' THEN v_row.proposed_ingredient ELSE NULL END),v_note);
+  'ingredient',CASE WHEN p_action='confirm' THEN v_row.proposed_ingredient ELSE NULL END,'decision_note',v_note),v_note);
  RETURN v_target;
 END $fn$;
 
