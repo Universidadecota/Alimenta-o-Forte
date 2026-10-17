@@ -72,7 +72,7 @@ export function parsePilotMeasure(text:string):ParsedPilotMeasure|null{
  }
  return null;
 }
-const near=(v:number,target:number)=>Math.abs(v-target)<0.00001;
+const near=(v:number,target:number)=>Math.abs(v-target)<0.0001;
 export function formatPilotTotal(measure:ParsedPilotMeasure,total:number):string{
  const rounded=Math.round(total*10000)/10000;
  const whole=Math.floor(rounded);
