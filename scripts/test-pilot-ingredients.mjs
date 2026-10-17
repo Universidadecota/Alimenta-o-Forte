@@ -49,8 +49,15 @@ const alternative=splitPilotIngredient("1 lata de sardinha em água ou azeite");
 assert.equal(alternative.length,1);
 assert.equal(alternative[0].requiresChoice,true);
 assert.equal(splitPilotIngredient("1 ovo cozido (opcional)")[0].optional,true);
+const portion=splitPilotIngredient("1 colher (sopa) de azeite. Por porção: 3 colheres (sopa) de chucrute");
+assert.equal(portion.length,2);
+assert.equal(portion[1].section,"Por porção");
+assert.equal(portion[1].ambiguousCompound,true); // não somar sem saber o número de porções
+const salad=splitPilotIngredient("sal. Salada: ½ pepino fatiado");
+assert.equal(salad.length,2);
+assert.equal(salad[1].text,"½ pepino fatiado");
 const unknown="1 colher (sopa) de azeite. Ingrediente desconhecido: 1 xícara de vegetais";
 const unresolved=splitPilotIngredient(unknown);
 assert.equal(unresolved.length,1);
 assert.equal(unresolved[0].ambiguousCompound,true);
-console.log("OK: 20 verificações do parser e das expressões culinárias, sem modificar receitas.");
+console.log("OK: verificações do parser, frações, alternativas e subtítulos, sem modificar receitas.");
