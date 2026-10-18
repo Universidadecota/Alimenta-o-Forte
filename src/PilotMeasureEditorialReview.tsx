@@ -34,7 +34,10 @@ function originalName(v:{name:string}|{name:string}[]|null):string{
  * Decisão editorial separada. Confirmação não implica segurança nutricional ou alergênica.
  * Nunca chama UPDATE direto na tabela de medidas.
  */
-export default function PilotMeasureEditorialReview(){
+export default function PilotMeasureEditorialReview({refreshKey=0,onDecisionSaved}:{
+ refreshKey?:number;
+ onDecisionSaved?:()=>void;
+}){
  const [rows,setRows]=useState<Draft[]>([]);
  const [history,setHistory]=useState<History[]>([]);
  const [loading,setLoading]=useState(false);
@@ -66,7 +69,8 @@ export default function PilotMeasureEditorialReview(){
   }catch(err){setError(err instanceof Error?err.message:"Falha ao carregar a revisão editorial.");}
   finally{setLoading(false);}
  };
- useEffect(()=>{void load();},[]);
+ // Atualiza automaticamente quando um rascunho é criado ou editado na seção anterior.
+ useEffect(()=>{void load();},[refreshKey]);
  const setChoice=(id:string,change:Partial<{acknowledged:boolean;action:EditorialAction|"";note:string}>)=>{
   setBatchChoices(previous=>{
    const current=previous[id]??{acknowledged:false,action:"" as const,note:""};
@@ -113,6 +117,7 @@ export default function PilotMeasureEditorialReview(){
    setSelectedId(null);setAcknowledged(false);setNote("");
    setMessage(data+" decisões editoriais registradas individualmente, com histórico. Nenhum cálculo foi liberado.");
    await load();
+   onDecisionSaved?.();
   }catch(err){setError(err instanceof Error?err.message:"Falha na revisão em lote. Nenhuma nova tentativa será feita automaticamente.");}
   finally{setBatchBusy(false);}
  };
@@ -154,6 +159,7 @@ export default function PilotMeasureEditorialReview(){
    setMessage(action==="confirm"?"Medida confirmada somente no fluxo editorial. Nenhum cálculo foi habilitado."
     :"Medida devolvida para revisão manual. A proposta anterior ficou registrada no histórico.");
    await load();
+   onDecisionSaved?.();
   }catch(err){setError(err instanceof Error?err.message:"Falha ao registrar a decisão. Nenhuma nova tentativa automática será feita.");}
   finally{setBusy(false);}
  };
