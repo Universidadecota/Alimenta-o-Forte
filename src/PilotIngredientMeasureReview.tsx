@@ -54,6 +54,7 @@ export default function PilotIngredientMeasureReview(){
  const [draftCandidates,setDraftCandidates]=useState<DraftCandidate[]>([]);
  const [selectedDraftIds,setSelectedDraftIds]=useState<string[]>([]);
  const [draftSaving,setDraftSaving]=useState(false);
+ const [editorialRefreshKey,setEditorialRefreshKey]=useState(0);
  const pageSize=25;
  // Lê todo o inventário em páginas menores que o limite padrão do PostgREST.
  // Nenhuma chamada de análise atualiza receitas, medidas ou notas.
@@ -112,6 +113,7 @@ export default function PilotIngredientMeasureReview(){
    if(data!==selected.length)throw new Error("Número de registros salvo diferente da seleção. Recarregue antes de continuar.");
    setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);setActive(null);
    setMessage(data+" rascunhos salvos. Nenhuma medida foi confirmada. Faça nova análise para o próximo lote.");
+   setEditorialRefreshKey(key=>key+1);
    await load();
   }catch(err){setError(err instanceof Error?err.message:"Erro ao salvar lote. O servidor cancelou o lote se houve divergência.");}
   finally{setDraftSaving(false);}
@@ -179,6 +181,7 @@ export default function PilotIngredientMeasureReview(){
    if(dbError)throw dbError;
    setActive(null);
    setMessage(mode==="draft"?"Rascunho registrado. Ainda não aprovado para cálculos.":"Ingrediente encaminhado para conferência manual.");
+   setEditorialRefreshKey(key=>key+1);
    await load();
   }catch(err){setError(err instanceof Error?err.message:"Falha ao salvar a revisão.");}
   finally{setBusy(false);}
@@ -241,7 +244,11 @@ export default function PilotIngredientMeasureReview(){
     </section>
    </div>}
   </section>
-  <PilotMeasureEditorialReview/>
+  <PilotMeasureEditorialReview refreshKey={editorialRefreshKey} onDecisionSaved={()=>{
+   // Após confirmar/devolver, atualize contagem e fila; não reaproveite prévia anterior.
+   setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);
+   void load();
+  }}/>
   <div className="cc-measure-filters">
    <label>Situação
     <select value={status} onChange={e=>{setPage(0);setStatus(e.target.value);setActive(null);}}>
