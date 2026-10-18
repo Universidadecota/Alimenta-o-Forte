@@ -15,8 +15,8 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Pl
  for(const slot of slots){
   const available=recipes.filter(r=>r.category===slot&&r.ingredients.length>0&&(!r.pilotSource||r.pilotSource.ingredientsReviewed)&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
-  const candidates=withinTime.length?withinTime:available;
-  if(!candidates.length)throw new Error("Não há receitas suficientes na categoria "+slot+" após os filtros. Ajuste suas preferências ou cadastre receitas.");
+  if(!withinTime.length)throw new Error("Não há receitas na categoria "+slot+" dentro do tempo de preparo escolhido. Ajuste o tempo disponível ou cadastre receitas.");
+  const candidates=withinTime;
   const ordered=[...candidates].sort((a,b)=>a.title.localeCompare(b.title,"pt-BR"));
   days.forEach((d,i)=>{
    const recipe=ordered[(i+Math.floor(i/ordered.length))%ordered.length];
