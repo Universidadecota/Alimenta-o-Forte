@@ -19,14 +19,14 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
   </div>
   <div className="detail-columns">
    <section className="detail-panel"><h3>Ingredientes</h3>{recipe.pilotSource
-   ?<p className="detail-note"><strong>Rendimento da receita original:</strong> {recipe.pilotSource.originalYield}. Ajuste automático de porções indisponível enquanto as medidas não forem revisadas.</p>
+   ?<p className="detail-note"><strong>Rendimento original:</strong> {recipe.pilotSource.originalYield}. Porções mantidas conforme a receita.</p>
    :<div className="portion-stepper"><span>Porções</span><button type="button" disabled={servings<=1} onClick={()=>setServings(v=>Math.max(1,v-1))} aria-label="Diminuir porções"><Minus size={16}/></button><strong>{servings}</strong><button type="button" disabled={servings>=20} onClick={()=>setServings(v=>Math.min(20,v+1))} aria-label="Aumentar porções"><Plus size={16}/></button></div>}
    {recipe.pilotSource?<div className="cc-pilot-source-ingredients">
     <p><strong>Ingredientes conforme o documento original:</strong></p>
     <p>{recipe.pilotSource.originalIngredients}</p>
-    <p className="detail-note">As medidas originais são preservadas. A lista de compras já soma medidas compatíveis de forma conservadora, mas a estruturação completa e o redimensionamento das porções ainda exigem revisão.</p>
+
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
-   {recipe.pilotSource?<p className="detail-note">Receita autoral em uso pessoal — preparo original preservado. Quantidades não são redimensionadas automaticamente; alergênicos e informações nutricionais ainda não foram verificados.</p>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
+   {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>Receita autoral em uso pessoal: ingredientes e modo de preparo originais preservados. Não há redimensionamento automático das porções até a revisão das medidas.</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p></div></details>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
    <section className="detail-panel"><h3>Modo de preparo</h3>{steps.length>0?<ol className="preparation">{steps.map((step,i)=><li key={i}>{step}</li>)}</ol>:<p className="detail-note">O modo de preparo desta receita ainda não foi cadastrado e revisado. Não vamos apresentar instruções inventadas como definitivas.</p>}
    <button type="button" className="primary" disabled={!canAdd} onClick={()=>onAdd(servings)}><Plus size={16}/> {recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"?"Escolher horário · "+destinationDateLabel:"Adicionar em "+destinationDateLabel}</button>
