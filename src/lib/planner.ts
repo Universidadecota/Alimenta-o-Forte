@@ -69,6 +69,22 @@ export async function loadRecipes():Promise<Meal[]>{
     ingredientsReviewed:row.ingredient_review_status==="structured_confirmed"
    });
   }
+ }else{
+  // A RPC só retorna receitas liberadas ao participante e evita expor metadados editoriais.
+  // Antes da implantação da migração, a ausência da RPC mantém a biblioteca privada fechada.
+  const {data,error}=await supabase.rpc("cc_beta_recipe_sources");
+  if(error && error.code!=="PGRST202" && error.code!=="42883")throw error;
+  for(const row of data??[]){
+   sources.set(row.recipe_id,{
+    kind:row.source_kind as PilotRecipeSource["kind"],
+    sourceMeal:row.source_meal_name,
+    originalIngredients:row.original_ingredients,
+    originalTime:row.original_time,
+    originalYield:row.original_yield,
+    sourceDocument:"",
+    ingredientsReviewed:row.ingredient_review_status==="structured_confirmed"
+   });
+  }
  }
  const data=recipeResult.data??[];
  const ownPaths=data.filter(r=>r.owner_user_id&&r.url?.startsWith("personal-recipe-images/")).map(r=>r.url!.slice("personal-recipe-images/".length));
