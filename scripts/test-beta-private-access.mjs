@@ -3,6 +3,12 @@ import {readFileSync} from "node:fs";
 const sql=readFileSync(new URL("../supabase/migrations/20261018190000_cc_beta_private_catalog_access.sql",import.meta.url),"utf8");
 const required=[
  /cc_beta_members/,/cc_beta_recipe_access/,
+ /alter table public\.cc_beta_members enable row level security/,
+ /alter table public\.cc_beta_recipe_access enable row level security/,
+ /returns boolean language sql stable security definer/,
+ /language sql stable security definer set search_path/,
+ /revoke all on function public\.cc_beta_can_view_recipe\(uuid\) from public, anon/,
+ /revoke all on function public\.cc_beta_recipe_sources\(\) from public, anon/,
  /m\.user_id=\(select auth\.uid\(\)\) and m\.enabled/,
  /a\.recipe_id=p_recipe_id and a\.enabled/,
  /s\.use_stage='personal_pilot' and s\.is_plannable=true/,
