@@ -376,14 +376,15 @@ export default function App(){
    onClick={()=>void togglePurchased(item)}>
    <span className="checkmark">{purchasedKeys.includes(key)&&<Check size={14}/>}</span>
    <span className="cc-pilot-shopping-text">{item.totalLabel??item.sourceText}
-    {item.totalLabel&&<small>Expressões originais: {item.sourceExpressions.join(" + ")}</small>}
+    {!item.totalLabel&&<small>Quantidade conforme a receita · {item.quantity>1?item.quantity+" utilizações no cardápio":"1 utilização no cardápio"}. Não indica unidades a comprar.</small>}
+    {item.totalLabel&&<small>Medida original consolidada para referência; {item.quantity>1?item.quantity+" ocorrências":"1 ocorrência"} no cardápio. Expressões: {item.sourceExpressions.join(" + ")}</small>}
     {item.requiresChoice&&<small className="cc-pilot-shopping-attention">Alternativas no documento: escolha uma opção antes de comprar. Nada foi substituído automaticamente.</small>}
     {item.optionalSource&&<small className="cc-pilot-shopping-attention">Opcional — inclua na compra somente se decidir utilizar.</small>}
     {item.ambiguousSource&&<small className="cc-pilot-shopping-attention">Trecho composto ou ambíguo: confira as instruções da receita.</small>}
     {item.sourceRawFragments.length>0&&<small>Trecho original completo: {item.sourceRawFragments.join(" | ")}</small>}
     <small>Em: {item.sourceRecipes.join("; ")}</small>
    </span>
-   <strong>{item.totalLabel?"Medida original · "+(item.quantity>1?item.quantity+" ocorrências":"1 ocorrência"):item.quantity>1?item.quantity+" preparos · quantidade conforme receita":"1 preparo · quantidade conforme receita"}</strong>
+   <strong>{item.quantity>1?item.quantity+" usos":"1 uso"}</strong>
   </button>;})}</div>
  </section>}
 {shoppingAnnotations.length>0&&<section className="cc-shopping-notes" aria-label="Ingredientes a gosto e opcionais">
