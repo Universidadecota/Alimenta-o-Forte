@@ -104,6 +104,20 @@ assert.ok(notes.some(x=>x.name==="Sal"));
 assert.ok(notes.some(x=>x.name==="Azeite"));
 assert.ok(notes.some(x=>x.name==="Água"));
 
+const quickBreakfast=makeMeal("café-rápido","Café da manhã",[ingredient("Ovo",1)]);
+const slowLunch=makeMeal("almoço-lento","Almoço",[ingredient("Arroz",100,"g")]);
+slowLunch.minutes=90;
+const quickDinner=makeMeal("jantar-rápido","Jantar",[ingredient("Feijão",100,"g")]);
+assert.throws(()=>suggest.proposeWeek([quickBreakfast,slowLunch,quickDinner],{
+ ...suggest.defaultPreferences,cooking_minutes:30
+},[monday]),/tempo de preparo escolhido/,
+ "Não ignorar limite de tempo quando só receitas demoradas estiverem disponíveis");
+const allowedLunch=makeMeal("almoço-rápido","Almoço",[ingredient("Arroz",100,"g")]);
+const suggested=suggest.proposeWeek([quickBreakfast,slowLunch,allowedLunch,quickDinner],{
+ ...suggest.defaultPreferences,cooking_minutes:30
+},[monday]);
+assert.equal(suggested[dayKey]["Almoço"].id,"almoço-rápido",
+ "Receitas acima do tempo não devem ser sugeridas");
 const noAllergenAdvice=[makeMeal("teste","Almoço",[ingredient("Feijão",100,"g")])];
 assert.throws(()=>suggest.proposeWeek(noAllergenAdvice,{
  ...suggest.defaultPreferences,allergies:["Soja"]
