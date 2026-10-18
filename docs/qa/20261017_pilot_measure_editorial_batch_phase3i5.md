@@ -129,3 +129,22 @@ A captura do diálogo lista precisamente as três origens:
 **Atenção de UX não bloqueante:** o diálogo da prévia mostra a construção redundante `1 cebola de cebola` porque concatena unidade e ingrediente em linguagem natural. Os campos do banco estão corretos; eventual ajuste de texto deve ocorrer separadamente, sem modificar fonte, quantidade ou a unidade estruturada. Não exigir mais builds nesta homologação documental.
 
 PR #16 permanece **aberto, draft, sem merge**. Não houve publicação comercial, revisão clínica ou liberação de nutrição, alergênicos, compras ou redimensionamento.
+
+
+## Correção de atualização entre seções após salvar rascunhos — 18/10/2026
+
+O responsável salvou **três** ocorrências de `1 cebola` em receitas distintas (Bife à rolê com bacon, Caldo verde sem batata, Caneca de caldo de ossos) e enviou captura da tela pós-salvamento. A mensagem da seção anterior informava `3 rascunhos salvos` e a fila pendente contava **1.069**, porém a seção separada `Conferência editorial dos rascunhos` ainda apresentava **`Nenhum rascunho disponível`** e `0 de 5`.
+
+**Diagnóstico:** não era falha de persistência. Consultas de Supabase confirmaram **1.073** registros = **1.069 `pending` + 3 `draft` + 1 `confirmed`**, com um evento histórico e zero divergências nos textos originais. A tela `PilotIngredientMeasureReview` recarregava somente sua própria fila após gravar; `PilotMeasureEditorialReview` usava `useEffect(...,[])` e não recarregava no mesmo ciclo do componente. O botão `Atualizar rascunhos` recarrega manualmente sem necessidade de novo salvamento.
+
+**Correção preventiva implementada:**
+
+- `src/PilotIngredientMeasureReview.tsx`: novo contador `editorialRefreshKey` atualizado **apenas após RPC bem-sucedida** de gravação em lote ou edição individual. A instância de `PilotMeasureEditorialReview` passa a receber `refreshKey`; decisões editoriais concluídas acionam atualização da fila principal e invalidam a prévia potencialmente obsoleta.
+- `src/PilotMeasureEditorialReview.tsx`: o efeito de carregamento passa a observar `refreshKey`; operações individuais ou em lote concluídas avisam o componente pai por `onDecisionSaved`. O botão `Atualizar rascunhos` continua disponível como recurso manual.
+- Não foi necessário modificar migração ou SQL. **Nenhuma decisão editorial automática** é executada pelos callbacks.
+- Conferência estática remota confirma ligação entre estados, callback e invalidadores; **ainda faltam build e homologação no Windows**.
+- O cadastro dos três rascunhos já está homologado. **Não refazer a gravação desses ingredientes.** Não aprovar nenhuma medida apenas para testar sincronização.
+
+**Próximo passo suficiente:** `git pull --ff-only`, `npm run build` uma vez. Na aplicação aberta, a seção de conferência deverá carregar automaticamente os três rascunhos ao montar, com controles inicialmente desmarcados. Enviar uma captura dessa seção (sem selecionar, aprovar nem devolver por enquanto). Em lote futuro, a sincronização automática após gravação poderá ser testada sem trabalho duplicado. Não repetir testes anteriores de fotos, cardápio, compras, categorização ou confirmação de azeite de dendê.
+
+PR #16 continua aberto em draft, sem merge. A mudança é exclusivamente no fluxo do frontend e nesta documentação.
