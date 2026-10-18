@@ -68,3 +68,11 @@ No `localhost:5173`, entrar em **Administração → Receitas oficiais → Medid
 Como o único rascunho real já foi confirmado na Fase 3I.4, o resultado esperado inicialmente é a **mensagem de fila vazia**, não cinco cartões. **Não criar rascunhos artificiais nem confirmar nada apenas para forçar a demonstração visual.** Primeiro basta validar a compilação e a mensagem de fila vazia; a revisão em lote será testada funcionalmente depois que houver novas propostas reais preparadas e conferidas.
 
 As migrações já foram aplicadas no Supabase; não executar SQL manualmente no projeto.
+
+## Homologação visual da fila vazia e identificação das receitas — 17/10/2026
+
+Captura de `localhost:5173` confirma a seção **Revisar até 5 rascunhos de uma vez**, com a mensagem **Não há rascunhos aguardando decisão**, contagem `0 de 5` e botão de registro desabilitado. O histórico mostra uma decisão anterior e a fila principal apresenta 1.072 pendentes. A Fase 3I.5 está **homologada visualmente para fila vazia**; o envio efetivo de lote com vários rascunhos permanece não testado pelo usuário. Build e `test:editorial-batch` da versão `d78d895` já foram aprovados no Windows.
+
+**Correção preventiva na prévia anterior (3I.3):** ingredientes iguais podem ocorrer em muitas receitas. Para permitir conferência da ocorrência certa, cada candidato ao lote de rascunhos agora exige vínculo com título de receita e posição do ingrediente. A prévia passa a mostrar **Receita: [título] · ingrediente [posição]**, além do texto e da medida proposta; o diálogo de confirmação relaciona explicitamente cada ocorrência selecionada. Candidatos sem identidade completa não são apresentados. Foram acrescentados testes de regressão para a presença desses dados. O inventário e as receitas não foram alterados.
+
+**Próxima validação, sem repetir as anteriores:** sincronizar branch, executar `npm run build` e `npm run test:measure-batch` apenas para a correção nova. Depois de clicar `Analisar todos os ingredientes`, verificar uma captura da prévia agora identificada por receita. Nenhum rascunho deve ser salvo antes dessa conferência. PR #16 permanece draft, sem merge.
