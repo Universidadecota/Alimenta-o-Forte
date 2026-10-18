@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
-    "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs"
+    "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
+    "test:editorial-batch": "node scripts/test-pilot-editorial-batch.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
