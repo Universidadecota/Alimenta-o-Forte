@@ -102,12 +102,19 @@ export default function App(){
   const newItems=[...consolidateShopping(days,after,recipes),...collectPilotShopping(days,after,recipes)];
   const changed=changedPurchasedItems(oldItems,newItems);
   if(!changed.length)return;
-  if(supabase&&userId){
-   for(const item of changed)await savePurchasedItem(userId,weekStart,item,false);
-  }
   const invalid=new Set(changed.map(purchaseKey));
-  if(supabase)setPurchased(prev=>prev.scope===(userId+"|"+weekStart)?{...prev,keys:prev.keys.filter(k=>!invalid.has(k))}:prev);
-  else setDone(prev=>prev.filter(k=>!invalid.has(k)));
+  // O cardápio já pode ter sido persistido. Falha na limpeza de compras
+  // não deve apresentar a operação inteira como se não tivesse sido salva.
+  try{
+   if(supabase&&userId){
+    for(const item of changed)await savePurchasedItem(userId,weekStart,item,false);
+   }
+  }catch{
+   setError("O cardápio foi salvo, mas não foi possível atualizar todas as marcações de compras. Verifique a lista antes de comprar e tente novamente quando a conexão voltar.");
+  }finally{
+   if(supabase)setPurchased(prev=>prev.scope===(userId+"|"+weekStart)?{...prev,keys:prev.keys.filter(k=>!invalid.has(k))}:prev);
+   else setDone(prev=>prev.filter(k=>!invalid.has(k)));
+  }
  };
  const update=async(key:string,slot:Slot,id:string,servings?:number)=>{
   const chosenRecipe=id?recipes.find(r=>r.id===id):undefined;
