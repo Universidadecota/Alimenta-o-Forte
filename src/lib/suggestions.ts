@@ -1,4 +1,4 @@
-import {type Meal,type Plan,slots,dateKey} from "./planner";
+import {type Meal,type Plan,slots,dateKey,recipeFitsSlot} from "./planner";
 export type FoodPreferences={goal:string|null;liked_foods:string[];disliked_foods:string[];allergies:string[];household_size:number;cooking_minutes:number};
 export const defaultPreferences:FoodPreferences={goal:null,liked_foods:[],disliked_foods:[],allergies:[],household_size:1,cooking_minutes:40};
 const normal=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
@@ -13,7 +13,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Pl
  const servings=Math.max(1,Math.min(20,Math.trunc(prefs.household_size)||1));
  const result:Plan={};
  for(const slot of slots){
-  const available=recipes.filter(r=>r.category===slot&&r.ingredients.length>0&&(!r.pilotSource||r.pilotSource.ingredientsReviewed)&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
+  const available=recipes.filter(r=>recipeFitsSlot(r,slot)&&r.ingredients.length>0&&(!r.pilotSource||r.pilotSource.ingredientsReviewed)&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
   if(!withinTime.length)throw new Error("Não há receitas na categoria "+slot+" dentro do tempo de preparo escolhido. Ajuste o tempo disponível ou cadastre receitas.");
   const candidates=withinTime;
