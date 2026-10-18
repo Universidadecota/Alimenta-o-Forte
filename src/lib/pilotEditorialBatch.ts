@@ -1,6 +1,6 @@
 /** Regras de seleção da Fase 3I.5: aprovação nunca é sugerida nem automática. */
 export type EditorialAction="confirm"|"return";
-export type EditorialChoice={acknowledged:boolean;action:EditorialAction;note:string};
+export type EditorialChoice={acknowledged:boolean;action:EditorialAction|"";note:string};
 export type EditorialChoices=Record<string,EditorialChoice>;
 export type EditorialDraft={
  ingredient_id:string;
@@ -52,7 +52,7 @@ export function collectEditorialBatch(
    expected_quantity:row.proposed_quantity,
    expected_unit:row.proposed_unit,
    expected_ingredient:row.proposed_ingredient,
-   action:choice.action,
+   action:choice.action as EditorialAction,
    note
   };
  });
