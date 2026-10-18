@@ -148,3 +148,9 @@ O responsável salvou **três** ocorrências de `1 cebola` em receitas distintas
 **Próximo passo suficiente:** `git pull --ff-only`, `npm run build` uma vez. Na aplicação aberta, a seção de conferência deverá carregar automaticamente os três rascunhos ao montar, com controles inicialmente desmarcados. Enviar uma captura dessa seção (sem selecionar, aprovar nem devolver por enquanto). Em lote futuro, a sincronização automática após gravação poderá ser testada sem trabalho duplicado. Não repetir testes anteriores de fotos, cardápio, compras, categorização ou confirmação de azeite de dendê.
 
 PR #16 continua aberto em draft, sem merge. A mudança é exclusivamente no fluxo do frontend e nesta documentação.
+
+## Build Windows da sincronização — 18/10/2026
+
+O responsável atualizou a branch `feat/revisao-alergenos-fase1-12out2026` por `git pull --ff-only`, fast-forward de `2c43d3b` para `f47b3db`, sem conflitos. O `npm run build` **passou**, com `tsc -b && vite build`, Vite **6.4.4**, **1.650 módulos** transformados e **17,18 segundos**. Saídas: `index-Hc7obCDk.css` (62,44 kB; gzip 12,98 kB), `index-DeKnmeRX.js` (539,44 kB; gzip 152,82 kB). Aviso de chunk acima de 500 kB não é erro de compilação.
+
+**Resultado:** sincronização de código e build local **homologados**. A correção funcional de recarregamento automático entre o salvamento e o painel editorial **ainda exige captura visual** da seção com os três rascunhos reais já persistidos. Não pedir nova gravação ou novo build e não confirmar os ingredientes apenas para testar o carregamento. PR #16 segue aberto em draft, sem merge.
