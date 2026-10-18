@@ -30,7 +30,8 @@ export async function loadPurchasedKeys(userId: string, weekStart: string): Prom
   for (let offset = 0; ; offset += 500) {
     const { data, error } = await supabase.from("shopping_list_items")
       .select("name,unit,quantity").eq("user_id", userId).eq("shopping_list_id", listId)
-      .eq("completed", true).range(offset, offset + 499);
+      .eq("completed", true).order("name", {ascending:true})
+      .order("unit", {ascending:true}).range(offset, offset + 499);
     if (error) throw error;
     keys.push(...(data ?? []).map(purchaseKey));
     if ((data ?? []).length < 500) break;
