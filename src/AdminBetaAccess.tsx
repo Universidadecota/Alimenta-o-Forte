@@ -1,9 +1,11 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
 type Recipe={recipe_id:string;title:string;enabled:boolean};
+type Member={email:string;enabled:boolean;created_at:string};
 export default function AdminBetaAccess(){
  const [email,setEmail]=useState("");
  const [recipes,setRecipes]=useState<Recipe[]>([]);
+ const [members,setMembers]=useState<Member[]>([]);
  const [search,setSearch]=useState("");
  const [onlyEnabled,setOnlyEnabled]=useState(false);
  const [busy,setBusy]=useState(false);
@@ -14,6 +16,9 @@ export default function AdminBetaAccess(){
   const {data,error}=await supabase.rpc("cc_admin_beta_catalog_overview");
   if(error)setError("Não foi possível consultar o catálogo beta.");
   else setRecipes((data??[]) as Recipe[]);
+  const memberResult=await supabase.rpc("cc_admin_beta_members_overview");
+  if(memberResult.error)setError("Não foi possível consultar os participantes beta.");
+  else setMembers((memberResult.data??[]) as Member[]);
  };
  useEffect(()=>{void load();},[]);
  const updateMember=async(enabled:boolean)=>{
@@ -21,7 +26,7 @@ export default function AdminBetaAccess(){
   setBusy(true);setError("");setMessage("");
   const {error}=await supabase.rpc("cc_admin_set_beta_member",{p_email:email.trim(),p_enabled:enabled});
   if(error)setError("Não foi possível alterar acesso. Confira se a conta já está cadastrada e se você possui permissão.");
-  else{setMessage(enabled?"Participante habilitado.":"Acesso do participante revogado.");setEmail("");}
+  else{setMessage(enabled?"Participante habilitado.":"Acesso do participante revogado.");setEmail("");await load();}
   setBusy(false);
  };
  const updateRecipe=async(row:Recipe)=>{
@@ -44,6 +49,14 @@ export default function AdminBetaAccess(){
    <button className="primary" type="button" disabled={busy||!email.trim()} onClick={()=>void updateMember(true)}>Autorizar beta</button>
    <button className="secondary" type="button" disabled={busy||!email.trim()} onClick={()=>void updateMember(false)}>Revogar acesso</button>
   </div>
+  <h3>Participantes cadastrados</h3>
+  <p className="detail-note">{members.filter(m=>m.enabled).length} participantes ativos de {members.length} registros.</p>
+  {members.length===0?<p className="detail-note">Nenhum participante autorizado até o momento.</p>:<div style={{maxHeight:230,overflowY:"auto",marginBottom:18}}>
+   {members.map(m=><div key={m.email} style={{display:"flex",flexWrap:"wrap",gap:10,justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #ddd"}}>
+    <span>{m.email} · {m.enabled?"Ativo":"Revogado"}</span>
+    <button type="button" className="secondary" disabled={busy} onClick={()=>{setEmail(m.email);setMessage("E-mail selecionado. Confirme a ação acima para alterar o acesso.");}}>Selecionar</button>
+   </div>)}
+  </div>}
   <h3>Catálogo disponível aos testadores</h3>
   <p className="detail-note">{recipes.filter(r=>r.enabled).length} de {recipes.length} receitas habilitadas para o beta.</p>
   <div style={{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center"}}>
