@@ -7,7 +7,7 @@ import CopyMealAction from "./CopyMealAction";
 import RecipeImage from "./RecipeImage";
 import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientAmount,type ShoppingItem} from "./lib/shopping";
 import {purchaseKey,loadPurchasedKeys,savePurchasedItem,changedPurchasedItems} from "./lib/shoppingProgress";
-import {defaultPreferences,type FoodPreferences} from "./lib/suggestions";
+import {defaultPreferences,proposeWeek,type FoodPreferences} from "./lib/suggestions";
 import PersonalRecipeForm from "./PersonalRecipeForm";
 import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
@@ -139,6 +139,34 @@ export default function App(){
    return true;
   }catch(err){setError(err instanceof Error?err.message:"Não foi possível salvar a refeição.");return false;}
   finally{setSaving(false);}
+ };
+ const suggestWeek=async()=>{
+  if(loading||saving||Boolean(supabase&&!userId))return;
+  setError("");
+  let proposal:Plan;
+  try{proposal=proposeWeek(recipes,preferences,days);}
+  catch(err){setError(err instanceof Error?err.message:"Não foi possível sugerir a semana.");return;}
+  const missing=days.flatMap(day=>slots.filter(slot=>!plan[dateKey(day)]?.[slot]).map(slot=>({day:dateKey(day),slot,meal:proposal[dateKey(day)]?.[slot]})));
+  if(!missing.length){setError("As 21 refeições principais desta semana já estão preenchidas.");return;}
+  if(!confirm("Preencher "+missing.length+" refeições vazias desta semana com sugestões? As refeições já escolhidas serão preservadas. Lanches e ceia continuam opcionais."))return;
+  setSaving(true);
+  const next:Plan={...plan};
+  try{
+   for(const item of missing){
+    if(!item.meal)throw new Error("Sugestão incompleta. Nenhuma refeição será inventada.");
+    if(supabase)await saveMeal(userId!,weekStart,item.day,item.slot,item.meal.id,item.meal.servings);
+    next[item.day]={...next[item.day],[item.slot]:item.meal};
+   }
+   setPlan(next);
+   await syncChangedPurchases(plan,next);
+   if(!supabase)localStorage.setItem("cc_demo_plan",JSON.stringify(next));
+  }catch(err){
+   if(supabase&&userId){
+    try{setPlan(await loadWeek(userId,weekStart));}
+    catch{setError("Erro ao salvar e ao recarregar o cardápio. Reabra a semana antes de continuar.");}
+   }
+   setError(err instanceof Error?err.message:"Falha no preenchimento; confira o cardápio antes de tentar novamente.");
+  }finally{setSaving(false);}
  };
  const copyMeal=async(slot:Slot,destinationDay:string)=>{
   const source=plan[selected]?.[slot];
@@ -309,7 +337,7 @@ export default function App(){
   onOpenRecipes={()=>{setRecipeForm(false);setDetailId(null);setPage("Receitas");}}
   onViewRecipe={id=>{setRecipeForm(false);setEditingId(null);setDetailId(id);setPage("Receitas");}}
  />}
- {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><span className="cc-manual-planning-notice">Você escolhe as receitas para cada dia, sem sugestão automática de dieta.</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
+ {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button type="button" className="secondary" disabled={loading||saving} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button><span className="cc-manual-planning-notice">{preferences.allergies.length?"Sugestões automáticas indisponíveis enquanto os alergênicos das receitas não forem verificados.":"Preenche apenas horários vazios; você pode trocar qualquer sugestão."}</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
  <div><strong>Em qual horário deseja adicionar esta receita?</strong>
  <p>{recipes.find(r=>r.id===pendingPlacement.recipeId)?.title??"Receita selecionada"} · {pendingPlacement.servings} {pendingPlacement.servings===1?"porção":"porções"} · {selected.split("-").reverse().join("/")}</p></div>
  <label>Horário<select aria-label="Horário para a receita selecionada" value={placementTarget} disabled={loading||saving}
