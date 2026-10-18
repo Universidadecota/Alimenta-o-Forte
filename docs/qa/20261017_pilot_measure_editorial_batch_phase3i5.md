@@ -89,3 +89,13 @@ O responsável executou `git pull --ff-only` no PowerShell: fast-forward de `d78
 **Status:** correção preventiva de identificação por receita e posição passou no build local e no teste automatizado. **Ainda falta exclusivamente a validação visual no localhost**, clicando em `Analisar todos os ingredientes` e capturando a prévia onde cada ocorrência apresenta o nome da receita e o número do ingrediente. **Não salvar nenhum rascunho nesta conferência.**
 
 Registro apenas documental; não há motivo para repetir Git, build ou testes já aprovados.
+
+## Identificação visual por receita e posição homologada — 17/10/2026
+
+O responsável enviou uma captura de `localhost:5173`, **Administração → Medidas das receitas autorais → Preparar até 20 rascunhos de medidas simples**, já atualizada para o commit `2c43d3b` (build e `test:measure-batch` aprovados e registrados anteriormente).
+
+**Validação visual confirmada:** cada cartão identifica o **nome da receita**, **número do ingrediente na receita**, texto fonte e proposta estruturada. Exemplos das primeiras ocorrências de `1 cebola`: **Bife à rolê com bacon, cenoura e couve refogada · ingrediente 8**, **Caldo verde sem batata · ingrediente 2**, **Caneca de caldo de ossos (brodo) com gengibre e cebolinha · ingrediente 2**. Todos os checkboxes exibidos estão desmarcados, e o botão `Revisar e salvar 0 como rascunhos` está desabilitado. Nenhuma gravação decorre da simples prévia.
+
+**Consulta ao Supabase somente leitura:** as três ocorrências `1 cebola` citadas estão `pending`, sem quantidade estruturada gravada. Os índices internos de origem são 7, 1 e 1, exibidos na interface como ingredientes 8, 2 e 2. As três são candidatas a **rascunho, não aprovação**; a confirmação posterior dependerá de revisão explícita por receita.
+
+**Status:** identidade receita/posição, apresentação de proposta e trava de seleção vazia **homologadas visualmente**. Nenhum rebuild adicional precisa ser solicitado. Próximo teste elegível: selecionar apenas essas três ocorrências distintas de `1 cebola`, conferir a identificação completa no diálogo e gravar **somente rascunhos** mediante confirmação do responsável; depois auditar que exatos três registros passaram de `pending` a `draft`, com as 1.069 outras pendentes e um `confirmed` anterior preservado. Não acionar aprovação editorial nesse primeiro momento e não selecionar 20 opções de uma vez. **PR #16 segue draft, sem merge.**
