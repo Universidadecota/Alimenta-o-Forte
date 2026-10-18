@@ -378,12 +378,12 @@ export default function App(){
    <span className="cc-pilot-shopping-text">{item.totalLabel??item.sourceText}
     {item.totalLabel&&<small>Expressões originais: {item.sourceExpressions.join(" + ")}</small>}
     {item.requiresChoice&&<small className="cc-pilot-shopping-attention">Alternativas no documento: escolha uma opção antes de comprar. Nada foi substituído automaticamente.</small>}
-    {item.optionalSource&&<small className="cc-pilot-shopping-attention">Ingrediente opcional: confira se será utilizado.</small>}
+    {item.optionalSource&&<small className="cc-pilot-shopping-attention">Opcional — inclua na compra somente se decidir utilizar.</small>}
     {item.ambiguousSource&&<small className="cc-pilot-shopping-attention">Trecho composto ou ambíguo: confira as instruções da receita.</small>}
     {item.sourceRawFragments.length>0&&<small>Trecho original completo: {item.sourceRawFragments.join(" | ")}</small>}
     <small>Em: {item.sourceRecipes.join("; ")}</small>
    </span>
-   <strong>{item.quantity>1?item.quantity+" usos":"1 uso"}</strong>
+   <strong>{item.totalLabel?"Medida original · "+(item.quantity>1?item.quantity+" ocorrências":"1 ocorrência"):item.quantity>1?item.quantity+" preparos · quantidade conforme receita":"1 preparo · quantidade conforme receita"}</strong>
   </button>;})}</div>
  </section>}
 {shoppingAnnotations.length>0&&<section className="cc-shopping-notes" aria-label="Ingredientes a gosto e opcionais">
