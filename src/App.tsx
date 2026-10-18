@@ -4,7 +4,7 @@ import FoodLibrary from "./FoodLibrary";
 import CopyMealAction from "./CopyMealAction";
 import RecipeImage from "./RecipeImage";
 import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientAmount,type ShoppingItem} from "./lib/shopping";
-import {purchaseKey,loadPurchasedKeys,savePurchasedItem} from "./lib/shoppingProgress";
+import {purchaseKey,loadPurchasedKeys,savePurchasedItem,changedPurchasedItems} from "./lib/shoppingProgress";
 import {defaultPreferences,type FoodPreferences} from "./lib/suggestions";
 import PersonalRecipeForm from "./PersonalRecipeForm";
 import RecipeDetails from "./RecipeDetails";
@@ -97,6 +97,18 @@ export default function App(){
   return ()=>{active=false;};
  },[page,userId,weekStart]);
  useEffect(()=>{if(!supabase)setDone([]);},[weekStart]);
+ const syncChangedPurchases=async(before:Plan,after:Plan)=>{
+  const oldItems=[...consolidateShopping(days,before,recipes),...collectPilotShopping(days,before,recipes)];
+  const newItems=[...consolidateShopping(days,after,recipes),...collectPilotShopping(days,after,recipes)];
+  const changed=changedPurchasedItems(oldItems,newItems);
+  if(!changed.length)return;
+  if(supabase&&userId){
+   for(const item of changed)await savePurchasedItem(userId,weekStart,item,false);
+  }
+  const invalid=new Set(changed.map(purchaseKey));
+  if(supabase)setPurchased(prev=>prev.scope===(userId+"|"+weekStart)?{...prev,keys:prev.keys.filter(k=>!invalid.has(k))}:prev);
+  else setDone(prev=>prev.filter(k=>!invalid.has(k)));
+ };
  const update=async(key:string,slot:Slot,id:string,servings?:number)=>{
   const chosenRecipe=id?recipes.find(r=>r.id===id):undefined;
   // Receita do piloto usa sempre rendimento original, sem criar quantidades fictícias.
@@ -112,6 +124,7 @@ export default function App(){
     else await removeMeal(userId!,weekStart,key,slot);
    }
    const next={...plan,[key]:{...plan[key],[slot]:id?{id,servings:finalServings}:undefined}};setPlan(next);
+   await syncChangedPurchases(plan,next);
    if(!supabase)localStorage.setItem("cc_demo_plan",JSON.stringify(next));
    return true;
   }catch(err){setError(err instanceof Error?err.message:"Não foi possível salvar a refeição.");return false;}
@@ -136,10 +149,13 @@ export default function App(){
   try{
    if(supabase){
     await saveMeal(userId!,weekStart,destinationDay,slot,source.id,source.servings);
-    setPlan(await loadWeek(userId!,weekStart));
+    const fresh=await loadWeek(userId!,weekStart);
+    setPlan(fresh);
+    await syncChangedPurchases(plan,fresh);
    }else{
     const next={...plan,[destinationDay]:{...plan[destinationDay],[slot]:{...source}}};
     setPlan(next);localStorage.setItem("cc_demo_plan",JSON.stringify(next));
+    await syncChangedPurchases(plan,next);
    }
   }catch(err){
    setError(err instanceof Error?err.message:"Não foi possível copiar a refeição.");
@@ -168,11 +184,13 @@ export default function App(){
    if(supabase){
     await moveMeal(userId!,weekStart,selected,destinationDay,slot,source,existing);
     setPlan(next);
+    await syncChangedPurchases(plan,next);
     try{setPlan(await loadWeek(userId!,weekStart));}
     catch{setError("A transferência foi salva, mas não foi possível recarregar o cardápio. Atualize a página para conferir.");}
    }else{
     setPlan(next);
     localStorage.setItem("cc_demo_plan",JSON.stringify(next));
+    await syncChangedPurchases(plan,next);
    }
   }catch(err){
    setError(err instanceof Error?err.message:"Não foi possível mover a refeição. Verifique o cardápio.");
