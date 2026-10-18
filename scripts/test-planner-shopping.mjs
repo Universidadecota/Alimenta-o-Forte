@@ -123,6 +123,10 @@ assert.equal(removedOnChange.some(x=>x.name==="Tomate"),false);
 assert.equal(progress.changedPurchasedItems(changedTotals,totals).length,2,
  "Retorno à quantidade original exige nova compra, sem ressuscitar marcação antiga");
 assert.equal(progress.changedPurchasedItems(totals,totals).length,0);
+const persistedBefore=[progress.purchaseKey({name:"Arroz",unit:"g",quantity:350}),progress.purchaseKey({name:"Tomate",unit:"un",quantity:2})];
+const currentAfter=new Set(changedTotals.map(progress.purchaseKey));
+assert.deepEqual(persistedBefore.filter(key=>currentAfter.has(key)),[progress.purchaseKey({name:"Tomate",unit:"un",quantity:2})],
+ "Reconciliação deve manter só marcação compatível com nova lista");
 const notes=shopping.shoppingNotes([monday],plan,[regular,second]);
 assert.ok(notes.some(x=>x.name==="Sal"));
 assert.ok(notes.some(x=>x.name==="Azeite"));
