@@ -33,19 +33,33 @@ async function findWeeklyListId(userId: string, weekStart: string): Promise<stri
 
 // Somente os itens efetivamente marcados ficam persistidos.
 // O cardapio permanece como fonte de verdade das quantidades.
-export async function loadPurchasedKeys(userId: string, weekStart: string): Promise<string[]> {
+export async function loadPurchasedKeys(userId: string, weekStart: string, currentItems?: ShoppingItem[]): Promise<string[]> {
   if (!supabase) return [];
   const listId = await findWeeklyListId(userId, weekStart);
   if (!listId) return [];
   const keys: string[] = [];
+  const valid = currentItems ? new Set(currentItems.map(purchaseKey)) : null;
+  const stale: Array<{name:string;unit:string}> = [];
   for (let offset = 0; ; offset += 500) {
     const { data, error } = await supabase.from("shopping_list_items")
       .select("name,unit,quantity").eq("user_id", userId).eq("shopping_list_id", listId)
       .eq("completed", true).order("name", {ascending:true})
       .order("unit", {ascending:true}).range(offset, offset + 499);
     if (error) throw error;
-    keys.push(...(data ?? []).map(purchaseKey));
+    for (const row of data ?? []) {
+      const key = purchaseKey(row);
+      if (valid && !valid.has(key)) stale.push({name:row.name,unit:row.unit});
+      else keys.push(key);
+    }
     if ((data ?? []).length < 500) break;
+  }
+  // A reconciliação é reexecutada ao abrir Compras: se a conexão falhou
+  // durante a mudança do cardápio, a marcação antiga não reaparece.
+  for (const row of stale) {
+    const {error} = await supabase.from("shopping_list_items").delete()
+      .eq("user_id", userId).eq("shopping_list_id", listId)
+      .eq("name", row.name).eq("unit", row.unit);
+    if (error) throw error;
   }
   return keys;
 }
