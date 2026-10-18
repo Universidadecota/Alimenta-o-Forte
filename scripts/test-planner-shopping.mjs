@@ -26,6 +26,7 @@ async function importPure(entry){
 const planner=await importPure("../src/lib/planner.ts");
 const shopping=await importPure("../src/lib/shopping.ts");
 const suggest=await importPure("../src/lib/suggestions.ts");
+const progress=await importPure("../src/lib/shoppingProgress.ts");
 const day=new Date(2026,9,18,12);
 const monday=planner.startOfWeek(day);
 assert.equal(planner.dateKey(monday),"2026-10-12");
@@ -99,6 +100,9 @@ assert.deepEqual(totals.find(x=>x.name==="Arroz"),{name:"Arroz",unit:"g",quantit
 assert.deepEqual(totals.find(x=>x.name==="Banana"),{name:"Banana",unit:"un",quantity:1.5});
 assert.ok(!totals.some(x=>["Azeite","Sal","Água"].includes(x.name)),
  "Opcionais, a gosto e sem quantidade não devem ser inventados no total");
+const purchasedArroz={name:"Arroz",unit:"g",quantity:350};
+assert.equal(progress.purchaseKey(purchasedArroz),progress.purchaseKey({name:"  ARROZ ",unit:"g",quantity:350}),"Nome normalizado continua estável");
+assert.notEqual(progress.purchaseKey(purchasedArroz),progress.purchaseKey({...purchasedArroz,quantity:400}),"Quantidade alterada não pode herdar marcação de comprado");
 const notes=shopping.shoppingNotes([monday],plan,[regular,second]);
 assert.ok(notes.some(x=>x.name==="Sal"));
 assert.ok(notes.some(x=>x.name==="Azeite"));
