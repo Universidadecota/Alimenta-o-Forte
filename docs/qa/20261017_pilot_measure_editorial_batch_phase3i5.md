@@ -99,3 +99,33 @@ O responsável enviou uma captura de `localhost:5173`, **Administração → Med
 **Consulta ao Supabase somente leitura:** as três ocorrências `1 cebola` citadas estão `pending`, sem quantidade estruturada gravada. Os índices internos de origem são 7, 1 e 1, exibidos na interface como ingredientes 8, 2 e 2. As três são candidatas a **rascunho, não aprovação**; a confirmação posterior dependerá de revisão explícita por receita.
 
 **Status:** identidade receita/posição, apresentação de proposta e trava de seleção vazia **homologadas visualmente**. Nenhum rebuild adicional precisa ser solicitado. Próximo teste elegível: selecionar apenas essas três ocorrências distintas de `1 cebola`, conferir a identificação completa no diálogo e gravar **somente rascunhos** mediante confirmação do responsável; depois auditar que exatos três registros passaram de `pending` a `draft`, com as 1.069 outras pendentes e um `confirmed` anterior preservado. Não acionar aprovação editorial nesse primeiro momento e não selecionar 20 opções de uma vez. **PR #16 segue draft, sem merge.**
+
+
+## Primeiro lote real de três rascunhos — 17/10/2026
+
+O responsável selecionou três ocorrências distintas do ingrediente **`1 cebola`** na interface de prévia 3I.3, confirmou o diálogo nativo **`Salvar 3 medidas como RASCUNHO editorial?`** e informou que realizou o salvamento.
+
+A captura do diálogo lista precisamente as três origens:
+
+| Receita | Posição apresentada | Fonte original | Proposta |
+|---|---:|---|---|
+| Bife à rolê com bacon, cenoura e couve refogada | 8 | `1 cebola` | quantidade 1, unidade `cebola`, ingrediente `cebola` |
+| Caldo verde sem batata | 2 | `1 cebola` | quantidade 1, unidade `cebola`, ingrediente `cebola` |
+| Caneca de caldo de ossos (brodo) com gengibre e cebolinha | 2 | `1 cebola` | quantidade 1, unidade `cebola`, ingrediente `cebola` |
+
+**Auditoria SQL somente leitura após o clique, independente da captura:**
+
+- As três ocorrências exatas passaram a `review_status='draft'`, cada uma com `proposed_quantity=1.0000`, `proposed_unit='cebola'` e `proposed_ingredient='cebola'`. `reviewed_at` está `NULL` nos três rascunhos, como esperado.
+- Nos três `recipe_ingredients` originais, `name='1 cebola'`, `quantity IS NULL` e `measure_mode='unspecified'`. A ação não estruturou nem sobrescreveu o ingrediente original.
+- Inventário global: **1.073** registros = **1.069 pendentes**, **3 rascunhos**, **1 confirmado** anteriormente e **0** em revisão manual.
+- A única medida `confirmed` permanece `1 colher (chá) de azeite de dendê`, em `Moqueca de peixe com arroz de couve-flor`, com responsável e data preservados; receita continua não publicada.
+- `cc_pilot_measure_review_events` possui **1** evento, da confirmação anterior. Salvar propostas como rascunho no fluxo 3I.3 não cria eventos de **decisão de aprovação**.
+- **0** divergências entre `source_text` do inventário e `recipe_ingredients.name` do catálogo.
+
+**Resultado:** o salvamento real de **três** rascunhos identificados por **receita/posição** está **HOMOLOGADO**, sem necessidade de repetir o teste.
+
+**Próxima etapa:** utilizar `Conferência editorial dos rascunhos → Revisar até 5 rascunhos de uma vez`. O responsável deve conferir as três propostas separadamente, marcar a revisão de cada uma, escolher conscientemente **confirmar** ou **devolver** e registrar uma justificativa individual; o envio final exige confirmação com a relação completa. Nenhuma medida será confirmada automaticamente.
+
+**Atenção de UX não bloqueante:** o diálogo da prévia mostra a construção redundante `1 cebola de cebola` porque concatena unidade e ingrediente em linguagem natural. Os campos do banco estão corretos; eventual ajuste de texto deve ocorrer separadamente, sem modificar fonte, quantidade ou a unidade estruturada. Não exigir mais builds nesta homologação documental.
+
+PR #16 permanece **aberto, draft, sem merge**. Não houve publicação comercial, revisão clínica ou liberação de nutrição, alergênicos, compras ou redimensionamento.
