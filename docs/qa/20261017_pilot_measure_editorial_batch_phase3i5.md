@@ -76,3 +76,16 @@ Captura de `localhost:5173` confirma a seção **Revisar até 5 rascunhos de uma
 **Correção preventiva na prévia anterior (3I.3):** ingredientes iguais podem ocorrer em muitas receitas. Para permitir conferência da ocorrência certa, cada candidato ao lote de rascunhos agora exige vínculo com título de receita e posição do ingrediente. A prévia passa a mostrar **Receita: [título] · ingrediente [posição]**, além do texto e da medida proposta; o diálogo de confirmação relaciona explicitamente cada ocorrência selecionada. Candidatos sem identidade completa não são apresentados. Foram acrescentados testes de regressão para a presença desses dados. O inventário e as receitas não foram alterados.
 
 **Próxima validação, sem repetir as anteriores:** sincronizar branch, executar `npm run build` e `npm run test:measure-batch` apenas para a correção nova. Depois de clicar `Analisar todos os ingredientes`, verificar uma captura da prévia agora identificada por receita. Nenhum rascunho deve ser salvo antes dessa conferência. PR #16 permanece draft, sem merge.
+
+
+## Build Windows do ajuste de identificação — 17/10/2026
+
+O responsável executou `git pull --ff-only` no PowerShell: fast-forward de `d78d895` para `2c43d3b`, sem conflitos.
+
+- `npm run build` **APROVADO**, `tsc -b && vite build`, Vite 6.4.4, **1.650 módulos transformados**, **8,68 segundos**, nenhum erro TypeScript.
+- Asset CSS: `index-Hc7obCDk.css` 62,44 kB (gzip 12,98 kB). Asset JS: `index-DYmBr8mG.js` 539,18 kB (gzip 152,72 kB). Aviso de chunk >500 kB é não bloqueante.
+- `npm run test:measure-batch` **APROVADO**: `OK: prévia de até 20 propostas identificadas por receita e posição, sem aprovar nem gravar.`
+
+**Status:** correção preventiva de identificação por receita e posição passou no build local e no teste automatizado. **Ainda falta exclusivamente a validação visual no localhost**, clicando em `Analisar todos os ingredientes` e capturando a prévia onde cada ocorrência apresenta o nome da receita e o número do ingrediente. **Não salvar nenhum rascunho nesta conferência.**
+
+Registro apenas documental; não há motivo para repetir Git, build ou testes já aprovados.
