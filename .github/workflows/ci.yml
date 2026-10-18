@@ -30,5 +30,7 @@ jobs:
         run: npm run test:editorial-batch
       - name: Validate full-inventory dry-run auditor
         run: node scripts/test-measure-inventory-audit.mjs
+      - name: Validate private beta catalog access guards
+        run: node scripts/test-beta-private-access.mjs
       - name: Validate planner, shopping and allergy guards
         run: npm run test:pilot-flow
