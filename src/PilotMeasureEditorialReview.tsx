@@ -240,7 +240,7 @@ export default function PilotMeasureEditorialReview(){
     <button type="button" className="secondary" disabled={batchBusy||busy||batchCount===0}
      onClick={()=>setBatchChoices({})}>Limpar seleção</button>
     <button type="button" disabled={batchBusy||busy||!batchReady}
-     onClick={()=>void decideBatch()}>{batchBusy?"Registrando…":"Conferir e registrar "+batchCount+" decisão"+(batchCount===1?"":"ões")}</button>
+     onClick={()=>void decideBatch()}>{batchBusy?"Registrando…":"Conferir e registrar "+batchCount+(batchCount===1?" decisão":" decisões")}</button>
    </div>
    <p>Confirmações editoriais não equivalem a aprovação nutricional, revisão de alergênicos ou autorização de redimensionamento.</p>
   </section>
