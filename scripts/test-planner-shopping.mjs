@@ -116,6 +116,13 @@ const nextMonday=new Date(monday);
 nextMonday.setDate(nextMonday.getDate()+7);
 assert.notEqual(planner.dateKey(nextMonday),planner.dateKey(monday),
  "Semanas diferentes precisam de escopos distintos");
+const removedOnChange=progress.changedPurchasedItems(totals,changedTotals);
+assert.deepEqual(removedOnChange.map(x=>x.name),["Arroz","Banana"],
+ "Somente ingredientes com quantidade modificada devem perder a marcação");
+assert.equal(removedOnChange.some(x=>x.name==="Tomate"),false);
+assert.equal(progress.changedPurchasedItems(changedTotals,totals).length,2,
+ "Retorno à quantidade original exige nova compra, sem ressuscitar marcação antiga");
+assert.equal(progress.changedPurchasedItems(totals,totals).length,0);
 const notes=shopping.shoppingNotes([monday],plan,[regular,second]);
 assert.ok(notes.some(x=>x.name==="Sal"));
 assert.ok(notes.some(x=>x.name==="Azeite"));
