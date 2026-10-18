@@ -12,6 +12,17 @@ const normalizedUnit = (unit: string) => unit.trim().toLowerCase();
 export const purchaseKey = (item: Pick<ShoppingItem, "name" | "unit" | "quantity">): string =>
   normalizedName(item.name) + "|" + normalizedUnit(item.unit) + "|" + Number(item.quantity.toFixed(6));
 
+
+// Detecta itens cujo total ou identidade mudou após editar o cardápio.
+// Não considera itens inalterados; nunca inventa ou escala ingredientes.
+export function changedPurchasedItems(before: ShoppingItem[], after: ShoppingItem[]): ShoppingItem[] {
+  const next = new Map(after.map(item => [normalizedName(item.name) + "|" + normalizedUnit(item.unit), item.quantity]));
+  return before.filter(item => {
+    const key = normalizedName(item.name) + "|" + normalizedUnit(item.unit);
+    return next.get(key) !== item.quantity;
+  });
+}
+
 async function findWeeklyListId(userId: string, weekStart: string): Promise<string | null> {
   if (!supabase) throw new Error("Supabase indisponivel");
   const { data, error } = await supabase.from("shopping_lists")
