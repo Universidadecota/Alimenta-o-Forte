@@ -9,13 +9,14 @@ export default function RecipeRating({recipeId}:{recipeId:string}){
  const [summary,setSummary]=useState<Summary|null>(null);
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
+ const [hasExisting,setHasExisting]=useState(false);
  const [error,setError]=useState("");
  useEffect(()=>{
   if(!supabase)return;
   let live=true;
   const client=supabase;
   void (async()=>{
-   setLoading(true);setError("");setRating({stars:0,liked:null});setSummary(null);
+   setLoading(true);setError("");setRating({stars:0,liked:null});setSummary(null);setHasExisting(false);
    const auth=await client.auth.getUser();
    if(auth.error||!auth.data.user){if(live){setError("Entre na sua conta para avaliar.");setLoading(false);}return;}
    const [mine,stats]=await Promise.all([
@@ -24,7 +25,7 @@ export default function RecipeRating({recipeId}:{recipeId:string}){
    ]);
    if(!live)return;
    if(mine.error||stats.error){setError("Avaliações indisponíveis no momento.");}
-   else{if(mine.data)setRating({stars:mine.data.stars,liked:mine.data.liked});
+   else{if(mine.data){setRating({stars:mine.data.stars,liked:mine.data.liked});setHasExisting(true);}
     setSummary((stats.data?.[0]??{total:0,average_stars:null,likes:0,dislikes:0}) as Summary);}
    setLoading(false);
   })();
@@ -36,11 +37,13 @@ export default function RecipeRating({recipeId}:{recipeId:string}){
   if(auth.error||!auth.data.user){setError("Faça login novamente.");return;}
   if(next.stars<1){setError("Escolha uma nota de 1 a 5 antes de votar.");return;}
   setBusy(true);setError("");
-  const {error:writeError}=await supabase.from("cc_recipe_ratings").upsert({
-   recipe_id:recipeId,user_id:auth.data.user.id,stars:next.stars,liked:next.liked,updated_at:new Date().toISOString()
-  },{onConflict:"recipe_id,user_id"});
+  const values={stars:next.stars,liked:next.liked,updated_at:new Date().toISOString()};
+  const write=hasExisting
+   ? await supabase.from("cc_recipe_ratings").update(values).eq("recipe_id",recipeId).eq("user_id",auth.data.user.id)
+   : await supabase.from("cc_recipe_ratings").insert({recipe_id:recipeId,user_id:auth.data.user.id,...values});
+  const writeError=write.error;
   if(writeError){setError("Não foi possível salvar sua avaliação.");setBusy(false);return;}
-  setRating(next);
+  setRating(next);setHasExisting(true);
   const {data,error:summaryError}=await supabase.rpc("cc_recipe_rating_summary",{p_recipe_id:recipeId});
   if(!summaryError)setSummary((data?.[0]??null) as Summary|null);
   setBusy(false);
