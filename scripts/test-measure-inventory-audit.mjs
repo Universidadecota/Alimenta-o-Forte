@@ -25,7 +25,7 @@ try{
  assert.equal(r.byGroup.manual,1);
  assert.equal(r.simpleProposalGroups[0].count,2);
  assert.equal(r.simpleProposalGroups[0].examples.length,2);
- writeFileSync(input,JSON.stringify([{ingredient_id:"duplicate",source_text:"1 ovo",review_status:"pending"},{ingredient_id:"duplicate",source_text:"2 ovos",review_status:"pending"}]));
+ writeFileSync(input,JSON.stringify([{ingredient_id:"duplicate",recipe_id:"r1",source_position:1,source_text:"1 ovo",review_status:"pending"},{ingredient_id:"duplicate",recipe_id:"r2",source_position:1,source_text:"2 ovos",review_status:"pending"}]));
  assert.throws(()=>execFileSync(process.execPath,[new URL("./audit-measure-inventory.mjs",import.meta.url).pathname,input,output],{stdio:"pipe"}));
  console.log("OK: auditoria fiel ao parser, agregação, rastreabilidade e duplicações.");
 }finally{rmSync(dir,{recursive:true,force:true});}
