@@ -1,7 +1,7 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
 import {measureUnitLabel} from "./lib/pilotMeasureBatch";
-import {collectEditorialBatch,type EditorialAction,type EditorialChoices} from "./lib/pilotEditorialBatch";
+import {collectEditorialBatch,type EditorialAction,type EditorialBatchItem,type EditorialChoices} from "./lib/pilotEditorialBatch";
 
 type Draft={
  ingredient_id:string;
@@ -84,7 +84,7 @@ export default function PilotMeasureEditorialReview(){
   });
  const decideBatch=async()=>{
   if(!supabase||batchBusy||busy||!batchReady)return;
-  let payload;
+  let payload:EditorialBatchItem[];
   try{
    payload=collectEditorialBatch(rows.map(row=>({
     ingredient_id:row.ingredient_id,
