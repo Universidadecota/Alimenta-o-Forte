@@ -1,4 +1,5 @@
 import RecipeImage from "./RecipeImage";
+import RecipeRating from "./RecipeRating";
 import { useState } from "react";
 import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
@@ -32,5 +33,6 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
    <button type="button" className="primary" disabled={!canAdd} onClick={()=>onAdd(servings)}><Plus size={16}/> {recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"?"Escolher horário · "+destinationDateLabel:"Adicionar em "+destinationDateLabel}</button>
    </section>
   </div>
+  <RecipeRating recipeId={recipe.id}/>
  </section>;
 }
