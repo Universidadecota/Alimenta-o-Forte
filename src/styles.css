@@ -536,3 +536,23 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-measure-editorial-history li{overflow-wrap:anywhere;line-height:1.55}
 .cc-measure-editorial-history li small{display:block;color:#668171}
 @media(max-width:650px){.cc-measure-editorial-head>button{width:100%}.cc-measure-editorial-decision .cc-measure-actions button{width:100%}}
+
+
+/* Fase 3I.5 — revisão humana em lotes de até cinco rascunhos. */
+.cc-measure-multi{display:grid;gap:12px;border-top:1px solid #d9e4d9;padding-top:16px}
+.cc-measure-multi h4{margin:0;color:#164333;font-size:15px}
+.cc-measure-multi>p{font-size:12px;color:#557364;line-height:1.55;margin:0}
+.cc-measure-multi-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:520px;overflow:auto}
+.cc-measure-multi-item{display:grid;gap:8px;align-content:start;background:#fff;border:1px solid #dce7dc;padding:12px;border-radius:10px;min-width:0}
+.cc-measure-multi-item>small{color:#687d6c;overflow-wrap:anywhere}
+.cc-measure-multi-item>strong{font-size:13px;color:#183f33;overflow-wrap:anywhere}
+.cc-measure-multi-item>span{font-size:12px;color:#4c6a58;overflow-wrap:anywhere}
+.cc-measure-multi-item>p[role=alert]{color:#992d2d}
+.cc-measure-multi-check{display:flex;align-items:start;gap:8px;font-size:12px;line-height:1.45;cursor:pointer}
+.cc-measure-multi-check input{margin:3px 0 0;accent-color:#19483a;flex:0 0 auto;width:17px;height:17px}
+.cc-measure-multi-form{display:grid;gap:10px;border-top:1px solid #e4ece5;padding-top:10px}
+.cc-measure-multi-form label{display:grid;gap:6px;font-size:12px;font-weight:600}
+.cc-measure-multi-form select,.cc-measure-multi-form textarea{padding:9px;border:1px solid #cbdacb;border-radius:8px;width:100%;min-width:0;background:#fff;color:#173d32}
+.cc-measure-multi-footer{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.cc-measure-multi-footer>span{flex:1 1 180px;color:#52705e;font-size:12px}
+@media(max-width:760px){.cc-measure-multi-items{grid-template-columns:minmax(0,1fr)}.cc-measure-multi-footer button{flex:1 1 150px}}
