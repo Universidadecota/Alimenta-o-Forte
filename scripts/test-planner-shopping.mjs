@@ -103,6 +103,19 @@ assert.ok(!totals.some(x=>["Azeite","Sal","Água"].includes(x.name)),
 const purchasedArroz={name:"Arroz",unit:"g",quantity:350};
 assert.equal(progress.purchaseKey(purchasedArroz),progress.purchaseKey({name:"  ARROZ ",unit:"g",quantity:350}),"Nome normalizado continua estável");
 assert.notEqual(progress.purchaseKey(purchasedArroz),progress.purchaseKey({...purchasedArroz,quantity:400}),"Quantidade alterada não pode herdar marcação de comprado");
+const changedPlan={[dayKey]:{"Almoço":{id:regular.id,servings:4},"Jantar":{id:second.id,servings:1}}};
+const changedTotals=shopping.consolidateShopping([monday],changedPlan,[regular,second]);
+const changedRice=changedTotals.find(x=>x.name==="Arroz");
+assert.ok(changedRice);
+assert.equal(changedRice.quantity,400);
+assert.notEqual(progress.purchaseKey(totals.find(x=>x.name==="Arroz")),progress.purchaseKey(changedRice),
+ "Alterar porções deve invalidar apenas os produtos com quantidades alteradas");
+assert.equal(progress.purchaseKey(totals.find(x=>x.name==="Tomate")),progress.purchaseKey(changedTotals.find(x=>x.name==="Tomate")),
+ "Produto inalterado deve preservar a marcação");
+const nextMonday=new Date(monday);
+nextMonday.setDate(nextMonday.getDate()+7);
+assert.notEqual(planner.dateKey(nextMonday),planner.dateKey(monday),
+ "Semanas diferentes precisam de escopos distintos");
 const notes=shopping.shoppingNotes([monday],plan,[regular,second]);
 assert.ok(notes.some(x=>x.name==="Sal"));
 assert.ok(notes.some(x=>x.name==="Azeite"));
