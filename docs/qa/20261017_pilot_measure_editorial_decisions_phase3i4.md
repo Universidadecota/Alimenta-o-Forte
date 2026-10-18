@@ -98,3 +98,33 @@ Auditoria SQL somente leitura, executada após as capturas, confirmou: **1.073 m
 **Conclusão:** build Windows e abertura do painel/detalhes de revisão **HOMOLOGADOS**. **Não foi homologado ainda o clique efetivo em `Confirmar medida editorial` ou `Devolver para revisão manual` no navegador**; os testes transacionais com `ROLLBACK` cobriram os procedimentos do banco, mas não substituem uma decisão humana. Não solicitar repetição do build, das capturas nem dos testes anteriores. Eventual confirmação do azeite de dendê deve ocorrer **somente após conferência material do texto original e autorização expressa**, pois o status confirmado nesta primeira versão é bloqueado para edição direta.
 
 Este registro altera somente a documentação. PR #16 continua aberto em draft e sem merge; não publicar receitas nem ativar cálculos de porções, nutrição ou alergênicos.
+
+
+## Primeira decisão editorial real confirmada — 17/10/2026
+
+O responsável informou que concluiu o fluxo de confirmação no navegador após revisar o conteúdo original e inserir a justificativa exigida. A captura anterior mostrava o alerta de confirmação nativo, o ingrediente correto, a justificativa e a declaração manual marcada. A operação foi verificada **independentemente por consulta SQL somente leitura**, sem depender de print de sucesso.
+
+**Ingrediente e receita:**
+- Receita: `Moqueca de peixe com arroz de couve-flor`, ainda `published=false`.
+- Texto original: `1 colher (chá) de azeite de dendê`, preservado em `recipe_ingredients.name`.
+- Proposta confirmada editorialmente: `proposed_quantity=1.0000`, `proposed_unit='colher_cha'`, `proposed_ingredient='azeite de dendê'`.
+- Nova situação: `review_status='confirmed'` (antes `draft`); `reviewed_by` preenchido e `reviewed_at='2026-10-18 00:14:47.621152+00'` (**17/10/2026, 21h14min47s, horário de Brasília**).
+- Justificativa registrada: “Conferi a receita original e confirmo que a quantidade indicada é 1 colher de chá de azeite de dendê.”
+- Um evento `cc_pilot_measure_review_events` contém a ação `editorially_confirmed`, transição `draft → confirmed`, responsável, data e propostas anterior/nova. O evento preserva a observação anterior do rascunho.
+- O registro original em `recipe_ingredients` mantém `quantity=NULL` e `measure_mode='unspecified'`; a confirmação existe somente na tabela editorial e **não** altera os ingredientes ou a receita.
+
+**Auditoria geral posterior à decisão:**
+
+| Indicador | Valor |
+|---|---:|
+| Ingredientes no inventário | **1.073** |
+| `pending` | **1.072** |
+| `draft` | **0** |
+| `confirmed` | **1** |
+| `needs_manual_review` | **0** |
+| Eventos de auditoria registrados | **1** |
+| Divergências com textos originais | **0** |
+
+**Resultado:** confirmação editorial individual, gravação de autoria/data e histórico auditável **HOMOLOGADOS de ponta a ponta**, sem necessidade de repetir o teste. Não foi demonstrada nem autorizada a aplicação dessa medida a redimensionamento de porções, compras, nutrientes ou segurança de alergênicos. A confirmação é de natureza culinária, não clínica ou nutricional.
+
+**Próximo trabalho sugerido:** aperfeiçoar o processamento das 1.072 expressões ainda pendentes e a experiência de revisão dos novos rascunhos em lotes pequenos, sem aprovação automática e sem reabrir a medida já confirmada. PR #16 continua em draft, sem merge. Este registro é somente documental; não altera receitas nem dados.
