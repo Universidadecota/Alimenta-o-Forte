@@ -42,7 +42,7 @@ assert.deepEqual(Object.values(summary.byGroup).sort((a,b)=>a-b),[1,1,1,1,1,1]);
 assert.equal(summary.examples.simple[0].proposal?.ingredient,"fraldinha");
 assert.equal(summary.otherStatuses,0);
 const offered=[
- ...Array.from({length:25},(_,i)=>({ingredient_id:String(i),source_text:"150 g de fraldinha",review_status:"pending"})),
+ ...Array.from({length:25},(_,i)=>({ingredient_id:String(i),recipe_id:"recipe-"+i,source_position:i%10,recipes:{title:"Receita "+i},source_text:"150 g de fraldinha",review_status:"pending"})),
  {ingredient_id:"exclude1",source_text:"150 a 180 g de fraldinha",review_status:"pending"},
  {ingredient_id:"exclude2",source_text:"1 colher (sopa) de azeite ou manteiga",review_status:"pending"},
  {ingredient_id:"exclude3",source_text:"150 g de fraldinha",review_status:"draft"}
@@ -51,9 +51,15 @@ const candidates=prepareDraftCandidates(offered);
 assert.equal(candidates.length,20,"A prévia nunca pode ultrapassar vinte");
 assert.equal(candidates.every(item=>item.quantity===150&&item.unit==="g"),true);
 assert.equal(candidates.every(item=>item.source_text==="150 g de fraldinha"),true);
+assert.equal(candidates.every(item=>item.recipe_title.startsWith("Receita ")&&item.recipe_id.startsWith("recipe-")),true);
+assert.equal(candidates.every(item=>Number.isInteger(item.source_position)),true);
+assert.equal(prepareDraftCandidates([{ingredient_id:"unknown",source_text:"150 g de fraldinha",review_status:"pending"}]).length,0,
+ "Não exibir candidatos sem receita identificada");
+assert.equal(prepareDraftCandidates([{ingredient_id:"missingTitle",recipe_id:"recipe-1",source_position:0,recipes:{title:""},source_text:"150 g de fraldinha",review_status:"pending"}]).length,0,
+ "Não oferecer proposta sem título da receita");
 assert.equal(prepareDraftCandidates(offered,3).length,3);
 assert.equal(prepareDraftCandidates(offered,0).length,0);
 assert.equal(prepareDraftCandidates(offered,999).length,20);
 assert.equal(prepareDraftCandidates(offered.filter(x=>x.review_status!=="pending")).length,0);
-console.log("OK: categorias e prévia de até 20 rascunhos, sem aprovar nem gravar.");
+console.log("OK: prévia de até 20 propostas identificadas por receita e posição, sem aprovar nem gravar.");
 
