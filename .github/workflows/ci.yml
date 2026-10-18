@@ -28,5 +28,7 @@ jobs:
         run: npm run test:measure-batch
       - name: Validate editorial review batches
         run: npm run test:editorial-batch
-      - name: Validate full-inventory dry-run auditor\n        run: node scripts/test-measure-inventory-audit.mjs\n      - name: Validate planner, shopping and allergy guards
+      - name: Validate full-inventory dry-run auditor
+        run: node scripts/test-measure-inventory-audit.mjs
+      - name: Validate planner, shopping and allergy guards
         run: npm run test:pilot-flow
