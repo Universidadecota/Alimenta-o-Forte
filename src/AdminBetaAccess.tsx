@@ -5,6 +5,7 @@ export default function AdminBetaAccess(){
  const [email,setEmail]=useState("");
  const [recipes,setRecipes]=useState<Recipe[]>([]);
  const [search,setSearch]=useState("");
+ const [onlyEnabled,setOnlyEnabled]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
@@ -33,7 +34,7 @@ export default function AdminBetaAccess(){
   else{setMessage("Disponibilidade beta atualizada.");await load();}
   setBusy(false);
  };
- const shown=recipes.filter(x=>x.title.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
+ const shown=recipes.filter(x=>(!onlyEnabled||x.enabled)&&x.title.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
  return <section className="detail-panel" style={{marginTop:20}}>
   <h3>Participantes e receitas do beta gratuito</h3>
   <p className="detail-note">Acesso restrito aos participantes convidados. Esta liberação não publica a receita na internet e não altera ingredientes ou preparo.</p>
@@ -45,7 +46,12 @@ export default function AdminBetaAccess(){
   </div>
   <h3>Catálogo disponível aos testadores</h3>
   <p className="detail-note">{recipes.filter(r=>r.enabled).length} de {recipes.length} receitas habilitadas para o beta.</p>
-  <input aria-label="Buscar receita do catálogo beta" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar receita..." style={{width:"100%",maxWidth:420}}/>
+  <div style={{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center"}}>
+   <input aria-label="Buscar receita do catálogo beta" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar receita..." style={{width:"100%",maxWidth:420}}/>
+   <label style={{display:"flex",alignItems:"center",gap:6}}><input type="checkbox" checked={onlyEnabled} onChange={e=>setOnlyEnabled(e.target.checked)}/> Somente liberadas</label>
+   <button className="secondary" type="button" disabled={busy} onClick={()=>void load()}>Atualizar catálogo</button>
+  </div>
+  <p className="detail-note">{shown.length} receitas exibidas nos filtros atuais.</p>
   <div style={{maxHeight:360,overflowY:"auto",marginTop:12}}>
    {shown.map(row=><div key={row.recipe_id} style={{display:"flex",gap:10,alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid #ddd"}}>
     <span>{row.title} · {row.enabled?"No beta":"Restrita"}</span>
