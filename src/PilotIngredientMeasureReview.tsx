@@ -68,7 +68,7 @@ export default function PilotIngredientMeasureReview(){
    for(let offset=0;offset<expected||offset===0;offset+=size){
     const {data,count,error:readError}=await supabase
      .from("cc_pilot_ingredient_measure_reviews")
-     .select("ingredient_id,source_text,review_status",{count:"exact"})
+     .select("ingredient_id,recipe_id,source_position,source_text,review_status,recipes(title)",{count:"exact"})
      .order("ingredient_id",{ascending:true})
      .range(offset,offset+size-1);
     if(readError)throw readError;
@@ -91,9 +91,14 @@ export default function PilotIngredientMeasureReview(){
   if(!supabase||batchBusy||draftSaving)return;
   const selected=draftCandidates.filter(entry=>selectedDraftIds.includes(entry.ingredient_id));
   if(selected.length===0||selected.length>20){setError("Selecione entre 1 e 20 ingredientes.");return;}
+  const selectedDescription=selected.map(entry=>
+   "• "+entry.recipe_title+" · ingrediente "+(entry.source_position+1)+": "+entry.source_text+
+   " → "+entry.quantity+" "+measureUnitLabel(entry.unit)+" de "+entry.ingredient
+  ).join("\n");
   const confirmed=window.confirm("Salvar "+selected.length+" medidas como RASCUNHO editorial?\n\n"+
+   selectedDescription+"\n\n"+
    "Nenhuma medida será aprovada. Receitas, ingredientes originais, compras, porções e nutrição não serão alterados.\n\n"+
-   "Confira a prévia antes de prosseguir.");
+   "Confira a receita e a medida de cada ocorrência antes de prosseguir.");
   if(!confirmed)return;
   setDraftSaving(true);setError("");setMessage("");
   try{
@@ -219,7 +224,8 @@ export default function PilotIngredientMeasureReview(){
          const checked=event.target.checked;
          setSelectedDraftIds(ids=>checked?[...ids,entry.ingredient_id]:ids.filter(id=>id!==entry.ingredient_id));
         }}/>
-       <span><strong>{entry.source_text}</strong>
+       <span><small><strong>Receita: {entry.recipe_title} · ingrediente {entry.source_position+1}</strong></small>
+        <strong>{entry.source_text}</strong>
         <small>Proposta não aprovada: {entry.quantity} · {measureUnitLabel(entry.unit)} · {entry.ingredient}</small>
        </span>
       </label>)}
