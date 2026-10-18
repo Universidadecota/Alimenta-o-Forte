@@ -87,15 +87,16 @@ export default function App(){
  // Cada entrada na tela de Compras recarrega as marcacoes do servidor.
  // Nao reutilizar marcacoes entre contas ou semanas.
  useEffect(()=>{
-  if(!supabase||!userId||page!=="Compras")return;
+  if(!supabase||!userId||page!=="Compras"||loading)return;
   let active=true;
   const scope=userId+"|"+weekStart;
   setPurchased({scope,keys:[],loaded:false});setPurchaseLoadError(false);
-  void loadPurchasedKeys(userId,weekStart)
+  const currentItems=[...consolidateShopping(days,plan,recipes),...collectPilotShopping(days,plan,recipes)];
+  void loadPurchasedKeys(userId,weekStart,currentItems)
    .then(keys=>{if(active)setPurchased({scope,keys,loaded:true});})
    .catch(err=>{if(active){setPurchaseLoadError(true);setError(err instanceof Error?err.message:"Não foi possível carregar as marcações de compras.");}});
   return ()=>{active=false;};
- },[page,userId,weekStart]);
+ },[page,userId,weekStart,loading,plan,recipes]);
  useEffect(()=>{if(!supabase)setDone([]);},[weekStart]);
  const syncChangedPurchases=async(before:Plan,after:Plan)=>{
   const oldItems=[...consolidateShopping(days,before,recipes),...collectPilotShopping(days,before,recipes)];
