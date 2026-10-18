@@ -17,7 +17,7 @@ const {classifyMeasure,measureGroups}=await import(dataUrl(batch));
 const rows=JSON.parse(readFileSync(input,"utf8"));
 if(!Array.isArray(rows))throw Error("Expected an array of ingredient rows");
 const byGroup=Object.fromEntries(measureGroups.map(x=>[x.key,0]));
-const statuses={},groups=new Map(),seen=new Set(),positions=new Set();
+const statuses={},groups=new Map(),textGroups=new Map(),seen=new Set(),positions=new Set();
 const anomalies=[];
 for(const [i,row] of rows.entries()){
  if(!row||typeof row.ingredient_id!=="string"||typeof row.source_text!=="string"||typeof row.review_status!=="string")throw Error("Invalid row at "+i);
@@ -29,6 +29,13 @@ for(const [i,row] of rows.entries()){
  positions.add(positionKey);
  const {group,proposal}=classifyMeasure(row.source_text);
  byGroup[group]++;
+ const normalizedText=row.source_text.normalize("NFC").trim().toLocaleLowerCase("pt-BR").replace(/[.\\s]+$/gu,"");
+ const entryText=textGroups.get(normalizedText)??{normalizedText,count:0,byStatus:{},byGroup:{},examples:[]};
+ entryText.count++;
+ entryText.byStatus[row.review_status]=(entryText.byStatus[row.review_status]??0)+1;
+ entryText.byGroup[group]=(entryText.byGroup[group]??0)+1;
+ if(entryText.examples.length<4)entryText.examples.push({ingredient_id:row.ingredient_id,recipe_id:row.recipe_id,source_position:row.source_position,source_text:row.source_text});
+ textGroups.set(normalizedText,entryText);
  statuses[row.review_status]=(statuses[row.review_status]??0)+1;
  if(!row.source_text.trim())anomalies.push({id:row.ingredient_id,reason:"empty text"});
  const fingerprint=proposal?JSON.stringify([proposal.quantity,proposal.unit,proposal.ingredient.normalize("NFC").trim().toLocaleLowerCase("pt-BR")]):null;
@@ -41,6 +48,6 @@ for(const [i,row] of rows.entries()){
 }
 const expected=process.env.CC_EXPECTED_INVENTORY_COUNT?Number(process.env.CC_EXPECTED_INVENTORY_COUNT):null;
 if(expected!==null&&(!Number.isSafeInteger(expected)||rows.length!==expected))throw Error("Inventory coverage mismatch: expected "+expected+", received "+rows.length);
-const report={mode:"dry-run",inputCount:rows.length,uniqueIngredientIds:seen.size,statuses,byGroup,anomalies,simpleProposalGroups:[...groups.values()].sort((a,b)=>b.count-a.count),warning:"Suggestions only; no editorial approval or database writes."};
+const report={mode:"dry-run",inputCount:rows.length,uniqueIngredientIds:seen.size,statuses,byGroup,normalizedDistinctTexts:textGroups.size,normalizedTextGroups:[...textGroups.values()].sort((a,b)=>b.count-a.count||a.normalizedText.localeCompare(b.normalizedText,"pt-BR")),anomalies,simpleProposalGroups:[...groups.values()].sort((a,b)=>b.count-a.count),warning:"Suggestions only; no editorial approval or database writes."};
 writeFileSync(output,JSON.stringify(report,null,2)+"\n");
 console.log(JSON.stringify({inputCount:report.inputCount,statuses,byGroup,groupCount:groups.size,anomalies:anomalies.length},null,2));
