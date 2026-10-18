@@ -7,7 +7,10 @@ const normalizedName = (name: string) =>
     .toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
 
 const normalizedUnit = (unit: string) => unit.trim().toLowerCase();
-// A marcação só corresponde à quantidade efetivamente comprada.\n// Um novo total na semana não herda indevidamente o estado anterior.\nexport const purchaseKey = (item: Pick<ShoppingItem, "name" | "unit" | "quantity">): string =>\n  normalizedName(item.name) + "|" + normalizedUnit(item.unit) + "|" + Number(item.quantity.toFixed(6));
+// A marcação só corresponde à quantidade efetivamente comprada.
+// Um novo total na semana não herda indevidamente o estado anterior.
+export const purchaseKey = (item: Pick<ShoppingItem, "name" | "unit" | "quantity">): string =>
+  normalizedName(item.name) + "|" + normalizedUnit(item.unit) + "|" + Number(item.quantity.toFixed(6));
 
 async function findWeeklyListId(userId: string, weekStart: string): Promise<string | null> {
   if (!supabase) throw new Error("Supabase indisponivel");
