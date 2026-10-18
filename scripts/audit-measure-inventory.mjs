@@ -17,12 +17,16 @@ const {classifyMeasure,measureGroups}=await import(dataUrl(batch));
 const rows=JSON.parse(readFileSync(input,"utf8"));
 if(!Array.isArray(rows))throw Error("Expected an array of ingredient rows");
 const byGroup=Object.fromEntries(measureGroups.map(x=>[x.key,0]));
-const statuses={},groups=new Map(),seen=new Set();
+const statuses={},groups=new Map(),seen=new Set(),positions=new Set();
 const anomalies=[];
 for(const [i,row] of rows.entries()){
  if(!row||typeof row.ingredient_id!=="string"||typeof row.source_text!=="string"||typeof row.review_status!=="string")throw Error("Invalid row at "+i);
  if(seen.has(row.ingredient_id))throw Error("Duplicate ingredient_id: "+row.ingredient_id);
  seen.add(row.ingredient_id);
+ if(typeof row.recipe_id!=="string"||!row.recipe_id||!Number.isInteger(row.source_position)||row.source_position<0)throw Error("Invalid recipe/position at "+i);
+ const positionKey=JSON.stringify([row.recipe_id,row.source_position]);
+ if(positions.has(positionKey))throw Error("Duplicate recipe position: "+positionKey);
+ positions.add(positionKey);
  const {group,proposal}=classifyMeasure(row.source_text);
  byGroup[group]++;
  statuses[row.review_status]=(statuses[row.review_status]??0)+1;
@@ -35,6 +39,8 @@ for(const [i,row] of rows.entries()){
   groups.set(fingerprint,entry);
  }
 }
+const expected=process.env.CC_EXPECTED_INVENTORY_COUNT?Number(process.env.CC_EXPECTED_INVENTORY_COUNT):null;
+if(expected!==null&&(!Number.isSafeInteger(expected)||rows.length!==expected))throw Error("Inventory coverage mismatch: expected "+expected+", received "+rows.length);
 const report={mode:"dry-run",inputCount:rows.length,uniqueIngredientIds:seen.size,statuses,byGroup,anomalies,simpleProposalGroups:[...groups.values()].sort((a,b)=>b.count-a.count),warning:"Suggestions only; no editorial approval or database writes."};
 writeFileSync(output,JSON.stringify(report,null,2)+"\n");
 console.log(JSON.stringify({inputCount:report.inputCount,statuses,byGroup,groupCount:groups.size,anomalies:anomalies.length},null,2));
