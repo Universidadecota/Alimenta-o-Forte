@@ -154,3 +154,18 @@ PR #16 continua aberto em draft, sem merge. A mudança é exclusivamente no flux
 O responsável atualizou a branch `feat/revisao-alergenos-fase1-12out2026` por `git pull --ff-only`, fast-forward de `2c43d3b` para `f47b3db`, sem conflitos. O `npm run build` **passou**, com `tsc -b && vite build`, Vite **6.4.4**, **1.650 módulos** transformados e **17,18 segundos**. Saídas: `index-Hc7obCDk.css` (62,44 kB; gzip 12,98 kB), `index-DeKnmeRX.js` (539,44 kB; gzip 152,82 kB). Aviso de chunk acima de 500 kB não é erro de compilação.
 
 **Resultado:** sincronização de código e build local **homologados**. A correção funcional de recarregamento automático entre o salvamento e o painel editorial **ainda exige captura visual** da seção com os três rascunhos reais já persistidos. Não pedir nova gravação ou novo build e não confirmar os ingredientes apenas para testar o carregamento. PR #16 segue aberto em draft, sem merge.
+
+
+## Homologação visual dos três rascunhos sincronizados — 18/10/2026
+
+O responsável enviou a captura da seção **Conferência editorial dos rascunhos** em `localhost:5173`, após atualizar a branch até `f47b3db` e executar `npm run build` com sucesso.
+
+**Constatações visuais:**
+- O painel deixou de apresentar `Nenhum rascunho disponível` e passou a mostrar corretamente as **três** propostas `1 cebola`, individualizadas pelas receitas **Caldo verde sem batata**, **Bife à rolê com bacon, cenoura e couve refogada** e **Caneca de caldo de ossos (brodo) com gengibre e cebolinha**.
+- Cada registro tem status de **rascunho editorial**, medida proposta `1 · cebola · cebola` e botão individual `Conferir proposta`.
+- A seção `Revisar até 5 rascunhos de uma vez` aparece logo abaixo, com a orientação de conferência por ingrediente. **Os campos de decisão em lote ficam parcialmente fora do enquadramento, portanto ainda não foram homologados visualmente com esses três itens.**
+- A captura demonstra carregamento correto da fila ao abrir/atualizar a página; **não comprova isoladamente o recarregamento em tempo real na mesma sessão imediatamente após novo salvamento**. A lógica reativa foi implementada e compilada, mas não precisa ser reexecutada apenas para simulação.
+
+**Verificação SQL somente leitura:** **1.073** registros: **1.069 pending**, **3 draft**, **1 confirmed**, **1 evento histórico**, **0 divergências com textos originais**.
+
+**Resultado:** apresentação da lista dos três rascunhos na interface **HOMOLOGADA**; não há perda de dados, não requer novo registro, `git pull` ou build. **Nenhuma confirmação editorial em lote ainda ocorreu**. Próximo teste: visualizar o formulário de conferência em lote mais abaixo, revisar a medida em cada receita separadamente e somente então decidir se os três casos podem ser confirmados ou devem ser devolvidos. A confirmação real depende da escolha explícita do responsável. PR #16 permanece draft e sem merge.
