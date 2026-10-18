@@ -21,4 +21,19 @@ const required=[
 ];
 for(const pattern of required)assert.match(sql,pattern,"Falta proteção beta: "+pattern);
 assert.doesNotMatch(sql,/\b(?:insert\s+into|update\s+public\.recipes|set\s+published\s*=\s*true)\b/i,"Migração não pode liberar usuários ou receitas automaticamente");
+
+ // Matriz de cenários simulados, equivalente à conjunção da função SQL.
+ // É um teste unitário de regras: NÃO representa autenticação efetiva no Supabase.
+const canView=({authenticated,memberEnabled,recipeEnabled,pilot,plannable,official,unpublished})=>
+ authenticated&&memberEnabled&&recipeEnabled&&pilot&&plannable&&official&&unpublished;
+const allowed={authenticated:true,memberEnabled:true,recipeEnabled:true,pilot:true,plannable:true,official:true,unpublished:true};
+assert.equal(canView(allowed),true,"Participante autorizado deve enxergar receita liberada");
+for(const field of Object.keys(allowed)){
+ assert.equal(canView({...allowed,[field]:false}),false,
+  "Negar acesso quando "+field+" não satisfaz a política");
+}
+assert.equal(canView({...allowed,memberEnabled:false}),false,"Revogação deve bloquear leitura");
+assert.equal(canView({...allowed,recipeEnabled:false}),false,"Receita não liberada deve permanecer oculta");
+assert.equal(canView({...allowed,authenticated:false}),false,"Visitante anônimo deve ser bloqueado");
+
 console.log("OK: proteções estáticas da migração beta verificadas. NÃO substitui testes RLS reais com duas contas.");
