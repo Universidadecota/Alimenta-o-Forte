@@ -118,6 +118,19 @@ const suggested=suggest.proposeWeek([quickBreakfast,slowLunch,allowedLunch,quick
 },[monday]);
 assert.equal(suggested[dayKey]["Almoço"].id,"almoço-rápido",
  "Receitas acima do tempo não devem ser sugeridas");
+const onlySauce=makeMeal("molho-solto","Almoço",[ingredient("Tomate",2)],"sauce");
+onlySauce.pilotSource.ingredientsReviewed=true;
+assert.throws(()=>suggest.proposeWeek([quickBreakfast,onlySauce,quickDinner],{
+ ...suggest.defaultPreferences,cooking_minutes:30
+},[monday]),/categoria Almoço/,
+ "Molhos não podem ser sugeridos como refeição principal");
+const approvedSalad=makeMeal("salada-completa","Almoço",[ingredient("Frango",150,"g")],"salad");
+approvedSalad.pilotSource.ingredientsReviewed=true;
+const saladWeek=suggest.proposeWeek([quickBreakfast,approvedSalad,quickDinner],{
+ ...suggest.defaultPreferences,cooking_minutes:30
+},[monday]);
+assert.equal(saladWeek[dayKey]["Almoço"].id,"salada-completa",
+ "Saladas adequadas continuam disponíveis para almoço");
 const noAllergenAdvice=[makeMeal("teste","Almoço",[ingredient("Feijão",100,"g")])];
 assert.throws(()=>suggest.proposeWeek(noAllergenAdvice,{
  ...suggest.defaultPreferences,allergies:["Soja"]
