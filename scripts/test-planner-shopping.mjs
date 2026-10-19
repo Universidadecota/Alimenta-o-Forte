@@ -165,4 +165,21 @@ assert.throws(()=>suggest.proposeWeek(noAllergenAdvice,{
 },[monday]),/alergias\/intolerâncias/);
 assert.deepEqual(pilotPlan[dayKey]["Ceia"],{id:"piloto",servings:4},
  "A soma das compras não pode alterar o planejamento");
+const betaBreakfast=makeMeal("beta-café","Café da manhã",[],"week",2);
+betaBreakfast.pilotSource.originalIngredients="2 ovos, sal";
+const betaLunch=makeMeal("beta-almoço","Almoço",[],"week",3);
+betaLunch.pilotSource.originalIngredients="Arroz, frango";
+const betaDinner=makeMeal("beta-jantar","Jantar",[],"week",4);
+betaDinner.pilotSource.originalIngredients="Carne, cebola";
+const betaDays=Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(d.getDate()+i);return d;});
+const betaSuggested=suggest.proposeWeek([betaBreakfast,betaLunch,betaDinner],{
+ ...suggest.defaultPreferences,household_size:2
+},betaDays);
+assert.equal(Object.keys(betaSuggested).length,7,"Deve preencher todos os 7 dias");
+assert.ok(betaDays.every(d=>Object.keys(betaSuggested[planner.dateKey(d)]).length===3),"Cada dia precisa das 3 refeições principais");
+assert.equal(betaSuggested[dayKey]["Almoço"].servings,3,"Não alterar rendimento original do piloto");
+assert.equal(suggest.canMatchAvoidedIngredient(betaLunch,["frango"]),true,"Respeitar ingredientes originais não estruturados");
+assert.throws(()=>suggest.proposeWeek([betaBreakfast,betaLunch,betaDinner],{
+ ...suggest.defaultPreferences,allergies:["Soja","Glúten"]
+},betaDays),/alergias\/intolerâncias/,"Sem verificação de alergênicos não gerar semana automaticamente");
 console.log("OK: horários, acervo piloto, quantidades de compras e bloqueio por alergias, sem Supabase.");
