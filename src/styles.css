@@ -556,3 +556,19 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-measure-multi-footer{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
 .cc-measure-multi-footer>span{flex:1 1 180px;color:#52705e;font-size:12px}
 @media(max-width:760px){.cc-measure-multi-items{grid-template-columns:minmax(0,1fr)}.cc-measure-multi-footer button{flex:1 1 150px}}
+
+
+/* Beta: referências nutricionais e ícones próprios, com leitura acessível no celular. */
+.cc-food-nutrition h3,.cc-recipe-nutrition h3{margin:0 0 10px}
+.cc-nutrition-variant{border:1px solid #dfe9dd;background:#f9fbf6;padding:15px;border-radius:12px;margin:13px 0}
+.cc-nutrition-variant h4{font-size:15px;color:#193f34;margin:0 0 7px}
+.cc-nutrition-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px;margin:12px 0 15px}
+.cc-nutrition-grid>div{background:#fff;border:1px solid #e3e9e2;border-radius:9px;padding:10px;min-width:0}
+.cc-nutrition-grid dt{font-size:11px;color:#728276;margin:0 0 4px}
+.cc-nutrition-grid dd{font-weight:700;font-size:14px;color:#183f35;margin:0;font-variant-numeric:tabular-nums}
+.cc-nutrition-status{display:inline-flex;color:#776137;background:#fff3d9;border:1px solid #efe0ba;border-radius:7px;padding:5px 8px;font-size:12px;font-weight:650}
+.cc-nutrition-pending{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cc-nutrition-pending span{display:flex;flex-direction:column;gap:5px;border:1px solid #e8ece6;background:#fafbf8;color:#66776d;border-radius:9px;padding:9px;font-size:12px}
+.cc-nutrition-pending strong{color:#7b897e;font-size:19px}
+.cc-food-nutrition a{color:#205d42;text-decoration:underline;text-underline-offset:2px}
+@media(max-width:650px){.cc-nutrition-grid,.cc-nutrition-pending{grid-template-columns:repeat(2,minmax(0,1fr))}}
