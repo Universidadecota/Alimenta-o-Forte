@@ -26,6 +26,7 @@ export default function App(){
  const [preferences,setPreferences]=useState<FoodPreferences>(defaultPreferences);
  const [recipesLoadedFor,setRecipesLoadedFor]=useState<string|null>(null);
  const [preferencesLoadedFor,setPreferencesLoadedFor]=useState<string|null>(null);
+ const [weekLoadedScope,setWeekLoadedScope]=useState<string|null>(null);
  const [weekSuggestionProgress,setWeekSuggestionProgress]=useState("");
  const [page,setPage]=useState("Início"); const [week,setWeek]=useState(()=>startOfWeek(new Date())); const [selected,setSelected]=useState(()=>dateKey(new Date())); const [plan,setPlan]=useState<Plan>(safeLoad);const [done,setDone]=useState<string[]>([]);
  const [recipeSearch,setRecipeSearch]=useState("");
@@ -41,6 +42,7 @@ export default function App(){
  const weekStart=dateKey(week);
  const recipesReady=!supabase||dataReadyForUser(recipesLoadedFor,userId);
  const preferencesReady=!supabase||dataReadyForUser(preferencesLoadedFor,userId);
+ const weekReady=!supabase||weekLoadedScope===(userId+"|"+weekStart);
  const reloadRecipes=async()=>{const data=await loadRecipes();setRecipes(data);setRecipeForm(false);setEditingId(null);setDetailId(null);};
  const loadArchived=async()=>{
   if(!supabase)return;
@@ -112,14 +114,14 @@ export default function App(){
  },[userId]);
  useEffect(()=>{
   if(!supabase||!userId)return;
-  let alive=true;setLoading(true);setError("");setPlan({});
-  void loadWeek(userId,weekStart).then(data=>{if(alive)setPlan(data);}).catch(err=>{if(alive)setError(err instanceof Error?err.message:"Erro ao carregar cardápio.");}).finally(()=>{if(alive)setLoading(false);});
+  let alive=true;setLoading(true);setError("");setPlan({});setWeekLoadedScope(null);
+  void loadWeek(userId,weekStart).then(data=>{if(alive){setPlan(data);setWeekLoadedScope(userId+"|"+weekStart);}}).catch(err=>{if(alive)setError(err instanceof Error?err.message:"Erro ao carregar cardápio.");}).finally(()=>{if(alive)setLoading(false);});
   return ()=>{alive=false;};
  },[userId,weekStart]);
  // Cada entrada na tela de Compras recarrega as marcacoes do servidor.
  // Nao reutilizar marcacoes entre contas ou semanas.
  useEffect(()=>{
-  if(!supabase||!userId||page!=="Compras"||loading||!recipesReady)return;
+  if(!supabase||!userId||page!=="Compras"||loading||!weekReady||!recipesReady)return;
   let active=true;
   const scope=userId+"|"+weekStart;
   setPurchased({scope,keys:[],loaded:false});setPurchaseLoadError(false);
@@ -128,7 +130,7 @@ export default function App(){
    .then(keys=>{if(active)setPurchased({scope,keys,loaded:true});})
    .catch(err=>{if(active){setPurchaseLoadError(true);setError(err instanceof Error?err.message:"Não foi possível carregar as marcações de compras.");}});
   return ()=>{active=false;};
- },[page,userId,weekStart,loading,plan,recipes,recipesReady]);
+ },[page,userId,weekStart,loading,weekReady,plan,recipes,recipesReady]);
  useEffect(()=>{if(!supabase)setDone([]);},[weekStart]);
  useEffect(()=>{setWeekSuggestionProgress("");},[weekStart,userId]);
  const syncChangedPurchases=async(before:Plan,after:Plan)=>{
@@ -158,7 +160,7 @@ export default function App(){
    :servings??plan[key]?.[slot]?.servings??preferences.household_size;
   if(supabase&&!preferencesReady){setError("Aguarde o carregamento das preferências e alergias antes de alterar o cardápio.");return false;}
   if(id && id!==plan[key]?.[slot]?.id && preferences.allergies.length && !confirm("Atenção: você cadastrou alergias/intolerâncias ("+preferences.allergies.join(", ")+"). Esta receita não foi validada como segura para seu perfil, inclusive quanto à contaminação cruzada. Confira ingredientes, rótulos e preparo. Deseja adicioná-la manualmente mesmo assim?"))return false;
-  if(supabase && (!userId||loading||saving))return false;
+  if(supabase && (!userId||loading||!weekReady||!recipesReady||saving))return false;
   setError("");setSaving(true);
   try{
    if(supabase){
@@ -173,7 +175,7 @@ export default function App(){
   finally{setSaving(false);}
  };
  const suggestWeek=async()=>{
-  if(supabase&&!sessionReadyForMealPlanning(userId,recipesLoadedFor,preferencesLoadedFor,loading,saving)){
+  if(supabase&&!sessionReadyForMealPlanning(userId,recipesLoadedFor,preferencesLoadedFor,loading||!weekReady,saving)){
    setError("Aguarde o carregamento de receitas, cardápio, preferências e alergias antes de gerar sugestões.");return;
   }
   if(loading||saving)return;
@@ -341,7 +343,7 @@ export default function App(){
  const purchasedLoaded=!supabase||(purchased.scope===purchasedScope&&purchased.loaded);
  const purchasedKeys=supabase?(purchasedLoaded?purchased.keys:[]):done;
  const printWeek=(kind:PrintKind)=>{
-  if(loading||!recipesReady||Boolean(supabase&&!userId)){
+  if(loading||!weekReady||!recipesReady||Boolean(supabase&&!userId)){
    setError("Aguarde o carregamento do cardápio antes de imprimir.");return;
   }
   if(kind==="shopping"&&!purchasedLoaded){
@@ -353,7 +355,7 @@ export default function App(){
  const togglePurchased=async(item:ShoppingItem)=>{
   const key=purchaseKey(item);
   if(!supabase){setDone(prev=>prev.includes(key)?prev.filter(v=>v!==key):[...prev,key]);return;}
-  if(!userId||!purchasedLoaded||purchasing||loading)return;
+  if(!userId||!purchasedLoaded||purchasing||loading||!weekReady||!recipesReady)return;
   const purchasedBefore=purchasedKeys.includes(key);
   setPurchasing(key);setError("");
   try{
@@ -382,13 +384,13 @@ export default function App(){
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
  {page==="Início"&&<HomeDashboard
   plan={plan} recipes={recipes} plannedInWeek={plannedCount} optionalInWeek={optionalCount}
-  loading={loading||weekStart!==dateKey(startOfWeek(new Date()))}
+  loading={loading||!weekReady||weekStart!==dateKey(startOfWeek(new Date()))}
   onOpenPlanner={openTodayPlanner}
   onOpenShopping={()=>setPage("Compras")}
   onOpenRecipes={()=>{setRecipeForm(false);setDetailId(null);setPage("Receitas");}}
   onViewRecipe={id=>{setRecipeForm(false);setEditingId(null);setDetailOrigin("Início");setDetailId(id);setPage("Receitas");}}
  />}
- {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button type="button" className="secondary" disabled={loading||saving||!recipesReady||!preferencesReady} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button><button type="button" className="secondary" disabled={loading||saving||!recipesReady} onClick={()=>printWeek("fridge")}><Printer size={16}/> Imprimir só o cardápio</button><button type="button" className="secondary" disabled={loading||saving||!recipesReady} onClick={()=>printWeek("week")}><Printer size={16}/> Imprimir cardápio e receitas / Salvar PDF</button>{weekSuggestionProgress&&<span role="status" className="cc-manual-planning-notice">{weekSuggestionProgress}</span>}<span className="cc-manual-planning-notice">{preferences.allergies.length?"Sugestões automáticas indisponíveis enquanto os alergênicos das receitas não forem verificados.":"Substitui as 21 refeições principais por novas sugestões; lanches e ceia são preservados."}</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
+ {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady||!preferencesReady} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("fridge")}><Printer size={16}/> Imprimir só o cardápio</button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("week")}><Printer size={16}/> Imprimir cardápio e receitas / Salvar PDF</button>{weekSuggestionProgress&&<span role="status" className="cc-manual-planning-notice">{weekSuggestionProgress}</span>}<span className="cc-manual-planning-notice">{preferences.allergies.length?"Sugestões automáticas indisponíveis enquanto os alergênicos das receitas não forem verificados.":"Substitui as 21 refeições principais por novas sugestões; lanches e ceia são preservados."}</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
  <div><strong>Em qual horário deseja adicionar esta receita?</strong>
  <p>{recipes.find(r=>r.id===pendingPlacement.recipeId)?.title??"Receita selecionada"} · {pendingPlacement.servings} {pendingPlacement.servings===1?"porção":"porções"} · {selected.split("-").reverse().join("/")}</p></div>
  <label>Horário<select aria-label="Horário para a receita selecionada" value={placementTarget} disabled={loading||saving}
@@ -403,7 +405,7 @@ export default function App(){
  <button type="button" className="secondary" disabled={loading||saving}
  aria-expanded={optionalOpen} onClick={()=>setOptionalOpen(value=>!value)}>
  {optionalOpen?"Ocultar horários não preenchidos":"Adicionar lanche ou ceia"}
- </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small>{current?<button type="button" aria-label={"Abrir receita "+current.title} title="Ver ingredientes e preparo" style={{border:0,background:"transparent",padding:0,color:"inherit",font:"inherit",fontWeight:700,textAlign:"left",textDecoration:"underline",textUnderlineOffset:3,cursor:"pointer"}} onClick={()=>{setRecipeForm(false);setDetailOrigin("Cardápio");setDetailId(current.id);setPage("Receitas");}}>{current.title}</button>:<strong>Escolha uma refeição</strong>}<span>{current?(current.pilotSource?.originalTime??current.minutes+" minutos de preparo"):"Sem refeição planejada"}</span>{current&&current.pilotSource&&!current.pilotSource.ingredientsReviewed?<span className="detail-note">Rendimento original: {current.pilotSource.originalYield}. Quantidades não redimensionadas.</span>:null}{current&&(!current.pilotSource||current.pilotSource.ingredientsReviewed)&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving||!preferencesReady} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving||!preferencesReady} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>recipeFitsSlot(r,slot)&&(Boolean(r.pilotSource)||Boolean(r.ownerId)||r.id===current?.id)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
+ </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small>{current?<button type="button" aria-label={"Abrir receita "+current.title} title="Ver ingredientes e preparo" style={{border:0,background:"transparent",padding:0,color:"inherit",font:"inherit",fontWeight:700,textAlign:"left",textDecoration:"underline",textUnderlineOffset:3,cursor:"pointer"}} onClick={()=>{setRecipeForm(false);setDetailOrigin("Cardápio");setDetailId(current.id);setPage("Receitas");}}>{current.title}</button>:<strong>Escolha uma refeição</strong>}<span>{current?(current.pilotSource?.originalTime??current.minutes+" minutos de preparo"):"Sem refeição planejada"}</span>{current&&current.pilotSource&&!current.pilotSource.ingredientsReviewed?<span className="detail-note">Rendimento original: {current.pilotSource.originalYield}. Quantidades não redimensionadas.</span>:null}{current&&(!current.pilotSource||current.pilotSource.ingredientsReviewed)&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving||!weekReady||!preferencesReady} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving||!weekReady||!preferencesReady} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>recipeFitsSlot(r,slot)&&(Boolean(r.pilotSource)||Boolean(r.ownerId)||r.id===current?.id)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
  {page==="Alimentos"&&<FoodLibrary/>}
  {page==="Administração"&&isAdmin&&<><AdminRecipes onRefresh={reloadRecipes}/><AdminRecipeRatings/><AdminBetaAccess/></> }
  {page==="Receitas"&&!recipeForm&&<section className="cc-recipe-target-date" aria-label="Dia escolhido para adicionar receitas">
@@ -446,7 +448,7 @@ export default function App(){
   onClick={()=>setRecipePage(page=>Math.min(recipeTotalPages,page+1))}>Próxima</button>
 </nav>}
 </>}
- {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div><div className="toolbar-actions"><button type="button" className="secondary" disabled={loading||!recipesReady||Boolean(supabase&&!purchasedLoaded)} onClick={()=>printWeek("shopping")}><Printer size={16}/> Imprimir lista / Salvar PDF</button></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0&&!pilotShopping.length?<div className="empty">{shoppingAnnotations.length?"Ingredientes sem quantidade numérica nas observações abaixo.":"Ainda não há ingredientes. Planeje suas refeições primeiro."}</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{formatIngredientAmount(item.quantity,item.unit)}</strong></button>;})}</div>
+ {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div><div className="toolbar-actions"><button type="button" className="secondary" disabled={loading||!weekReady||!recipesReady||Boolean(supabase&&!purchasedLoaded)} onClick={()=>printWeek("shopping")}><Printer size={16}/> Imprimir lista / Salvar PDF</button></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0&&!pilotShopping.length?<div className="empty">{shoppingAnnotations.length?"Ingredientes sem quantidade numérica nas observações abaixo.":"Ainda não há ingredientes. Planeje suas refeições primeiro."}</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{formatIngredientAmount(item.quantity,item.unit)}</strong></button>;})}</div>
 {pilotShopping.length>0&&<section className="cc-pilot-shopping" aria-label="Ingredientes das receitas do acervo pessoal">
   <h3>Ingredientes das receitas do acervo pessoal ({pilotShopping.length})</h3>
   <p>Somamos medidas equivalentes somente com o mesmo ingrediente e unidade. Também organizamos preparos com subtítulos explícitos. Alternativas e trechos ambíguos são sinalizados, sem conversões ou escolhas inventadas; as receitas originais não são modificadas.</p>
