@@ -182,4 +182,27 @@ assert.equal(suggest.canMatchAvoidedIngredient(betaLunch,["frango"]),true,"Respe
 assert.throws(()=>suggest.proposeWeek([betaBreakfast,betaLunch,betaDinner],{
  ...suggest.defaultPreferences,allergies:["Soja","Glúten"]
 },betaDays),/alergias\/intolerâncias/,"Sem verificação de alergênicos não gerar semana automaticamente");
+
+// Cada novo clique deve trocar todos os horários principais quando houver alternativas.
+const otherBreakfast=makeMeal("outro-café","Café da manhã",[ingredient("Banana",1)]);
+const otherLunch=makeMeal("outro-almoço","Almoço",[ingredient("Feijão",100,"g")]);
+const otherDinner=makeMeal("outro-jantar","Jantar",[ingredient("Tomate",2)]);
+const twoPerSlot=[quickBreakfast,otherBreakfast,allowedLunch,otherLunch,quickDinner,otherDinner];
+const initialWeek=suggest.proposeWeek(twoPerSlot,suggest.defaultPreferences,betaDays);
+const renewedWeek=suggest.proposeWeek(twoPerSlot,suggest.defaultPreferences,betaDays,initialWeek);
+for(const d of betaDays){
+ const date=planner.dateKey(d);
+ for(const slot of planner.slots){
+  assert.notEqual(renewedWeek[date][slot].id,initialWeek[date][slot].id,
+   "Nova sugestão deve substituir a receita de "+slot+" em "+date);
+ }
+}
+const fixedWeek=suggest.proposeWeek([quickBreakfast,allowedLunch,quickDinner],
+ suggest.defaultPreferences,betaDays,initialWeek);
+assert.equal(fixedWeek[dayKey]["Almoço"].id,allowedLunch.id,
+ "Sem alternativa, a receita única permanece disponível");
+assert.throws(()=>suggest.proposeWeek(twoPerSlot,{
+ ...suggest.defaultPreferences,allergies:["Soja"]
+},betaDays,initialWeek),/alergias\/intolerâncias/,
+ "Regenerar uma semana não pode ignorar alergias cadastradas");
 console.log("OK: horários, acervo piloto, quantidades de compras e bloqueio por alergias, sem Supabase.");
