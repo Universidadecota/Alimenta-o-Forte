@@ -23,7 +23,7 @@ export default function RecipeNutrition({recipe}:{recipe:Meal}){
  useEffect(()=>{
   let alive=true;setNutrition(null);setLoading(true);setError("");
   if(!supabase){setLoading(false);return;}
-  void supabase.rpc("cc_beta_recipe_nutrition",{p_recipe_id:recipe.id})
+  void Promise.resolve(supabase.rpc("cc_beta_recipe_nutrition",{p_recipe_id:recipe.id}))
    .then(({data,error:err})=>{
     if(!alive)return;
     if(err)setError("Não foi possível consultar a ficha nutricional.");
