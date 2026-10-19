@@ -1,6 +1,7 @@
 import AdminRecipes from "./AdminRecipes";
 import AdminRecipeRatings from "./AdminRecipeRatings";
 import AdminBetaAccess from "./AdminBetaAccess";
+import AdminNutritionN2 from "./AdminNutritionN2";
 import HomeDashboard from "./HomeDashboard";
 import FoodLibrary from "./FoodLibrary";
 import CopyMealAction from "./CopyMealAction";
@@ -407,7 +408,7 @@ export default function App(){
  {optionalOpen?"Ocultar horários não preenchidos":"Adicionar lanche ou ceia"}
  </button></div><div className="meal-list">{daySlots.filter(slot=>slots.includes(slot)||optionalOpen||Boolean(plan[selected]?.[slot]?.id)).map(slot=>{const current=recipes.find(r=>r.id===plan[selected]?.[slot]?.id);return <div className={optionalSlots.includes(slot)?"meal-row cc-optional-meal-row":"meal-row"} key={slot}><div className="meal-icon"><ChefHat size={22}/></div><div className="meal-info"><small>{slot}{optionalSlots.includes(slot)?" · opcional":""}</small>{current?<button type="button" aria-label={"Abrir receita "+current.title} title="Ver ingredientes e preparo" style={{border:0,background:"transparent",padding:0,color:"inherit",font:"inherit",fontWeight:700,textAlign:"left",textDecoration:"underline",textUnderlineOffset:3,cursor:"pointer"}} onClick={()=>{setRecipeForm(false);setDetailOrigin("Cardápio");setDetailId(current.id);setPage("Receitas");}}>{current.title}</button>:<strong>Escolha uma refeição</strong>}<span>{current?(current.pilotSource?.originalTime??current.minutes+" minutos de preparo"):"Sem refeição planejada"}</span>{current&&current.pilotSource&&!current.pilotSource.ingredientsReviewed?<span className="detail-note">Rendimento original: {current.pilotSource.originalYield}. Quantidades não redimensionadas.</span>:null}{current&&(!current.pilotSource||current.pilotSource.ingredientsReviewed)&&<label className="meal-servings">Porções <input type="number" aria-label={"Porções para "+slot} min="1" max="20" disabled={loading||saving||!weekReady||!preferencesReady} value={plan[selected]?.[slot]?.servings??1} onChange={e=>void update(selected,slot,current.id,Math.max(1,Math.min(20,Number(e.target.value)||1)))}/></label> }{current&&<CopyMealAction key={selected+"|"+slot} sourceDay={selected} slot={slot} weekDays={days} busy={loading||saving} onCopy={copyMeal} onMove={moveSelectedMeal}/>}</div><select aria-label={"Escolher "+slot} value={current?.id||""} disabled={loading||saving||!weekReady||!preferencesReady} onChange={e=>void update(selected,slot,e.target.value)}><option value="">Selecionar</option>{recipes.filter(r=>recipeFitsSlot(r,slot)&&(Boolean(r.pilotSource)||Boolean(r.ownerId)||r.id===current?.id)).map(r=><option key={r.id} value={r.id}>{r.title}</option>)}</select></div>;})}</div><button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
  {page==="Alimentos"&&<FoodLibrary/>}
- {page==="Administração"&&isAdmin&&<><AdminRecipes onRefresh={reloadRecipes}/><AdminRecipeRatings/><AdminBetaAccess/></> }
+ {page==="Administração"&&isAdmin&&<><AdminRecipes onRefresh={reloadRecipes}/><AdminRecipeRatings/><AdminBetaAccess/><AdminNutritionN2/></> }
  {page==="Receitas"&&!recipeForm&&<section className="cc-recipe-target-date" aria-label="Dia escolhido para adicionar receitas">
   <div className="cc-recipe-target-summary">
    <strong>Dia escolhido para o cardápio</strong>
