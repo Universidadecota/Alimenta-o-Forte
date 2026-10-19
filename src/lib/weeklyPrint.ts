@@ -1,4 +1,4 @@
-import {dateKey,daySlots,type Meal,type Plan,type Slot} from "./planner";
+import {dateKey,daySlots,type Meal,type Plan} from "./planner";
 import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasures";
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
@@ -61,7 +61,6 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    ${recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?'<p class="warning">Medidas originais preservadas; não houve redimensionamento automático.</p>':""}
    </article>`;
  }).join("");
- const purchased=new Set(purchasedKeys);
  const shoppingBody=`
  <h2>Ingredientes com quantidades estruturadas</h2>
  ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:'<p class="muted">Nenhum item estruturado nesta semana.</p>'}
