@@ -21,7 +21,7 @@ create table if not exists public.cc_recipe_nutrition_facts (
   (reviewed_at is not null and length(btrim(source_name))>=3 and
    length(btrim(source_reference))>=3 and energy_kcal is not null and
    protein_g is not null and carbohydrates_g is not null and fats_g is not null)
- );
+ )
 );
 alter table public.cc_recipe_nutrition_facts enable row level security;
 drop policy if exists cc_recipe_nutrition_admin_read on public.cc_recipe_nutrition_facts;
