@@ -48,10 +48,13 @@ export function suggestN2Ingredient(text:string,foods:N2FoodOption[]):N2Suggeste
   };
   break;
  }
+ const absent=/(?:\b(?:camomila|bacon|morangos?|kefir|chia|linhaca|manteiga|rucula|abacate|mirtilos?|framboesas?|coco|orega?no|pimenta|limao|paprica|sal)\b|sementes? de abobora|peito de peru|cha verde)/u.test(s);
  return {
-  foodId:"",triageStatus:"need_mass",
-  reviewNote:"Aferir quantidade e massa com evidência; verificar identidade alimentar e preparo antes de cadastrar um vínculo.",
+  foodId:"",triageStatus:absent?"need_food":"need_mass",
+  reviewNote:absent
+   ?"Ingrediente sem correspondente específico nos alimentos publicados; cadastrar/comprovar alimento e aferir sua massa antes do cálculo."
+   :"Aferir quantidade e massa com evidência; verificar identidade alimentar e preparo antes de cadastrar um vínculo.",
   matchNotes:"",
-  reason:"Sem correspondência literal suficientemente segura. Selecionar manualmente ou registrar alimento ausente."
+  reason:absent?"Ingrediente aparentemente ausente dos alimentos publicados; confirmar o cadastro necessário.":"Sem correspondência literal suficientemente segura. Selecionar manualmente ou registrar alimento ausente."
  };
 }
