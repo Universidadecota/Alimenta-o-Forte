@@ -28,6 +28,18 @@ const shopping=await importPure("../src/lib/shopping.ts");
 const suggest=await importPure("../src/lib/suggestions.ts");
 const progress=await importPure("../src/lib/shoppingProgress.ts");
 const printable=await importPure("../src/lib/weeklyPrint.ts");
+const readiness=await importPure("../src/lib/flowReadiness.ts");
+// O aplicativo não pode sugerir receitas com alergias ainda não carregadas nem
+// reconciliar compras de outra conta por acidente.
+assert.equal(readiness.dataReadyForUser(null,"conta-a"),false);
+assert.equal(readiness.dataReadyForUser("conta-a","conta-b"),false);
+assert.equal(readiness.dataReadyForUser("conta-a","conta-a"),true);
+assert.equal(readiness.sessionReadyForMealPlanning("conta-a","conta-a",null,false,false),false);
+assert.equal(readiness.sessionReadyForMealPlanning("conta-a",null,"conta-a",false,false),false);
+assert.equal(readiness.sessionReadyForMealPlanning("conta-a","conta-a","conta-a",true,false),false);
+assert.equal(readiness.sessionReadyForMealPlanning("conta-a","conta-a","conta-a",false,true),false);
+assert.equal(readiness.sessionReadyForMealPlanning("conta-a","conta-a","conta-a",false,false),true);
+assert.equal(readiness.sessionReadyForMealPlanning("conta-b","conta-a","conta-a",false,false),false);
 const day=new Date(2026,9,18,12);
 const monday=planner.startOfWeek(day);
 assert.equal(planner.dateKey(monday),"2026-10-12");
