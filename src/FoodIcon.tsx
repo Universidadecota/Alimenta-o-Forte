@@ -1,4 +1,4 @@
-import {Apple,Carrot,Leaf,Cherry,Wheat,Bean,Egg,Beef,Fish,Milk,TreeDeciduous,Droplets,Coffee,Utensils,Drumstick,Salad} from "lucide-react";
+import {Apple,Carrot,Leaf,Cherry,Wheat,Bean,Egg,Beef,Fish,Milk,TreeDeciduous,Droplets,Coffee,Utensils,Drumstick} from "lucide-react";
 import type {FoodCategory} from "./lib/foodLibrary";
 
 type Props={name:string;category:FoodCategory;size?:number};
