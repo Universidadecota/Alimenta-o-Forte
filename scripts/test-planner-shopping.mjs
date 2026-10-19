@@ -233,8 +233,8 @@ const cleanedPrint=printable.buildWeeklyPrintHtml({
  recipes:[timeRecipe,betaLunch,betaDinner],
  shopping:[],pilotShopping:[],notes:[],purchasedKeys:[]
 });
-assert.match(cleanedPrint,/<strong>Tempo:<\\/strong> 20 min/);
-assert.doesNotMatch(cleanedPrint,/Tempo:<\\/strong> Tempo:/);
+assert.ok(cleanedPrint.includes("<strong>Tempo:</strong> 20 min"),"Não duplicar a indicação de tempo");
+assert.ok(!cleanedPrint.includes("Tempo:</strong> Tempo:"),"Tempo duplicado não pode aparecer");
 const demoMeal=makeMeal("demonstracao","[Exemplo] Café da manhã demonstrativo",[ingredient("Aveia",30,"g")]);
 const preferredWeek=suggest.proposeWeek([demoMeal,quickBreakfast,allowedLunch,quickDinner],
  suggest.defaultPreferences,betaDays);
