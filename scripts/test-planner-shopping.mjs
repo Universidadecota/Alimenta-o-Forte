@@ -50,6 +50,70 @@ assert.equal(n2.suggestN2Ingredient("1 pitada de páprica ou alho em pó",n2Food
 assert.equal(n2.suggestN2Ingredient("5 morangos picados",n2Foods).triageStatus,"need_food");
 assert.equal(n2.suggestN2Ingredient("2 ovos",[{id:"a",name:"Ovo de galinha"},{id:"b",name:"Ovo de galinha"}]).foodId,"");
 
+// Lista simulada com alimentos publicados e ainda não publicados; nenhum cadastro é liberado ao público.
+const catalog=[
+ ...n2Foods.map(food=>({...food,published:true})),
+ {id:"chamomile",name:"Chá de camomila",published:false},
+ {id:"bacon",name:"Bacon",published:false},
+ {id:"cherry",name:"Tomate-cereja",published:false},
+ {id:"pumpkinseed",name:"Semente de abóbora",published:false},
+ {id:"strawberry",name:"Morango",published:false},
+ {id:"chia",name:"Chia",published:false},
+ {id:"linseed",name:"Linhaça",published:false},
+ {id:"butter",name:"Manteiga",published:false},
+ {id:"arugula",name:"Rúcula",published:false},
+ {id:"raspberry",name:"Framboesa",published:false},
+ {id:"cocoil",name:"Óleo de coco",published:false},
+ {id:"avocado",name:"Abacate",published:false},
+ {id:"salt",name:"Sal",published:false},
+ {id:"oregano",name:"Orégano",published:false},
+ {id:"greenTea",name:"Chá verde",published:false},
+ {id:"coconut",name:"Coco ralado",published:false},
+];
+for(const [text,id] of [
+ ["1 xícara de chá de camomila sem açúcar","chamomile"],
+ ["3 colheres (sopa) de semente de abóbora","pumpkinseed"],
+ ["3 fatias de bacon","bacon"],
+ ["8 tomates-cereja","cherry"],
+ ["½ xícara de morangos","strawberry"],
+ ["5 morangos picados","strawberry"],
+ ["1 colher (sopa) de semente de chia","chia"],
+ ["1 colher (sopa) de linhaça.","linseed"],
+ ["1 colher (chá) de manteiga.","butter"],
+ ["1 punhado de rúcula","arugula"],
+ ["½ xícara de framboesas","raspberry"],
+ ["1 colher (chá) de óleo de coco","cocoil"],
+ ["¼ de abacate fatiado","avocado"],
+ ["1 pitada de sal.","salt"],
+ ["orégano","oregano"],
+ ["1 xícara de chá verde.","greenTea"],
+ ["1 colher (sopa) de coco ralado sem açúcar","coconut"],
+ ]){
+  const candidate=n2.suggestN2Ingredient(text,catalog);
+  assert.equal(candidate.foodId,id,"Vinculação textual candidata: "+text);
+  assert.equal(candidate.foodPublication,"preliminary","Cadastro não publicado: "+text);
+  assert.equal(candidate.triageStatus,"need_mass","Não inferir massa: "+text);
+  assert.equal("totalMassG" in candidate,false,"Proibido estimar gramagem");
+  assert.equal("nutritionVariantId" in candidate,false,"Proibido inferir composição");
+ }
+for(const ambiguous of [
+ "1 pitada de páprica ou alho em pó",
+ "mirtilos ou framboesas",
+ "4 fatias de peito de peru natural (cozido em casa ou sem açúcar e amido no rótulo)"
+]){
+ const candidate=n2.suggestN2Ingredient(ambiguous,catalog);
+ assert.equal(candidate.foodId,"");
+ assert.equal(candidate.triageStatus,"ambiguous_or_optional");
+}
+assert.equal(n2.suggestN2Ingredient("1 colher (sopa) de azeite",catalog).foodId,"",
+ "Azeite sem tipo não autoriza oliva");
+assert.equal(n2.suggestN2Ingredient("½ xícara de cogumelos fatiados",catalog).foodId,"",
+ "Mistura/espécie não determinada de cogumelo não pode ser inferida");
+assert.equal(n2.suggestN2Ingredient("½ xícara de tomate-cereja com queijo",catalog).foodId,"",
+ "Mistura não deve gerar vínculo único");
+assert.equal(n2.suggestN2Ingredient("2 ovos",catalog).foodPublication,"published");
+
+
 // O aplicativo não pode sugerir receitas com alergias ainda não carregadas nem
 // reconciliar compras de outra conta por acidente.
 assert.equal(readiness.dataReadyForUser(null,"conta-a"),false);
