@@ -225,4 +225,20 @@ const printList=printable.buildWeeklyPrintHtml({
 assert.match(printList,/Arroz/);
 assert.match(printList,/leite de coco/);
 assert.match(printList,/Pimenta/);
+assert.doesNotMatch(printList,/1 uso\\(s\\)/,"Impressão deve evitar texto técnico repetitivo");
+assert.doesNotMatch(printList,/Receitas: /,"Lista resumida não deve listar receitas em cada item");
+const timeRecipe={...betaBreakfast,pilotSource:{...betaBreakfast.pilotSource,originalTime:"Tempo: 20 min | Porção: 2"}};
+const cleanedPrint=printable.buildWeeklyPrintHtml({
+ kind:"week",days:betaDays,plan:betaSuggested,
+ recipes:[timeRecipe,betaLunch,betaDinner],
+ shopping:[],pilotShopping:[],notes:[],purchasedKeys:[]
+});
+assert.match(cleanedPrint,/<strong>Tempo:<\\/strong> 20 min/);
+assert.doesNotMatch(cleanedPrint,/Tempo:<\\/strong> Tempo:/);
+const demoMeal=makeMeal("demonstracao","[Exemplo] Café da manhã demonstrativo",[ingredient("Aveia",30,"g")]);
+const preferredWeek=suggest.proposeWeek([demoMeal,quickBreakfast,allowedLunch,quickDinner],
+ suggest.defaultPreferences,betaDays);
+assert.ok(betaDays.every(day=>preferredWeek[planner.dateKey(day)]["Café da manhã"].id===quickBreakfast.id),
+ "Receitas reais devem prevalecer sobre itens [Exemplo] quando estão disponíveis");
+
 console.log("OK: horários, acervo piloto, quantidades de compras e bloqueio por alergias, sem Supabase.");
