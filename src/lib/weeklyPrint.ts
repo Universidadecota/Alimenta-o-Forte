@@ -118,8 +118,21 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  body:has(.week) h2{font-size:14px;margin-top:9px;padding-bottom:4px}
  body:has(.week) .subhead{margin:0 0 8px}
  body:has(.week) .brand{font-size:14px}
+ /* A versão de geladeira usa a altura útil do A4 para favorecer a leitura. */
+ body.fridge{line-height:1.28}
+ .fridge .week{gap:9px}
+ .fridge .day{padding:10px 12px;border-radius:7px;line-height:1.24}
+ .fridge .day h3{font-size:14px;margin:0 0 6px}
+ .fridge .slot{padding:5px 0;gap:2px}
+ .fridge .slot span{font-size:10px}
+ .fridge .slot strong{font-size:12px;line-height:1.27}
+ .fridge header h1{font-size:26px;margin:5px 0}
+ .fridge h2{font-size:17px;margin-top:13px;padding-bottom:6px}
+ .fridge .subhead{font-size:12px;margin:0 0 12px}
+ .fridge .brand{font-size:16px}
+ .fridge .foot{font-size:10px;margin-top:15px}
  .recipe-body{grid-template-columns:1fr 1fr}.checklist{columns:2}a{color:inherit;text-decoration:none}}
- </style></head><body>
+ </style></head><body class="${safe(kind)}">
  <div class="toolbar"><button type="button" onclick="window.print()">Imprimir / salvar como PDF</button>
  <span class="muted">Para baixar, escolha “Salvar como PDF”. Para retirar data e endereço do papel, desmarque “Cabeçalhos e rodapés” nas opções de impressão.</span></div>
  <header><div class="brand">Costa&amp;Costa · Alimentação Forte</div><h1>${safe(heading)}</h1><p class="subhead">${safe(dateRange)}</p></header>
