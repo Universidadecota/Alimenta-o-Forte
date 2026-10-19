@@ -45,7 +45,9 @@ export default function FoodNutrition({food}:{food:FoodItem}){
     <dt>{fact.label}</dt><dd>{formatNumber(variant[fact.field])}{variant[fact.field]!=null?" "+fact.unit:""}</dd>
    </div>)}</dl>
    <p className="detail-note"><strong>Fonte:</strong> {variant.source_name}. {variant.source_reference}.</p>
-   {/^https:\/\/(?:www\.)?nepa\.unicamp\.br\//.test(variant.source_url)&&<p className="detail-note"><a href={variant.source_url} target="_blank" rel="noopener noreferrer">Consultar a tabela original</a></p>}
+   {(/^(?:https:\/\/)(?:www\.)?nepa\.unicamp\.br\//.test(variant.source_url)||
+     /^https:\/\/fdc\.nal\.usda\.gov\/food-details\/[0-9]+\/nutrients$/.test(variant.source_url))&&
+     <p className="detail-note"><a href={variant.source_url} target="_blank" rel="noopener noreferrer">Consultar a tabela original</a></p>}
   </article>)}
   <p className="detail-note"><strong>Importante:</strong> os valores acima são referências identificadas na fonte, mas sua associação às fichas do aplicativo ainda aguarda revisão. Não representam uma análise laboratorial desta unidade de alimento nem validam alergênicos. Não são automaticamente utilizados para calcular receitas.</p>
  </section>;
