@@ -29,6 +29,27 @@ const suggest=await importPure("../src/lib/suggestions.ts");
 const progress=await importPure("../src/lib/shoppingProgress.ts");
 const printable=await importPure("../src/lib/weeklyPrint.ts");
 const readiness=await importPure("../src/lib/flowReadiness.ts");
+const n2=await importPure("../src/lib/n2CandidateSuggestions.ts");
+const n2Foods=[
+ {id:"egg",name:"Ovo de galinha"},{id:"tomato",name:"Tomate"},
+ {id:"coffee",name:"Café"},{id:"oil",name:"Azeite de oliva"},
+ {id:"water",name:"Água potável"},
+];
+assert.equal(n2.suggestN2Ingredient("2 ovos",n2Foods).foodId,"egg");
+assert.equal(n2.suggestN2Ingredient("1 ovo.",n2Foods).foodId,"egg");
+assert.equal(n2.suggestN2Ingredient("½ tomate picado",n2Foods).foodId,"tomato");
+assert.equal(n2.suggestN2Ingredient("1 xícara de café",n2Foods).foodId,"coffee");
+assert.equal(n2.suggestN2Ingredient("1 colher (sopa) de azeite de oliva",n2Foods).foodId,"oil");
+// Sem conversões, a espécie/variante não é inferida e nenhuma massa é produzida.
+assert.equal(n2.suggestN2Ingredient("2 ovos",n2Foods).triageStatus,"need_mass");
+assert.equal(n2.suggestN2Ingredient("8 tomates-cereja",n2Foods).foodId,"");
+assert.equal(n2.suggestN2Ingredient("½ xícara de cogumelos fatiados",n2Foods).foodId,"");
+assert.equal(n2.suggestN2Ingredient("1 colher (sopa) de azeite",n2Foods).foodId,"");
+assert.equal(n2.suggestN2Ingredient("1 xícara de chá de camomila sem açúcar",n2Foods).foodId,"");
+assert.equal(n2.suggestN2Ingredient("1 pitada de páprica ou alho em pó",n2Foods).triageStatus,"ambiguous_or_optional");
+assert.equal(n2.suggestN2Ingredient("5 morangos picados",n2Foods).triageStatus,"need_food");
+assert.equal(n2.suggestN2Ingredient("2 ovos",[{id:"a",name:"Ovo de galinha"},{id:"b",name:"Ovo de galinha"}]).foodId,"");
+
 // O aplicativo não pode sugerir receitas com alergias ainda não carregadas nem
 // reconciliar compras de outra conta por acidente.
 assert.equal(readiness.dataReadyForUser(null,"conta-a"),false);
