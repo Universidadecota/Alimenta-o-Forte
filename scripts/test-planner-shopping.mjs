@@ -217,6 +217,8 @@ const fridge=printable.buildWeeklyPrintHtml({
  shopping:[],pilotShopping:[],notes:[],purchasedKeys:[]
 });
 assert.match(fridge,/Planejamento dos sete dias/);
+assert.match(fridge,/<body class="fridge">/,"O layout A4 deve ser dedicado ao resumo de geladeira");
+assert.match(fridge,/\.fridge \.slot strong\{font-size:12px;/,"A versão de geladeira usa fontes maiores");
 assert.doesNotMatch(fridge,/Receitas completas da semana/,
  "Resumo para geladeira não deve conter fichas de receitas");
 assert.equal((fridge.match(/class="day"/g)??[]).length,7,
