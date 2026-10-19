@@ -251,6 +251,26 @@ assert.match(questionable,/Referências incompletas: conferir na receita/);
 assert.match(questionable,/1 xícara/);
 assert.match(questionable,/Molho Caesar \(receita abaixo\)/);
 
+const shoppingVariants=[
+ {...pilotList[0],name:"variante1",quantity:1,sourceText:"½ pepino",totalLabel:undefined,requiresChoice:false,ambiguousSource:false,optionalSource:false},
+ {...pilotList[0],name:"variante2",quantity:1,sourceText:"½ pepino em cubos",totalLabel:undefined,requiresChoice:false,ambiguousSource:false,optionalSource:false},
+ {...pilotList[0],name:"variante3",quantity:1,sourceText:"¼ de cebola roxa",totalLabel:undefined,requiresChoice:false,ambiguousSource:false,optionalSource:false},
+ {...pilotList[0],name:"variante4",quantity:1,sourceText:"¼ de cebola roxa fatiada",totalLabel:undefined,requiresChoice:false,ambiguousSource:false,optionalSource:false},
+ {...pilotList[0],name:"alternativa",quantity:1,sourceText:"½ pepino ou abobrinha",totalLabel:undefined,requiresChoice:true,ambiguousSource:false,optionalSource:false}
+];
+const groupedPrint=printable.buildWeeklyPrintHtml({
+ kind:"shopping",days:betaDays,plan:betaSuggested,
+ recipes:[betaBreakfast,betaLunch,betaDinner],shopping:[],
+ pilotShopping:shoppingVariants,notes:[],purchasedKeys:[]
+});
+assert.match(groupedPrint,/Pepino — conferir medidas/);
+assert.match(groupedPrint,/Cebola roxa — conferir medidas/);
+assert.match(groupedPrint,/½ pepino em cubos/);
+assert.match(groupedPrint,/¼ de cebola roxa fatiada/);
+assert.match(groupedPrint,/½ pepino ou abobrinha/);
+assert.equal((groupedPrint.match(/class="item grouped"/g)??[]).length,2,
+ "Somente famílias de produtos inequívocos devem ser agrupadas");
+assert.doesNotMatch(groupedPrint,/1½ pepino/,"Não inventar soma de frações não revisadas");
 const timeRecipe={...betaBreakfast,pilotSource:{...betaBreakfast.pilotSource,originalTime:"Tempo: 20 min | Porção: 2"}};
 const cleanedPrint=printable.buildWeeklyPrintHtml({
  kind:"week",days:betaDays,plan:betaSuggested,
