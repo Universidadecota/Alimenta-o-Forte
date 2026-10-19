@@ -45,6 +45,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
   unique.set(recipe.id,entry);
  }
  const sheets=[...unique.values()].map(({recipe,where})=>{
+  const timeText=(recipe.pilotSource?.originalTime?.split("|")[0]??recipe.minutes+" min").replace(/^\s*Tempo\s*:\s*/i,"").trim();
   const yieldText=recipe.pilotSource?recipe.pilotSource.originalYield:`${recipe.servings} porções de referência`;
   const ingredientMarkup=recipe.pilotSource
    ?`<p class="original">${safe(recipe.pilotSource.originalIngredients)}</p>`
@@ -54,7 +55,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    ?`<ol>${instructions.map(s=>`<li>${safe(s)}</li>`).join("")}</ol>`
    :'<p class="muted">Modo de preparo ainda não cadastrado.</p>';
   return `<article class="recipe"><h3>${safe(recipe.title)}</h3><p class="muted">
-   ${safe(where.join(" | "))}</p><p><strong>Tempo:</strong> ${safe(recipe.pilotSource?.originalTime??recipe.minutes+" min")}
+   ${safe(where.join(" | "))}</p><p><strong>Tempo:</strong> ${safe(timeText)}
    · <strong>Rendimento original:</strong> ${safe(yieldText)}</p>
    <div class="recipe-body"><section><h4>Ingredientes</h4>${ingredientMarkup}</section>
    <section><h4>Modo de preparo</h4>${preparation}</section></div>
@@ -65,13 +66,14 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  <h2>Ingredientes com quantidades estruturadas</h2>
  ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:'<p class="muted">Nenhum item estruturado nesta semana.</p>'}
  ${pilotShopping.length?`<h2>Ingredientes das receitas originais</h2>
- <p class="muted">Somamos somente medidas equivalentes. “Usos” significa ocorrências no cardápio, não unidades a comprar.</p>
+ <p class="muted">Medidas conforme as receitas, sem redimensionamento. Somente equivalências seguras são somadas. Quando não há quantidade clara, “usos” indica a frequência no cardápio, não unidades para comprar.</p>
  <ul class="checklist">${pilotShopping.map(item=>checklist(item,item.totalLabel??item.sourceText,
- (item.totalLabel?"":item.quantity+" uso(s) no cardápio; quantidade conforme o original. ")+
- (item.requiresChoice?"Escolha entre alternativas. ":"")+
- (item.optionalSource?"Ingrediente opcional. ":"")+
- (item.ambiguousSource?"Confira o trecho original. ":"")+
- "Receitas: "+item.sourceRecipes.join("; "))).join("")}</ul>`:""}
+ [
+  !item.totalLabel&&item.quantity>1?item.quantity+" usos no cardápio":"",
+  item.requiresChoice?"Escolha entre as alternativas":"",
+  item.optionalSource?"Opcional":"",
+  item.ambiguousSource?"Confira o texto original":""
+ ].filter(Boolean).join(" · "))).join("")}</ul>`:""}
  ${notes.length?`<h2>Opcionais, a gosto ou sem quantidade definida</h2>
  <ul class="checklist">${notes.map(item=>`<li class="item"><span class="square"></span><div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div></li>`).join("")}</ul>`:""}
  ${!shopping.length&&!pilotShopping.length&&!notes.length?'<p class="muted">Planeje refeições para gerar a lista de compras.</p>':""}
@@ -104,7 +106,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  .recipe-body{grid-template-columns:1fr 1fr}.checklist{columns:2}a{color:inherit;text-decoration:none}}
  </style></head><body>
  <div class="toolbar"><button type="button" onclick="window.print()">Imprimir / salvar como PDF</button>
- <span class="muted">No diálogo de impressão, selecione “Salvar como PDF” para baixar.</span></div>
+ <span class="muted">Para baixar, escolha “Salvar como PDF”. Para retirar data e endereço do papel, desmarque “Cabeçalhos e rodapés” nas opções de impressão.</span></div>
  <header><div class="brand">Costa&amp;Costa · Alimentação Forte</div><h1>${safe(heading)}</h1><p class="subhead">${safe(dateRange)}</p></header>
  ${kind==="week"?`<h2>Planejamento dos sete dias</h2><div class="week">${dayCards}</div>
  <section class="page-break"><h2>Receitas completas da semana</h2>
