@@ -9,7 +9,7 @@ type N2Row={
  food_item_id:string|null;nutrition_variant_id:string|null;match_status:string;
  total_mass_g:number|null;mass_evidence:string;match_notes:string;variant_status:string;
 };
-type Food={id:string;name:string};
+type Food={id:string;name:string;published:boolean};
 type Variant={id:string;food_item_id:string;variant_name:string;food_state:string;review_status:string};
 type Note={ingredient_id:string;triage_status:string;review_note:string};
 type Draft={
@@ -48,7 +48,7 @@ export default function AdminNutritionN2(){
   try{
    const [queue,foodResults,variantResults,noteResults]=await Promise.all([
     supabase.rpc("cc_beta_n2_p1_queue"),
-    supabase.from("food_items").select("id,name").eq("published",true).order("name"),
+    supabase.from("food_items").select("id,name,published").order("name"),
     supabase.from("cc_food_nutrition_variants").select("id,food_item_id,variant_name,food_state,review_status").order("variant_name"),
     supabase.from("cc_n2_ingredient_review_notes").select("ingredient_id,triage_status,review_note")
    ]);
@@ -70,7 +70,10 @@ export default function AdminNutritionN2(){
   return rows.filter(row=>{if(seen.has(row.recipe_id))return false;seen.add(row.recipe_id);return true;});
  },[rows]);
  const recipeRows=rows.filter(row=>row.recipe_id===selectedRecipe);
- const possibleMatches=recipeRows.filter(row=>Boolean(suggestN2Ingredient(row.ingredient_text,foods).foodId)).length;
+ const suggestionsForRecipe=recipeRows.map(row=>({row,suggestion:suggestN2Ingredient(row.ingredient_text,foods)}));
+ const possibleMatches=suggestionsForRecipe.filter(({suggestion})=>Boolean(suggestion.foodId)).length;
+ const prelimMatches=suggestionsForRecipe.filter(({suggestion})=>suggestion.foodPublication==="preliminary").length;
+ const unpublishedFoods=foods.filter(f=>!f.published).length;
  const documented=rows.filter(row=>row.match_status==="candidate").length;
  const reviewed=notes.filter(note=>note.triage_status!=="pending").length;
  const patch=(ingredientId:string,change:Partial<Draft>)=>{
@@ -147,6 +150,7 @@ export default function AdminNutritionN2(){
  return <section className="detail-panel cc-n2-admin">
   <h3>Nutrição das receitas — Etapa N2</h3>
   <p className="detail-note">Triagem restrita ao administrador. As nove receitas P1 continuam com seus ingredientes originais. Esta área registra hipóteses e evidências, mas <strong>não permite publicar valores nutricionais nem confirmar associações automaticamente.</strong></p>
+  <p className="detail-note">A biblioteca possui {foods.length} alimentos cadastrados, incluindo {unpublishedFoods} ainda não publicados. Esses registros preliminares aparecem aqui apenas para revisão administrativa e não serão liberados aos testadores por este painel.</p>
   <div className="cc-n2-stats">
    <span><strong>{recipeOptions.length}</strong> receitas prioritárias</span>
    <span><strong>{rows.length}</strong> ingredientes</span>
@@ -166,7 +170,12 @@ export default function AdminNutritionN2(){
    <p className="detail-note"><strong>Rendimento conforme receita:</strong> {recipeRows[0]?.original_yield}. Isso não representa peso líquido aferido.</p>
    <div className="cc-n2-assist">
     <div><strong>Pré-triagem assistida</strong>
-     <p className="detail-note">{possibleMatches} de {recipeRows.length} ingredientes possuem possível correspondência textual com os alimentos cadastrados. Para os demais, o sistema apenas sugere a pendência que precisa ser investigada.</p>
+     <p className="detail-note">{possibleMatches} de {recipeRows.length} ingredientes possuem possível correspondência textual com os alimentos cadastrados; {prelimMatches} desses vínculos usam cadastro ainda não publicado. Para os demais, o sistema apenas sugere a pendência a investigar.</p>
+     <div className="cc-n2-availability">
+      <strong>Correspondências publicadas: {possibleMatches-prelimMatches}</strong>
+      <strong>Cadastros preliminares: {prelimMatches}</strong>
+      <strong>Sem associação segura: {recipeRows.length-possibleMatches}</strong>
+     </div>
      <p className="detail-note">Nenhuma massa, variante nutricional ou revisão será preenchida automaticamente. As sugestões são locais e não alteram o banco até que você escolha salvar.</p>
     </div>
     <button type="button" className="secondary" disabled={loading||busyId!==null} onClick={()=>applySuggestions(recipeRows)}>Pré-preencher sugestões desta receita</button>
@@ -181,6 +190,7 @@ export default function AdminNutritionN2(){
       <p className="detail-note">Ingrediente original preservado. Revisão da medida: <strong>{row.measure_status}</strong>. Nenhum valor nutricional está aprovado.</p>
       <div className="cc-n2-suggestion">
        <p className="detail-note"><strong>Sugestão automática (não aprovada):</strong> {suggestion.reason}</p>
+       {suggestion.foodPublication==="preliminary"&&<p className="cc-n2-preliminary">Alimento pré-cadastrado. A associação candidata NÃO publica o alimento nem valida sua composição.</p>}
        <button type="button" className="secondary" disabled={busyId!==null} onClick={()=>applySuggestions([row])}>Usar sugestão neste formulário</button>
       </div>
       <fieldset className="cc-n2-fields">
@@ -200,9 +210,11 @@ export default function AdminNutritionN2(){
        <label>Alimento correspondente (hipótese)
         <select value={draft.foodId} onChange={e=>patch(row.ingredient_id,{foodId:e.target.value,variantId:""})}>
          <option value="">Ainda não identificado</option>
-         {foods.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
+         {foods.map(f=><option key={f.id} value={f.id}>{f.name}{!f.published?" · cadastro preliminar (não publicado)":""}</option>)}
         </select>
        </label>
+       {draft.foodId&&foods.some(f=>f.id===draft.foodId&&!f.published)&&
+        <p className="cc-n2-preliminary">O alimento selecionado ainda não está publicado. Ele não possui confirmação nutricional automática; escolha a variante apenas se houver fonte correspondente.</p>}
        <label>Variante e preparo da fonte
         <select value={draft.variantId} onChange={e=>patch(row.ingredient_id,{variantId:e.target.value})} disabled={!draft.foodId}>
          <option value="">Variante ainda não escolhida</option>
