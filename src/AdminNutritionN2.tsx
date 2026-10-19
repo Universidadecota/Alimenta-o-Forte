@@ -81,23 +81,21 @@ export default function AdminNutritionN2(){
  const applySuggestions=(chosen:N2Row[])=>{
   setError("");setMessage("");
   let applied=0;
-  setDrafts(previous=>{
-   const next={...previous};
-   for(const row of chosen){
-    const current=next[row.ingredient_id];
-    if(!current||row.match_status==="confirmed"||row.match_status==="candidate")continue;
-    // Não sobrescrever uma edição já iniciada ou salva manualmente.
-    if(current.foodId||current.variantId||current.mass||current.reviewNote||current.matchNotes||current.triageStatus!=="pending")continue;
-    const suggestion=suggestN2Ingredient(row.ingredient_text,foods);
-    next[row.ingredient_id]={
-     ...current,foodId:suggestion.foodId,variantId:"",
-     triageStatus:suggestion.triageStatus,reviewNote:suggestion.reviewNote,
-     matchNotes:suggestion.matchNotes,
-    };
-    applied++;
-   }
-   return next;
-  });
+  const next={...drafts};
+  for(const row of chosen){
+   const current=next[row.ingredient_id];
+   if(!current||row.match_status==="confirmed"||row.match_status==="candidate")continue;
+   // Não sobrescrever uma edição já iniciada ou salva manualmente.
+   if(current.foodId||current.variantId||current.mass||current.massEvidence||current.reviewNote||current.matchNotes||current.triageStatus!=="pending")continue;
+   const suggestion=suggestN2Ingredient(row.ingredient_text,foods);
+   next[row.ingredient_id]={
+    ...current,foodId:suggestion.foodId,variantId:"",
+    triageStatus:suggestion.triageStatus,reviewNote:suggestion.reviewNote,
+    matchNotes:suggestion.matchNotes,
+   };
+   applied++;
+  }
+  setDrafts(next);
   setMessage(applied+" sugestão(ões) aplicada(s) somente aos campos desta página. Revise cada uma e salve apenas o que estiver correto.");
  };
  const saveTriage=async(row:N2Row)=>{
