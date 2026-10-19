@@ -60,9 +60,9 @@ export default function FoodLibrary() {
       <div className="cc-food-detail-grid">
         <section><h3>Sobre este alimento</h3>
           <p>{selected.description || "Registro inicial de alimento para consulta por nome e categoria. A descrição detalhada ainda depende de revisão editorial."}</p>
-          <p><strong>Porção de referência:</strong> {selected.reference_portion_quantity != null && selected.reference_portion_unit
+          <p><strong>Medida de porção doméstica:</strong> {selected.reference_portion_quantity != null && selected.reference_portion_unit
             ? formatIngredientAmount(selected.reference_portion_quantity, selected.reference_portion_unit)
-            : "Não definida"}</p>
+            : "Ainda não cadastrada. Os nutrientes exibidos ao lado são referências por 100 g, não por porção de consumo."}</p>
         </section>
         <FoodNutrition food={selected}/>
       </div>
