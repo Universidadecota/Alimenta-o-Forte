@@ -4,7 +4,7 @@ export const defaultPreferences:FoodPreferences={goal:null,liked_foods:[],dislik
 const normal=(s:string)=>s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
 const groups:Record<string,string[]>={peixe:["peixe","salmao","tilapia","atum","sardinha"],cebola:["cebola"],berinjela:["berinjela","beringela"],pimentao:["pimentao"],figado:["figado"],quiabo:["quiabo"]};
 export function canMatchAvoidedIngredient(meal:Meal,avoids:string[]):boolean{
- const names=meal.ingredients.map(i=>normal(i.name));
+ const names=[...meal.ingredients.map(i=>normal(i.name)),...(meal.pilotSource?[normal(meal.pilotSource.originalIngredients)]:[])];
  return avoids.some(food=>{const terms=groups[normal(food)]??[normal(food)];return names.some(name=>terms.some(term=>name.includes(term)));});
 }
 export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Plan{
@@ -13,7 +13,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Pl
  const servings=Math.max(1,Math.min(20,Math.trunc(prefs.household_size)||1));
  const result:Plan={};
  for(const slot of slots){
-  const available=recipes.filter(r=>recipeFitsSlot(r,slot)&&r.ingredients.length>0&&(!r.pilotSource||r.pilotSource.ingredientsReviewed)&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
+  const available=recipes.filter(r=>recipeFitsSlot(r,slot)&&(r.ingredients.length>0||Boolean(r.pilotSource?.originalIngredients.trim()))&&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
   if(!withinTime.length)throw new Error("Não há receitas na categoria "+slot+" dentro do tempo de preparo escolhido. Ajuste o tempo disponível ou cadastre receitas.");
   const candidates=withinTime;
@@ -21,7 +21,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[]):Pl
   days.forEach((d,i)=>{
    const recipe=ordered[(i+Math.floor(i/ordered.length))%ordered.length];
    const key=dateKey(d);
-   result[key]={...result[key],[slot]:{id:recipe.id,servings}};
+   result[key]={...result[key],[slot]:{id:recipe.id,servings:recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?recipe.servings:servings}};
   });
  }
  return result;
