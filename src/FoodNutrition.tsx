@@ -24,7 +24,7 @@ export default function FoodNutrition({food}:{food:FoodItem}){
  useEffect(()=>{
   let active=true;setLoading(true);setError("");setVariants([]);
   if(!supabase){setLoading(false);setError("Conexão indisponível.");return;}
-  void supabase.rpc("cc_beta_food_nutrition_references",{p_food_id:food.id})
+  void Promise.resolve(supabase.rpc("cc_beta_food_nutrition_references",{p_food_id:food.id}))
    .then(({data,error:loadError})=>{
     if(!active)return;
     if(loadError)setError("As referências nutricionais não puderam ser carregadas.");
