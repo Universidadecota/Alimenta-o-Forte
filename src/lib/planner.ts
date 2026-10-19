@@ -123,6 +123,37 @@ export async function saveMeal(userId:string,weekStart:string,day:string,slot:Sl
  },{onConflict:"meal_plan_id,meal_date,slot"});
  if(error)throw error;
 }
+/** Troca todas as refeições principais em uma só transação no Supabase.
+ * Refeições opcionais e os dados de outros usuários não são alterados.
+ */
+export async function replaceWeekMainMeals(
+ userId:string,weekStart:string,days:Date[],next:Plan,current:Plan
+):Promise<void>{
+ if(!supabase)throw new Error("Supabase indisponível");
+ if(days.length!==7||dateKey(startOfWeek(days[0]))!==weekStart)
+  throw new Error("Semana inválida para troca do cardápio.");
+ const meals:Array<{meal_date:string;slot:string;recipe_id:string;servings:number}>=[];
+ const expected:Record<string,{recipe_id:string;servings:number}>={};
+ for(const day of days){
+  const key=dateKey(day);
+  if(dateKey(startOfWeek(day))!==weekStart)throw new Error("Data fora da semana selecionada.");
+  for(const slot of slots){
+   const saved=current[key]?.[slot];
+   const entry=next[key]?.[slot];
+   if(!entry||!entry.id||!Number.isInteger(entry.servings)||entry.servings<1||entry.servings>20)
+    throw new Error("A sugestão não possui as 21 refeições válidas.");
+   const dbSlot=fromSlot[slot];
+   meals.push({meal_date:key,slot:dbSlot,recipe_id:entry.id,servings:entry.servings});
+   if(saved)expected[key+":"+dbSlot]={recipe_id:saved.id,servings:saved.servings};
+  }
+ }
+ const {data,error:authError}=await supabase.auth.getUser();
+ if(authError||data.user?.id!==userId)throw new Error("Sessão alterada. Entre novamente.");
+ const {error}=await supabase.rpc("cc_replace_week_main_meals",{
+  p_week_start:weekStart,p_meals:meals,p_expected:expected
+ });
+ if(error)throw error;
+}
 export async function removeMeal(userId:string,weekStart:string,day:string,slot:Slot):Promise<void>{
  if(!supabase)throw new Error("Supabase indisponível");
  const {data,error}=await supabase.from("meal_plans").select("id").eq("user_id",userId).eq("week_start",weekStart).maybeSingle();
