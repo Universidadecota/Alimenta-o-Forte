@@ -42,7 +42,7 @@ export default function AdminNutritionN2(){
  const [busyId,setBusyId]=useState<string|null>(null);
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
- const load=async()=>{
+ const load=async(savedIngredientId?:string)=>{
   if(!supabase)return;
   setLoading(true);setError("");
   try{
@@ -59,7 +59,12 @@ export default function AdminNutritionN2(){
    const notesById=new Map(nextNotes.map(n=>[n.ingredient_id,n]));
    setRows(nextRows);setFoods((foodResults.data??[]) as Food[]);
    setVariants((variantResults.data??[]) as Variant[]);setNotes(nextNotes);
-   setDrafts(Object.fromEntries(nextRows.map(r=>[r.ingredient_id,createDraft(r,notesById.get(r.ingredient_id))])));
+   setDrafts(previous=>Object.fromEntries(nextRows.map(r=>[
+    r.ingredient_id,
+    r.ingredient_id===savedIngredientId || !previous[r.ingredient_id]
+     ?createDraft(r,notesById.get(r.ingredient_id))
+     :previous[r.ingredient_id]
+   ])));
    setSelectedRecipe(current=>nextRows.some(r=>r.recipe_id===current)?current:(nextRows[0]?.recipe_id??""));
   }catch(e){setError(e instanceof Error?e.message:"Não foi possível carregar a fila N2.");}
   finally{setLoading(false);}
@@ -114,7 +119,7 @@ export default function AdminNutritionN2(){
    review_note:draft.reviewNote.trim(),
   },{onConflict:"ingredient_id"});
   if(saveError)setError("Não foi possível salvar esta triagem. Verifique sua permissão.");
-  else{setMessage("Triagem registrada, sem aprovar medidas ou nutrientes.");await load();}
+  else{setMessage("Triagem registrada, sem aprovar medidas ou nutrientes.");await load(row.ingredient_id);}
   setBusyId(null);
  };
  const saveCandidate=async(row:N2Row)=>{
@@ -144,7 +149,7 @@ export default function AdminNutritionN2(){
    match_notes:draft.matchNotes.trim(),
   },{onConflict:"ingredient_id"});
   if(saveError)setError("Não foi possível salvar o candidato. Verifique os campos e as permissões.");
-  else{setMessage("Vínculo salvo como CANDIDATO. Continua sem aprovação nutricional.");await load();}
+  else{setMessage("Vínculo salvo como CANDIDATO. Continua sem aprovação nutricional.");await load(row.ingredient_id);}
   setBusyId(null);
  };
  return <section className="detail-panel cc-n2-admin">
