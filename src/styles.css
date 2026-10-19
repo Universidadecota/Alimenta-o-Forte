@@ -594,3 +594,16 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-n2-error{color:#8a2c17;background:#fff0e9;padding:10px 13px;border-radius:9px}
 .cc-n2-success{color:#174e3a;background:#e9f3e9;padding:10px 13px;border-radius:9px}
 @media(max-width:720px){.cc-n2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-n2-row>summary{flex-direction:column;align-items:flex-start}.cc-n2-row>summary small{white-space:normal}.cc-n2-row-body{padding:10px}}
+
+
+/* N2: revisão assistida mantém claro que sugestões não são aprovações. */
+.cc-n2-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:10px 0 14px}
+.cc-n2-assist{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#f0f5ed;border:1px solid #d5e5d2;border-radius:12px;padding:16px;margin:12px 0 17px}
+.cc-n2-assist>div{flex:1 1 250px}
+.cc-n2-assist strong{color:#164538}
+.cc-n2-assist p{margin:7px 0 0}
+.cc-n2-assist button{flex:0 1 270px;text-align:center}
+.cc-n2-suggestion{border-left:3px solid #7b9a78;background:#f4f8f1;padding:10px 14px;border-radius:0 9px 9px 0;margin:10px 0}
+.cc-n2-suggestion p{margin:0 0 9px}
+.cc-n2-suggestion button{font-size:12px;padding:8px 11px}
+@media(max-width:650px){.cc-n2-assist button{flex:1 1 100%}.cc-n2-suggestion{padding:9px}}
