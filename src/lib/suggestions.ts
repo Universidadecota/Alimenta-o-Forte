@@ -20,7 +20,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],cur
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
   // Receitas com prefixo editorial [Exemplo] ficam como recurso de demonstração,
   // não como sugestão prioritária quando existe catálogo normal compatível.
-  const regular=withinTime.filter(r=>!/^\\s*\\[Exemplo\\]/i.test(r.title));
+  const regular=withinTime.filter(r=>!/^\s*\[Exemplo\]/i.test(r.title));
   const candidates=regular.length?regular:withinTime;
   if(!candidates.length)throw new Error("Não há receitas na categoria "+slot+" dentro do tempo de preparo escolhido. Ajuste o tempo disponível ou cadastre receitas.");
   let previousId:string|null=null;
