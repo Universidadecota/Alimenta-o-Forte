@@ -572,3 +572,25 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-nutrition-pending strong{color:#7b897e;font-size:19px}
 .cc-food-nutrition a{color:#205d42;text-decoration:underline;text-underline-offset:2px}
 @media(max-width:650px){.cc-nutrition-grid,.cc-nutrition-pending{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Painel N2: triagem por ingrediente, sem autorizações automáticas. */
+.cc-n2-admin{margin-top:20px}
+.cc-n2-admin>select{display:block;width:100%;max-width:680px;margin:9px 0 14px}
+.cc-n2-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:15px 0}
+.cc-n2-stats span{background:#f3f7f1;border:1px solid #dfe8db;border-radius:10px;padding:12px;font-size:12px;color:#557166}
+.cc-n2-stats strong{display:block;font-size:23px;color:#173f34;margin-bottom:3px}
+.cc-n2-ingredients{display:grid;gap:12px;margin:16px 0}
+.cc-n2-row{border:1px solid #dfe7dd;background:#fbfcfa;border-radius:13px;overflow:hidden}
+.cc-n2-row>summary{cursor:pointer;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;color:#173e32}
+.cc-n2-row>summary small{font-size:11px;font-weight:500;color:#64796b;white-space:nowrap}
+.cc-n2-row[open]>summary{background:#eaf2e9}
+.cc-n2-row-body{padding:16px}
+.cc-n2-fields{min-width:0;border:1px solid #e0e6dd;border-radius:10px;background:white;padding:14px;margin:15px 0;display:grid;gap:12px}
+.cc-n2-fields legend{font-size:14px;font-weight:700;padding:0 6px;color:#173f34}
+.cc-n2-fields label{display:grid;gap:5px;font-size:12px;font-weight:600;color:#425c4d}
+.cc-n2-fields input,.cc-n2-fields textarea,.cc-n2-fields select{width:100%;box-sizing:border-box;border:1px solid #cbd8c9;border-radius:8px;background:#fff;color:#173f34;padding:10px;font:inherit}
+.cc-n2-fields button{justify-self:start}
+.cc-n2-error{color:#8a2c17;background:#fff0e9;padding:10px 13px;border-radius:9px}
+.cc-n2-success{color:#174e3a;background:#e9f3e9;padding:10px 13px;border-radius:9px}
+@media(max-width:720px){.cc-n2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-n2-row>summary{flex-direction:column;align-items:flex-start}.cc-n2-row>summary small{white-space:normal}.cc-n2-row-body{padding:10px}}
