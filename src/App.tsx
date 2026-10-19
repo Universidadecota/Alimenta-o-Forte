@@ -101,6 +101,7 @@ export default function App(){
   return ()=>{active=false;};
  },[page,userId,weekStart,loading,plan,recipes]);
  useEffect(()=>{if(!supabase)setDone([]);},[weekStart]);
+ useEffect(()=>{setWeekSuggestionProgress("");},[weekStart,userId]);
  const syncChangedPurchases=async(before:Plan,after:Plan)=>{
   const oldItems=[...consolidateShopping(days,before,recipes),...collectPilotShopping(days,before,recipes)];
   const newItems=[...consolidateShopping(days,after,recipes),...collectPilotShopping(days,after,recipes)];
@@ -172,7 +173,7 @@ export default function App(){
     try{setPlan(await loadWeek(userId,weekStart));}
     catch{setError("Não foi possível confirmar o estado salvo. Atualize o cardápio antes de continuar.");return;}
    }
-   setError("A troca da semana não foi concluída. Suas refeições anteriores foram preservadas. "+detail);
+   setError("Não foi possível confirmar a renovação. O cardápio foi recarregado do banco; confira as refeições exibidas antes de tentar novamente. "+detail);
   }finally{setSaving(false);}
  };
  const copyMeal=async(slot:Slot,destinationDay:string)=>{
