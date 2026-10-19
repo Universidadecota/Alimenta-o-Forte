@@ -3,7 +3,7 @@ import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasure
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
 
-export type PrintKind="week"|"shopping";
+export type PrintKind="fridge"|"week"|"shopping";
 export type WeeklyPrintData={
  kind:PrintKind;days:Date[];plan:Plan;recipes:Meal[];
  shopping:ShoppingItem[];pilotShopping:PilotShoppingItem[];
@@ -21,7 +21,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  const {kind,days,plan,recipes,shopping,pilotShopping,notes,purchasedKeys}=data;
  const byId=new Map(recipes.map(r=>[r.id,r]));
  const dateRange=period(days);
- const heading=kind==="week"?"Cardápio e receitas da semana":"Lista de compras da semana";
+ const heading=kind==="fridge"?"Cardápio da semana":kind==="week"?"Cardápio e receitas da semana":"Lista de compras da semana";
  const checklist=(item:ShoppingItem,label:string,comment="")=>`
   <li class="item"><span class="square">${purchasedKeys.includes(purchaseKey(item))?"✓":""}</span>
    <div><strong>${safe(label)}</strong>${comment?`<small>${safe(comment)}</small>`:""}</div></li>`;
@@ -62,18 +62,24 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    ${recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?'<p class="warning">Medidas originais preservadas; não houve redimensionamento automático.</p>':""}
    </article>`;
  }).join("");
+ const requiresSourceReview=(item:PilotShoppingItem)=>/^(?:[0-9]+|[½¼¾⅓⅔])\s*(?:x[ií]cara|colher(?:es)?)(?:\s+\([^)]*\))?\s*\.?$/i.test(item.sourceText.trim())||/\(receita abaixo\)/i.test(item.sourceText);
+ const availablePilot=pilotShopping.filter(item=>!requiresSourceReview(item));
+ const needsReview=pilotShopping.filter(requiresSourceReview);
  const shoppingBody=`
- <h2>Ingredientes com quantidades estruturadas</h2>
- ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:'<p class="muted">Nenhum item estruturado nesta semana.</p>'}
- ${pilotShopping.length?`<h2>Ingredientes das receitas originais</h2>
+ ${shopping.length?"<h2>Ingredientes com quantidades estruturadas</h2>":""}
+ ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:""}
+ ${availablePilot.length?`<h2>Ingredientes das receitas originais</h2>
  <p class="muted">Medidas conforme as receitas, sem redimensionamento. Somente equivalências seguras são somadas. Quando não há quantidade clara, “usos” indica a frequência no cardápio, não unidades para comprar.</p>
- <ul class="checklist">${pilotShopping.map(item=>checklist(item,item.totalLabel??item.sourceText,
+ <ul class="checklist">${availablePilot.map(item=>checklist(item,item.totalLabel??item.sourceText,
  [
   !item.totalLabel&&item.quantity>1?item.quantity+" usos no cardápio":"",
   item.requiresChoice?"Escolha entre as alternativas":"",
   item.optionalSource?"Opcional":"",
   item.ambiguousSource?"Confira o texto original":""
  ].filter(Boolean).join(" · "))).join("")}</ul>`:""}
+ ${needsReview.length?`<h2>Referências incompletas: conferir na receita</h2>
+ <p class="muted">Estes trechos não identificam claramente um produto para compra e não devem ser considerados como quantidades a adquirir.</p>
+ <ul class="review-list">${needsReview.map(item=>`<li>${safe(item.sourceText)}</li>`).join("")}</ul>`:""}
  ${notes.length?`<h2>Opcionais, a gosto ou sem quantidade definida</h2>
  <ul class="checklist">${notes.map(item=>`<li class="item"><span class="square"></span><div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div></li>`).join("")}</ul>`:""}
  ${!shopping.length&&!pilotShopping.length&&!notes.length?'<p class="muted">Planeje refeições para gerar a lista de compras.</p>':""}
@@ -90,11 +96,11 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  p,li{font-size:12px}p{margin:5px 0 10px}.muted{color:#506258;font-size:11px}.warning{font-size:11px;color:#715625}
  .brand{font-family:Georgia,serif;font-size:16px;letter-spacing:.01em}.subhead{font-size:12px;color:#506258;margin:0 0 15px}
  .toolbar{display:flex;gap:10px;margin-bottom:14px;align-items:center}.toolbar button{background:#153f34;color:white;border:0;border-radius:7px;padding:10px 15px;cursor:pointer}
- .week{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
- .day{break-inside:avoid;border:1px solid #cfd9ce;border-radius:9px;padding:11px}
- .slot{display:flex;gap:5px;flex-direction:column;border-top:1px solid #edf0eb;padding:5px 0}
- .slot span{font-size:10px;color:#506258}.slot strong{font-size:12px}
- .recipe{break-inside:avoid-page;border-top:1px solid #cdd5cc;padding:13px 0}
+ .week{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .day{break-inside:avoid;border:1px solid #cfd9ce;border-radius:8px;padding:7px 9px}
+ .slot{display:flex;gap:2px;flex-direction:column;border-top:1px solid #edf0eb;padding:3px 0}
+ .slot span{font-size:9px;color:#506258}.slot strong{font-size:11px;line-height:1.2}
+ .review-list{margin:4px 0 12px;padding-left:18px}.review-list li{margin:2px 0;font-size:11px}.recipe{break-inside:avoid-page;border-top:1px solid #cdd5cc;padding:13px 0}
  .recipe-body{display:grid;grid-template-columns:1fr 1fr;gap:22px}
  .recipe li{margin-bottom:3px}.original{white-space:pre-wrap}
  .checklist{padding:0;list-style:none;columns:2;column-gap:20px}.item{break-inside:avoid;display:flex;align-items:flex-start;gap:8px;border-bottom:1px solid #edf0ea;padding:6px 0}
@@ -102,15 +108,24 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  .square{border:1px solid #8b998e;width:14px;height:14px;flex:0 0 14px;text-align:center;line-height:12px;margin-top:2px}
  .page-break{break-before:page}.foot{font-size:10px;margin-top:20px;color:#506258}
  @media(max-width:680px){.week{grid-template-columns:1fr}.recipe-body{grid-template-columns:1fr}.checklist{columns:1}}
- @media print{body{padding:0;max-width:none}.toolbar{display:none}.week{grid-template-columns:repeat(2,minmax(0,1fr))}
+ @media print{body{padding:0;max-width:none}.toolbar{display:none}.week{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+ .day{padding:5px 7px;border-radius:5px;line-height:1.1}
+ .day h3{font-size:11px;margin:0 0 3px}
+ .slot{padding:2px 0;gap:1px}
+ .slot span{font-size:8px}.slot strong{font-size:9px;line-height:1.18}
+ body:has(.week){line-height:1.2}
+ body:has(.week) header h1{font-size:21px;margin:4px 0}
+ body:has(.week) h2{font-size:14px;margin-top:9px;padding-bottom:4px}
+ body:has(.week) .subhead{margin:0 0 8px}
+ body:has(.week) .brand{font-size:14px}
  .recipe-body{grid-template-columns:1fr 1fr}.checklist{columns:2}a{color:inherit;text-decoration:none}}
  </style></head><body>
  <div class="toolbar"><button type="button" onclick="window.print()">Imprimir / salvar como PDF</button>
  <span class="muted">Para baixar, escolha “Salvar como PDF”. Para retirar data e endereço do papel, desmarque “Cabeçalhos e rodapés” nas opções de impressão.</span></div>
  <header><div class="brand">Costa&amp;Costa · Alimentação Forte</div><h1>${safe(heading)}</h1><p class="subhead">${safe(dateRange)}</p></header>
- ${kind==="week"?`<h2>Planejamento dos sete dias</h2><div class="week">${dayCards}</div>
- <section class="page-break"><h2>Receitas completas da semana</h2>
- <p class="muted">Cada receita aparece uma única vez, mesmo quando se repete no cardápio.</p>${sheets||'<p>Sem receitas planejadas.</p>'}</section>`:shoppingBody}
+ ${kind!=="shopping"?`<h2>Planejamento dos sete dias</h2><div class="week">${dayCards}</div>
+ ${kind==="week"?`<section class="page-break"><h2>Receitas completas da semana</h2>
+ <p class="muted">Cada receita aparece uma única vez, mesmo quando se repete no cardápio.</p>${sheets||'<p>Sem receitas planejadas.</p>'}</section>`:""}`:shoppingBody}
  <footer class="foot">Costa&amp;Costa · Material de organização culinária. Alergênicos, contaminação cruzada e composição nutricional podem não estar verificados. Confira ingredientes e rótulos antes de consumir.</footer>
  </body></html>`;
 }
