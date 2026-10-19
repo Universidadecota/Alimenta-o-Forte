@@ -1,5 +1,6 @@
 import {useEffect,useMemo,useState} from "react";
 import {supabase} from "./lib/supabase";
+import {suggestN2Ingredient} from "./lib/n2CandidateSuggestions";
 
 type N2Row={
  recipe_id:string;recipe_title:string;recipe_category:string;original_yield:string;
@@ -69,11 +70,35 @@ export default function AdminNutritionN2(){
   return rows.filter(row=>{if(seen.has(row.recipe_id))return false;seen.add(row.recipe_id);return true;});
  },[rows]);
  const recipeRows=rows.filter(row=>row.recipe_id===selectedRecipe);
+ const possibleMatches=recipeRows.filter(row=>Boolean(suggestN2Ingredient(row.ingredient_text,foods).foodId)).length;
  const documented=rows.filter(row=>row.match_status==="candidate").length;
  const reviewed=notes.filter(note=>note.triage_status!=="pending").length;
  const patch=(ingredientId:string,change:Partial<Draft>)=>{
   setDrafts(previous=>({...previous,[ingredientId]:{...previous[ingredientId],...change}}));
   setMessage("");
+ };
+ // Pré-preenche apenas a tela. Não grava nem aprova vínculo, massa ou nutriente.
+ const applySuggestions=(chosen:N2Row[])=>{
+  setError("");setMessage("");
+  let applied=0;
+  setDrafts(previous=>{
+   const next={...previous};
+   for(const row of chosen){
+    const current=next[row.ingredient_id];
+    if(!current||row.match_status==="confirmed"||row.match_status==="candidate")continue;
+    // Não sobrescrever uma edição já iniciada ou salva manualmente.
+    if(current.foodId||current.variantId||current.mass||current.reviewNote||current.matchNotes||current.triageStatus!=="pending")continue;
+    const suggestion=suggestN2Ingredient(row.ingredient_text,foods);
+    next[row.ingredient_id]={
+     ...current,foodId:suggestion.foodId,variantId:"",
+     triageStatus:suggestion.triageStatus,reviewNote:suggestion.reviewNote,
+     matchNotes:suggestion.matchNotes,
+    };
+    applied++;
+   }
+   return next;
+  });
+  setMessage(applied+" sugestão(ões) aplicada(s) somente aos campos desta página. Revise cada uma e salve apenas o que estiver correto.");
  };
  const saveTriage=async(row:N2Row)=>{
   if(!supabase||busyId)return;
@@ -130,7 +155,7 @@ export default function AdminNutritionN2(){
    <span><strong>{documented}</strong> vínculos candidatos</span>
    <span><strong>{reviewed}</strong> triagens registradas</span>
   </div>
-  <button type="button" className="secondary" disabled={loading||busyId!==null} onClick={()=>void load()}>Atualizar fila N2</button>
+  <div className="cc-n2-actions"><button type="button" className="secondary" disabled={loading||busyId!==null} onClick={()=>void load()}>Atualizar fila N2</button></div>
   {loading&&<p role="status" className="detail-note">Carregando a fila administrativa...</p>}
   {error&&<p role="alert" className="cc-n2-error">{error}</p>}
   {message&&<p role="status" className="cc-n2-success">{message}</p>}
@@ -141,13 +166,25 @@ export default function AdminNutritionN2(){
     {recipeOptions.map(row=><option key={row.recipe_id} value={row.recipe_id}>{row.recipe_title} · {row.ingredient_count} ingredientes</option>)}
    </select>
    <p className="detail-note"><strong>Rendimento conforme receita:</strong> {recipeRows[0]?.original_yield}. Isso não representa peso líquido aferido.</p>
+   <div className="cc-n2-assist">
+    <div><strong>Pré-triagem assistida</strong>
+     <p className="detail-note">{possibleMatches} de {recipeRows.length} ingredientes possuem possível correspondência textual com os alimentos cadastrados. Para os demais, o sistema apenas sugere a pendência que precisa ser investigada.</p>
+     <p className="detail-note">Nenhuma massa, variante nutricional ou revisão será preenchida automaticamente. As sugestões são locais e não alteram o banco até que você escolha salvar.</p>
+    </div>
+    <button type="button" className="secondary" disabled={loading||busyId!==null} onClick={()=>applySuggestions(recipeRows)}>Pré-preencher sugestões desta receita</button>
+   </div>
    <div className="cc-n2-ingredients">{recipeRows.map((row,index)=>{
     const draft=drafts[row.ingredient_id]??createDraft(row,undefined);
     const filtered=variants.filter(v=>v.food_item_id===draft.foodId);
+    const suggestion=suggestN2Ingredient(row.ingredient_text,foods);
     return <details className="cc-n2-row" key={row.ingredient_id} open={index===0}>
      <summary><span>{index+1}. {row.ingredient_text}</span><small>{row.match_status==="candidate"?"Candidato registrado":"Sem vínculo"} · medida {row.measure_status}</small></summary>
      <div className="cc-n2-row-body">
       <p className="detail-note">Ingrediente original preservado. Revisão da medida: <strong>{row.measure_status}</strong>. Nenhum valor nutricional está aprovado.</p>
+      <div className="cc-n2-suggestion">
+       <p className="detail-note"><strong>Sugestão automática (não aprovada):</strong> {suggestion.reason}</p>
+       <button type="button" className="secondary" disabled={busyId!==null} onClick={()=>applySuggestions([row])}>Usar sugestão neste formulário</button>
+      </div>
       <fieldset className="cc-n2-fields">
        <legend>1. Registrar pendência editorial</legend>
        <label>Situação da triagem
