@@ -106,7 +106,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    item.ambiguousSource?"Confira o texto original":""
   ].filter(Boolean).join(" · "));
  }).join("");
- const shoppingBody=
+ const shoppingBody=`
  ${shopping.length?"<h2>Ingredientes com quantidades estruturadas</h2>":""}
  ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:""}
  ${availablePilot.length?`<h2>Ingredientes das receitas originais</h2>
