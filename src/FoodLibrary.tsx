@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Apple, ArrowLeft, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Info, Search } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Info, Search } from "lucide-react";
+import FoodIcon from "./FoodIcon";
+import FoodNutrition from "./FoodNutrition";
 import { fetchFoodItems, foodCategories, foodCategoryLabel, FOOD_PAGE_SIZE, type FoodCategory, type FoodItem } from "./lib/foodLibrary";
 import { formatIngredientAmount } from "./lib/ingredientMeasures";
 
@@ -48,7 +50,7 @@ export default function FoodLibrary() {
     </button>
     <div className="cc-food-detail">
       <div className="cc-food-detail-header">
-        <div className="cc-food-detail-symbol" aria-hidden="true"><Apple size={33} strokeWidth={1.5}/></div>
+        <div className="cc-food-detail-symbol" aria-hidden="true"><FoodIcon category={selected.category} name={selected.name} size={33}/></div>
         <div>
           <p className="cc-food-kicker">{selected.published?"BIBLIOTECA DE ALIMENTOS":"ACERVO PILOTO · CONSULTA ADMINISTRATIVA"}</p>
           <h2 id="cc-food-detail-title">{selected.name}</h2>
@@ -62,30 +64,25 @@ export default function FoodLibrary() {
             ? formatIngredientAmount(selected.reference_portion_quantity, selected.reference_portion_unit)
             : "Não definida"}</p>
         </section>
-        <section><h3>Informações nutricionais</h3>
-          <p>{selected.nutrition_reviewed_at && selected.nutrition_source && selected.editorial_status==="verified"
-            ? "Dados nutricionais revisados; a apresentação detalhada será disponibilizada após homologação do formato."
-            : "Ainda não há valores nutricionais verificados nesta ficha."}</p>
-          {selected.nutrition_source && <p><strong>Fonte declarada:</strong> {selected.nutrition_source}</p>}
-        </section>
+        <FoodNutrition food={selected}/>
       </div>
       <div className="cc-food-safety"><Info size={19} aria-hidden="true"/>
         <p>Informações de alergênicos e contato cruzado ainda não foram avaliadas nesta ficha. Não utilize esta biblioteca para determinar se um alimento é seguro em caso de alergia ou intolerância. {selected.published?"":"Este registro permanece preliminar e restrito à administração."}</p>
       </div>
-      <p className="cc-food-footnote">Ficha {selected.editorial_status==="verified"?"com revisão editorial registrada":"de classificação preliminar"}. Nenhuma informação nutricional foi estimada pelo aplicativo.</p>
+      <p className="cc-food-footnote">Ficha {selected.editorial_status==="verified"?"com revisão editorial registrada":"de classificação preliminar"}. Os valores apresentados vêm das fontes citadas, não de cálculos inventados pelo aplicativo.</p>
     </div>
   </section>;
 
   return <section className="cc-food-library" aria-labelledby="cc-food-title">
     <div className="cc-food-intro">
-      <div className="cc-food-intro-icon" aria-hidden="true"><Apple size={28}/></div>
+      <div className="cc-food-intro-icon" aria-hidden="true"><FoodIcon category="frutas" name="Alimento" size={28}/></div>
       <div><p className="cc-food-kicker">CONHEÇA SEUS ALIMENTOS</p>
         <h2 id="cc-food-title">Biblioteca de Alimentos Brasileiros</h2>
         <p>Explore ingredientes por nome e categoria. No acesso administrativo, também aparecem os novos cadastros preliminares para uso pessoal; eles não estão publicados para outros usuários.</p>
       </div>
     </div>
     <div className="cc-food-caution"><Info size={17} aria-hidden="true"/>
-      <span>Catálogo inicial com classificações preliminares. Valores nutricionais, alergênicos e porções de referência aguardam revisão técnica.</span>
+      <span>Biblioteca beta: consulte os nutrientes que já têm fonte identificada. As referências exibidas ainda podem depender de revisão técnica; outras fichas não possuem dados disponíveis.</span>
     </div>
     <form className="cc-food-search" onSubmit={submitSearch} role="search">
       <label htmlFor="cc-food-query">Pesquisar alimento</label>
@@ -114,7 +111,7 @@ export default function FoodLibrary() {
     {!busy && !error && <div className="cc-food-grid">
       {items.map(item=><button type="button" className="cc-food-card" key={item.id}
         onClick={()=>setSelected(item)} aria-label={"Abrir ficha de "+item.name}>
-        <div className="cc-food-card-art" aria-hidden="true"><Apple size={29} strokeWidth={1.4}/></div>
+        <div className="cc-food-card-art" aria-hidden="true"><FoodIcon category={item.category} name={item.name} size={29}/></div>
         <span className="cc-food-card-category">{foodCategoryLabel(item.category)}</span>
         <strong>{item.name}</strong>
         <span className="cc-food-card-meta">{!item.published?"Piloto pessoal · não publicado":item.editorial_status==="verified"?"Conteúdo em revisão":"Informações básicas"}</span>
