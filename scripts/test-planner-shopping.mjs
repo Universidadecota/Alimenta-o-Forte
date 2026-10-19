@@ -211,6 +211,16 @@ const printWeek=printable.buildWeeklyPrintHtml({
  recipes:[betaBreakfast,betaLunch,betaDinner],
  shopping:[],pilotShopping:[],notes:[],purchasedKeys:[]
 });
+const fridge=printable.buildWeeklyPrintHtml({
+ kind:"fridge",days:betaDays,plan:betaSuggested,
+ recipes:[betaBreakfast,betaLunch,betaDinner],
+ shopping:[],pilotShopping:[],notes:[],purchasedKeys:[]
+});
+assert.match(fridge,/Planejamento dos sete dias/);
+assert.doesNotMatch(fridge,/Receitas completas da semana/,
+ "Resumo para geladeira não deve conter fichas de receitas");
+assert.equal((fridge.match(/class="day"/g)??[]).length,7,
+ "Resumo semanal precisa mostrar os sete dias");
 assert.match(printWeek,/Receitas completas da semana/);
 assert.match(printWeek,/2 ovos, sal/);
 assert.equal((printWeek.match(/<article class="recipe">/g)||[]).length,3,
@@ -227,6 +237,18 @@ assert.match(printList,/leite de coco/);
 assert.match(printList,/Pimenta/);
 assert.doesNotMatch(printList,/1 uso\\(s\\)/,"Impressão deve evitar texto técnico repetitivo");
 assert.doesNotMatch(printList,/Receitas: /,"Lista resumida não deve listar receitas em cada item");
+const questionable=printable.buildWeeklyPrintHtml({
+ kind:"shopping",days:betaDays,plan:betaSuggested,
+ recipes:[betaBreakfast,betaLunch,betaDinner],shopping:[],
+ pilotShopping:[
+  {...pilotList[0],sourceText:"1 xícara",totalLabel:undefined},
+  {...pilotList[0],sourceText:"Molho Caesar (receita abaixo)",totalLabel:undefined}
+ ],notes:[],purchasedKeys:[]
+});
+assert.match(questionable,/Referências incompletas: conferir na receita/);
+assert.match(questionable,/1 xícara/);
+assert.match(questionable,/Molho Caesar \(receita abaixo\)/);
+
 const timeRecipe={...betaBreakfast,pilotSource:{...betaBreakfast.pilotSource,originalTime:"Tempo: 20 min | Porção: 2"}};
 const cleanedPrint=printable.buildWeeklyPrintHtml({
  kind:"week",days:betaDays,plan:betaSuggested,
