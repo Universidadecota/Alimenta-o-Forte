@@ -27,6 +27,7 @@ const planner=await importPure("../src/lib/planner.ts");
 const shopping=await importPure("../src/lib/shopping.ts");
 const suggest=await importPure("../src/lib/suggestions.ts");
 const progress=await importPure("../src/lib/shoppingProgress.ts");
+const printable=await importPure("../src/lib/weeklyPrint.ts");
 const day=new Date(2026,9,18,12);
 const monday=planner.startOfWeek(day);
 assert.equal(planner.dateKey(monday),"2026-10-12");
@@ -205,4 +206,23 @@ assert.throws(()=>suggest.proposeWeek(twoPerSlot,{
  ...suggest.defaultPreferences,allergies:["Soja"]
 },betaDays,initialWeek),/alergias\/intolerâncias/,
  "Regenerar uma semana não pode ignorar alergias cadastradas");
+const printWeek=printable.buildWeeklyPrintHtml({
+ kind:"week",days:betaDays,plan:betaSuggested,
+ recipes:[betaBreakfast,betaLunch,betaDinner],
+ shopping:[],pilotShopping:[],notes:[],purchasedKeys:[]
+});
+assert.match(printWeek,/Receitas completas da semana/);
+assert.match(printWeek,/2 ovos, sal/);
+assert.equal((printWeek.match(/<article class="recipe">/g)||[]).length,3,
+ "Cada receita deve aparecer uma vez no material impresso");
+const printList=printable.buildWeeklyPrintHtml({
+ kind:"shopping",days:betaDays,plan:betaSuggested,
+ recipes:[betaBreakfast,betaLunch,betaDinner],
+ shopping:[{name:"Arroz",quantity:320,unit:"g"}],
+ pilotShopping:pilotList,notes:[{name:"Pimenta",description:"a gosto"}],
+ purchasedKeys:[progress.purchaseKey({name:"Arroz",quantity:320,unit:"g"})]
+});
+assert.match(printList,/Arroz/);
+assert.match(printList,/leite de coco/);
+assert.match(printList,/Pimenta/);
 console.log("OK: horários, acervo piloto, quantidades de compras e bloqueio por alergias, sem Supabase.");
