@@ -179,7 +179,7 @@ export default function AdminNutritionN2(){
      <div className="cc-n2-availability">
       <strong>Correspondências publicadas: {possibleMatches-prelimMatches}</strong>
       <strong>Cadastros preliminares: {prelimMatches}</strong>
-      <strong>Sem associação segura: {recipeRows.length-possibleMatches}</strong>
+      <strong>Sem correspondência textual: {recipeRows.length-possibleMatches}</strong>
      </div>
      <p className="detail-note">Nenhuma massa, variante nutricional ou revisão será preenchida automaticamente. As sugestões são locais e não alteram o banco até que você escolha salvar.</p>
     </div>
