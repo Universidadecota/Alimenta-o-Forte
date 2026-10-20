@@ -79,6 +79,19 @@ export default function AdminNutritionN2(){
  const possibleMatches=suggestionsForRecipe.filter(({suggestion})=>Boolean(suggestion.foodId)).length;
  const prelimMatches=suggestionsForRecipe.filter(({suggestion})=>suggestion.foodPublication==="preliminary").length;
  const unpublishedFoods=foods.filter(f=>!f.published).length;
+ // Somente justificativas revisadas, sem inferência de nutrientes ou aprovação.
+ const incompleteTriages=recipeRows.filter(row=>{
+  const draft=drafts[row.ingredient_id];
+  return draft&&draft.triageStatus!=="pending"&&draft.reviewNote.trim().length<12;
+ }).length;
+ const triageBatch=recipeRows.flatMap(row=>{
+  const draft=drafts[row.ingredient_id];
+  if(!draft||draft.triageStatus==="pending"||draft.reviewNote.trim().length<12)return [];
+  const note=notes.find(n=>n.ingredient_id===row.ingredient_id);
+  const review_note=draft.reviewNote.trim();
+  if(note?.triage_status===draft.triageStatus&&note.review_note===review_note)return [];
+  return [{ingredient_id:row.ingredient_id,triage_status:draft.triageStatus,review_note}];
+ });
  const documented=rows.filter(row=>row.match_status==="candidate").length;
  const reviewed=notes.filter(note=>note.triage_status!=="pending").length;
  const patch=(ingredientId:string,change:Partial<Draft>)=>{
@@ -105,6 +118,23 @@ export default function AdminNutritionN2(){
   }
   setDrafts(next);
   setMessage(applied+" sugestão(ões) aplicada(s) somente aos campos desta página. Revise cada uma e salve apenas o que estiver correto.");
+ };
+ const saveTriageBatch=async()=>{
+  if(!supabase||busyId||loading||incompleteTriages||triageBatch.length===0)return;
+  if(!window.confirm(
+   "Registrar "+triageBatch.length+" pendência(s) revisada(s) desta receita? Apenas o estado e a justificativa serão salvos; nenhum vínculo, massa ou valor nutricional será aprovado."
+  ))return;
+  setBusyId("batch");setError("");setMessage("");
+  try{
+   const {data,error:saveError}=await supabase.rpc("cc_n2_save_recipe_triage_batch",{
+    p_recipe_id:selectedRecipe,p_entries:triageBatch
+   });
+   if(saveError)throw saveError;
+   await load();
+   setMessage("Pendências registradas com sucesso ("+Number(data??triageBatch.length)+" alterações). Vínculos, massas e nutrientes continuam sem aprovação.");
+  }catch{
+   setError("Não foi possível registrar o lote de pendências. Nenhuma aprovação nutricional foi efetuada; confira sua conexão e tente novamente.");
+  }finally{setBusyId(null);}
  };
  const saveTriage=async(row:N2Row)=>{
   if(!supabase||busyId)return;
@@ -183,7 +213,13 @@ export default function AdminNutritionN2(){
      </div>
      <p className="detail-note">Nenhuma massa, variante nutricional ou revisão será preenchida automaticamente. As sugestões são locais e não alteram o banco até que você escolha salvar.</p>
     </div>
-    <button type="button" className="secondary" disabled={loading||busyId!==null} onClick={()=>applySuggestions(recipeRows)}>Pré-preencher sugestões desta receita</button>
+    <div className="cc-n2-batch-actions">
+     <button type="button" className="secondary" disabled={loading||busyId!==null} onClick={()=>applySuggestions(recipeRows)}>Pré-preencher sugestões desta receita</button>
+     <button type="button" disabled={loading||busyId!==null||incompleteTriages>0||triageBatch.length===0} onClick={()=>void saveTriageBatch()}>
+      {busyId==="batch"?"Salvando pendências...":"Salvar "+triageBatch.length+" pendência(s) revisada(s)"}
+     </button>
+     {incompleteTriages>0&&<p className="detail-note" role="status">{incompleteTriages} justificativa(s) incompleta(s). Revise antes de salvar o conjunto.</p>}
+    </div>
    </div>
    <div className="cc-n2-ingredients">{recipeRows.map((row,index)=>{
     const draft=drafts[row.ingredient_id]??createDraft(row,undefined);
