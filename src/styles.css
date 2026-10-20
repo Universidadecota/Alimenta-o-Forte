@@ -613,3 +613,10 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-n2-availability{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 .cc-n2-availability strong{background:#fff;border:1px solid #d6e2d4;border-radius:8px;padding:7px 9px;font-size:12px;font-weight:600;color:#2b503b}
 .cc-n2-preliminary{border:1px solid #e7d4a9;background:#fff8e7;color:#6a5221;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;margin:8px 0}
+
+
+/* N2: validação humana do lote antes de gravar apenas pendências editoriais. */
+.cc-n2-batch-actions{display:flex;flex-direction:column;align-items:stretch;gap:9px;flex:0 1 285px;min-width:235px}
+.cc-n2-assist .cc-n2-batch-actions button{flex:none;width:100%;white-space:normal;line-height:1.35}
+.cc-n2-batch-actions>p{margin:2px 0 0}
+@media(max-width:720px){.cc-n2-batch-actions{flex:1 1 100%;min-width:0}}
