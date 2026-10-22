@@ -29,6 +29,20 @@ const suggest=await importPure("../src/lib/suggestions.ts");
 const progress=await importPure("../src/lib/shoppingProgress.ts");
 const printable=await importPure("../src/lib/weeklyPrint.ts");
 const readiness=await importPure("../src/lib/flowReadiness.ts");
+const authRedirect=await importPure("../src/lib/authRedirect.ts");
+assert.equal(authRedirect.EMAIL_CONFIRM_REDIRECT,"https://alimentacaoforte.epsacore.com.br/");
+assert.equal(authRedirect.PASSWORD_RECOVERY_REDIRECT,
+ "https://alimentacaoforte.epsacore.com.br/?cc_auth_action=recover");
+assert.equal(authRedirect.isRecoveryCallbackUrl(authRedirect.PASSWORD_RECOVERY_REDIRECT),true);
+assert.equal(authRedirect.isRecoveryCallbackUrl(
+ "https://alimentacaoforte.epsacore.com.br/?cc_auth_action=recover&code=fake"),true);
+assert.equal(authRedirect.isRecoveryCallbackUrl(
+ "https://evil.example/?cc_auth_action=recover"),false);
+assert.equal(authRedirect.isRecoveryCallbackUrl("not a url"),false);
+assert.equal(authRedirect.isRecoveryCallbackUrl(
+ "https://alimentacaoforte.epsacore.com.br/?cc_auth_action=login"),false);
+assert.equal(authRedirect.isRecoveryCallbackUrl(
+ "http://alimentacaoforte.epsacore.com.br/?cc_auth_action=recover"),false);
 const n2=await importPure("../src/lib/n2CandidateSuggestions.ts");
 const n2Foods=[
  {id:"egg",name:"Ovo de galinha"},{id:"tomato",name:"Tomate"},
