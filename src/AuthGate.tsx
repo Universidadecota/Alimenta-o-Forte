@@ -18,6 +18,9 @@ export default function AuthGate({children}:{children:ReactNode}){
  const [mode,setMode]=useState<"login"|"signup"|"reset">("login");
  const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);
+ const [recoveryAttempt,setRecoveryAttempt]=useState<{email:string;outcome:"received"|"limited"}|null>(null);
+ const currentEmail=email.trim().toLowerCase();
+ const recoveryAlreadyAttempted=mode==="reset"&&recoveryAttempt?.email===currentEmail;
  const [recoveryMode,setRecoveryMode]=useState(()=>isRecoveryCallbackUrl(window.location.href));
  const [newPassword,setNewPassword]=useState("");
  const [repeatPassword,setRepeatPassword]=useState("");
