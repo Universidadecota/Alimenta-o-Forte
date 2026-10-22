@@ -21,6 +21,13 @@ export default function AuthGate({children}:{children:ReactNode}){
  const [recoveryAttempt,setRecoveryAttempt]=useState<{email:string;outcome:"received"|"limited"}|null>(null);
  const currentEmail=email.trim().toLowerCase();
  const recoveryAlreadyAttempted=mode==="reset"&&recoveryAttempt?.email===currentEmail;
+ useEffect(()=>{
+  if(!recoveryAttempt)return;
+  // Intervalo mínimo local antes de habilitar nova tentativa. O servidor pode
+  // continuar limitando envios além desse intervalo.
+  const timeout=window.setTimeout(()=>setRecoveryAttempt(null),60_000);
+  return ()=>window.clearTimeout(timeout);
+ },[recoveryAttempt]);
  const [recoveryMode,setRecoveryMode]=useState(()=>isRecoveryCallbackUrl(window.location.href));
  const [newPassword,setNewPassword]=useState("");
  const [repeatPassword,setRepeatPassword]=useState("");
