@@ -150,7 +150,15 @@ export default function AuthGate({children}:{children:ReactNode}){
  <label><Mail size={16}/> E-mail<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@exemplo.com"/></label>
  {mode!=="reset"&&<label><Lock size={16}/> Senha<input type="password" required minLength={6} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Sua senha"/></label>}
  {message&&<div className="auth-message" role="status">{message}</div>}
- <button disabled={busy} className="primary auth-submit" type="submit"><UserRound size={17}/>{busy?"Aguarde...":mode==="signup"?"Criar conta":mode==="reset"?"Enviar recuperação":"Entrar"}</button>
+ {mode==="reset"&&recoveryAlreadyAttempted&&<p className="detail-note" role="status">
+  {recoveryAttempt?.outcome==="limited"
+   ?"A solicitação foi bloqueada por limite de envio. Confira mensagens anteriores e tente mais tarde."
+   :"Este pedido já foi recebido. Verifique seu e-mail antes de solicitar outro link."}
+ </p>}
+ <button disabled={busy||recoveryAlreadyAttempted} className="primary auth-submit" type="submit"><UserRound size={17}/>
+ {busy?"Aguarde...":mode==="signup"?"Criar conta":mode==="reset"?
+  recoveryAlreadyAttempted?(recoveryAttempt?.outcome==="limited"?"Limite atingido":"Solicitação recebida"):"Enviar recuperação":"Entrar"}
+ </button>
  <div className="auth-links"><button type="button" onClick={()=>{setMode(mode==="login"?"signup":"login");setMessage("");}}>{mode==="login"?"Criar uma conta":"Voltar ao login"}</button>{mode==="login"&&<button type="button" onClick={()=>{setMode("reset");setMessage("");}}>Esqueci minha senha</button>}</div>
  <small>Ao continuar, você reconhece que esta plataforma fornece informações educativas e não substitui acompanhamento profissional.</small>
  </form></div>;
