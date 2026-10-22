@@ -58,13 +58,14 @@ export default function AuthGate({children}:{children:ReactNode}){
   return()=>{alive=false;};
  },[session?.user.id,onboardingRetry]);
  async function submit(e:FormEvent){
-  e.preventDefault();if(!supabase)return;
+  e.preventDefault();if(!supabase||busy||(mode==="reset"&&recoveryAlreadyAttempted))return;
   setBusy(true);setMessage("");
   try{
    if(mode==="reset"){
     const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:PASSWORD_RECOVERY_REDIRECT});
     if(error)throw error;
-    setMessage("Se o e-mail estiver cadastrado, você receberá instruções de recuperação.");
+    setRecoveryAttempt({email:currentEmail,outcome:"received"});
+    setMessage("Solicitação recebida. Se o e-mail estiver cadastrado, você receberá instruções de recuperação. Confira seu e-mail antes de solicitar novamente.");
    }
    else if(mode==="signup"){
     const {error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:EMAIL_CONFIRM_REDIRECT}});
