@@ -73,7 +73,16 @@ export default function AuthGate({children}:{children:ReactNode}){
     setMessage("Cadastro recebido. Verifique seu e-mail se a confirmação estiver habilitada.");
    }
    else {const {error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;}
-  }catch(err){setMessage(err instanceof Error?err.message:"Não foi possível completar a operação.");}finally{setBusy(false);}
+  }catch(err){
+   if(mode==="reset"){
+    if(isAuthEmailRateLimited(err))setRecoveryAttempt({email:currentEmail,outcome:"limited"});
+    setMessage(authEmailFailureMessage(err));
+   }else if(mode==="signup"&&isAuthEmailRateLimited(err)){
+    setMessage(authEmailFailureMessage(err));
+   }else{
+    setMessage(err instanceof Error?err.message:"Não foi possível completar a operação.");
+   }
+  }finally{setBusy(false);}
  }
  async function completeRecovery(e:FormEvent){
   e.preventDefault();
