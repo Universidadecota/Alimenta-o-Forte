@@ -9,6 +9,8 @@ export default function AuthGate({children}:{children:ReactNode}){
  const [session,setSession]=useState<Session|null>(null);
  const [showAuth,setShowAuth]=useState(false);
  const [onboarding,setOnboarding]=useState<"checking"|"needed"|"done">("checking");
+ const [onboardingCheckError,setOnboardingCheckError]=useState(false);
+ const [onboardingRetry,setOnboardingRetry]=useState(0);
  const [loading,setLoading]=useState(!!supabase);
  const [email,setEmail]=useState("");
  const [password,setPassword]=useState("");
@@ -38,7 +40,19 @@ export default function AuthGate({children}:{children:ReactNode}){
   });
   return ()=>{active=false;subscription.unsubscribe();};
  },[]);
- useEffect(()=>{if(!session){setOnboarding("checking");return;}let alive=true;setOnboarding("checking");const client=supabase;if(!client)return;void client.from("user_preferences").select("onboarding_completed_at").eq("user_id",session.user.id).maybeSingle().then(({data,error})=>{if(!alive)return;setOnboarding(error?"done":data?.onboarding_completed_at?"done":"needed");});return()=>{alive=false;};},[session?.user.id]);
+ useEffect(()=>{
+  if(!session){setOnboarding("checking");setOnboardingCheckError(false);return;}
+  let alive=true;
+  setOnboarding("checking");setOnboardingCheckError(false);
+  const client=supabase;if(!client)return;
+  void client.from("user_preferences").select("onboarding_completed_at")
+   .eq("user_id",session.user.id).maybeSingle().then(({data,error})=>{
+    if(!alive)return;
+    if(error){setOnboardingCheckError(true);return;}
+    setOnboarding(data?.onboarding_completed_at?"done":"needed");
+   });
+  return()=>{alive=false;};
+ },[session?.user.id,onboardingRetry]);
  async function submit(e:FormEvent){
   e.preventDefault();if(!supabase)return;
   setBusy(true);setMessage("");
@@ -104,6 +118,13 @@ export default function AuthGate({children}:{children:ReactNode}){
    window.history.replaceState({}, "", window.location.pathname);
    setRecoveryMode(false);setShowAuth(true);setMode("reset");setMessage("");
   }}>Solicitar novo link</button>
+ </section></div>;
+ if(session&&onboarding==="checking"&&onboardingCheckError)return <div className="auth-center"><section className="auth-card">
+  <div className="auth-logo"><Leaf size={25}/></div>
+  <h1>Costa&Costa</h1><h2>Não foi possível carregar seu perfil</h2>
+  <p>Houve uma falha ao consultar suas preferências. Para proteger seus dados, não vamos ignorar esta etapa.</p>
+  <button type="button" className="primary auth-submit" onClick={()=>setOnboardingRetry(n=>n+1)}>Tentar novamente</button>
+  <small>Se o problema persistir, tente novamente com uma conexão estável.</small>
  </section></div>;
  if(session&&onboarding==="checking")return <div className="auth-center">Preparando sua experiência Costa&Costa...</div>;
  if(session&&onboarding==="needed")return <Onboarding userId={session.user.id} onDone={()=>setOnboarding("done")}/>;
