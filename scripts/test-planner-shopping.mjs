@@ -29,6 +29,15 @@ const suggest=await importPure("../src/lib/suggestions.ts");
 const progress=await importPure("../src/lib/shoppingProgress.ts");
 const printable=await importPure("../src/lib/weeklyPrint.ts");
 const readiness=await importPure("../src/lib/flowReadiness.ts");
+const authEmail=await importPure("../src/lib/authEmailFeedback.ts");
+assert.equal(authEmail.isAuthEmailRateLimited({status:429,code:"over_email_send_rate_limit"}),true);
+assert.equal(authEmail.isAuthEmailRateLimited({status:429}),true);
+assert.equal(authEmail.isAuthEmailRateLimited({code:"over_request_rate_limit"}),true);
+assert.equal(authEmail.isAuthEmailRateLimited({status:400,code:"otp_expired"}),false);
+assert.equal(authEmail.isAuthEmailRateLimited(null),false);
+assert.match(authEmail.authEmailFailureMessage({status:429}),/Limite temporário/);
+assert.doesNotMatch(authEmail.authEmailFailureMessage({status:429}),/enviado com sucesso|recebida com sucesso/);
+assert.match(authEmail.authEmailFailureMessage({status:500}),/Não foi possível/);
 const authRedirect=await importPure("../src/lib/authRedirect.ts");
 assert.equal(authRedirect.EMAIL_CONFIRM_REDIRECT,"https://alimentacaoforte.epsacore.com.br/");
 assert.equal(authRedirect.PASSWORD_RECOVERY_REDIRECT,
