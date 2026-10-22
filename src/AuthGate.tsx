@@ -5,6 +5,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
 import { EMAIL_CONFIRM_REDIRECT, PASSWORD_RECOVERY_REDIRECT, isRecoveryCallbackUrl } from "./lib/authRedirect";
 import { Leaf, Mail, Lock, UserRound } from "lucide-react";
+import { authEmailFailureMessage, isAuthEmailRateLimited } from "./lib/authEmailFeedback";
 export default function AuthGate({children}:{children:ReactNode}){
  const [session,setSession]=useState<Session|null>(null);
  const [showAuth,setShowAuth]=useState(false);
