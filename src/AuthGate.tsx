@@ -3,6 +3,7 @@ import Onboarding from "./Onboarding";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
+import { EMAIL_CONFIRM_REDIRECT, PASSWORD_RECOVERY_REDIRECT, isRecoveryCallbackUrl } from "./lib/authRedirect";
 import { Leaf, Mail, Lock, UserRound } from "lucide-react";
 export default function AuthGate({children}:{children:ReactNode}){
  const [session,setSession]=useState<Session|null>(null);
@@ -14,25 +15,96 @@ export default function AuthGate({children}:{children:ReactNode}){
  const [mode,setMode]=useState<"login"|"signup"|"reset">("login");
  const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);
+ const [recoveryMode,setRecoveryMode]=useState(()=>isRecoveryCallbackUrl(window.location.href));
+ const [newPassword,setNewPassword]=useState("");
+ const [repeatPassword,setRepeatPassword]=useState("");
  useEffect(()=>{
   if(!supabase)return;
   const client=supabase;
-  client.auth.getSession().then(({data,error})=>{setSession(data.session);setLoading(false);if(error)setMessage("Não foi possível verificar a sessão.");});
-  const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>setSession(session));
-  return ()=>subscription.unsubscribe();
+  let active=true;
+  client.auth.getSession().then(({data,error})=>{
+   if(!active)return;
+   setSession(data.session);
+   setLoading(false);
+   if(error)setMessage("Não foi possível verificar a sessão.");
+  });
+  const {data:{subscription}}=client.auth.onAuthStateChange((event,session)=>{
+   if(!active)return;
+   setSession(session);
+   if(event==="PASSWORD_RECOVERY"){
+    setRecoveryMode(true);
+    setMessage("");
+   }
+  });
+  return ()=>{active=false;subscription.unsubscribe();};
  },[]);
  useEffect(()=>{if(!session){setOnboarding("checking");return;}let alive=true;setOnboarding("checking");const client=supabase;if(!client)return;void client.from("user_preferences").select("onboarding_completed_at").eq("user_id",session.user.id).maybeSingle().then(({data,error})=>{if(!alive)return;setOnboarding(error?"done":data?.onboarding_completed_at?"done":"needed");});return()=>{alive=false;};},[session?.user.id]);
  async function submit(e:FormEvent){
   e.preventDefault();if(!supabase)return;
   setBusy(true);setMessage("");
   try{
-   if(mode==="reset"){const {error}=await supabase!.auth.resetPasswordForEmail(email);if(error)throw error;setMessage("Se o e-mail estiver cadastrado, você receberá instruções de recuperação.");}
-   else if(mode==="signup"){const {error}=await supabase.auth.signUp({email,password});if(error)throw error;setMessage("Cadastro recebido. Verifique seu e-mail se a confirmação estiver habilitada.");}
+   if(mode==="reset"){
+    const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:PASSWORD_RECOVERY_REDIRECT});
+    if(error)throw error;
+    setMessage("Se o e-mail estiver cadastrado, você receberá instruções de recuperação.");
+   }
+   else if(mode==="signup"){
+    const {error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:EMAIL_CONFIRM_REDIRECT}});
+    if(error)throw error;
+    setMessage("Cadastro recebido. Verifique seu e-mail se a confirmação estiver habilitada.");
+   }
    else {const {error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;}
   }catch(err){setMessage(err instanceof Error?err.message:"Não foi possível completar a operação.");}finally{setBusy(false);}
  }
+ async function completeRecovery(e:FormEvent){
+  e.preventDefault();
+  if(!supabase||!session||busy)return;
+  if(newPassword.length<8){setMessage("Use uma senha com pelo menos 8 caracteres.");return;}
+  if(newPassword!==repeatPassword){setMessage("As senhas digitadas não conferem.");return;}
+  setBusy(true);setMessage("");
+  try{
+   const {error}=await supabase.auth.updateUser({password:newPassword});
+   if(error)throw error;
+   setNewPassword("");setRepeatPassword("");setPassword("");
+   // Finalizada a redefinição, exigir um novo login com a senha atualizada.
+   const {error:logoutError}=await supabase.auth.signOut();
+   if(logoutError)throw logoutError;
+   window.history.replaceState({}, "", window.location.pathname);
+   setRecoveryMode(false);setMode("login");setShowAuth(true);
+   setMessage("Senha alterada com sucesso. Entre usando sua nova senha.");
+  }catch(err){
+   setMessage(err instanceof Error?err.message:"Não foi possível alterar a senha. Solicite um novo link de recuperação.");
+  }finally{setBusy(false);}
+ }
  if(!supabase)return <><div className="demo-banner">Ambiente de demonstração — configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para habilitar autenticação.</div>{children}</>;
  if(loading)return <div className="auth-center">Carregando Costa&Costa...</div>;
+ // Deve preceder o onboarding e o aplicativo, para não ignorar o link de recuperação.
+ if(recoveryMode&&session)return <div className="auth-center"><form className="auth-card" onSubmit={completeRecovery}>
+  <div className="auth-logo"><Leaf size={25}/></div>
+  <h1>Costa&Costa</h1><p>Sua alimentação. Seu ritmo. Sua evolução.</p>
+  <h2>Definir nova senha</h2>
+  <p>Confirme sua nova senha para concluir a recuperação da conta.</p>
+  <label><Lock size={16}/> Nova senha
+   <input type="password" autoComplete="new-password" required minLength={8}
+    value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder="No mínimo 8 caracteres"/>
+  </label>
+  <label><Lock size={16}/> Confirmar nova senha
+   <input type="password" autoComplete="new-password" required minLength={8}
+    value={repeatPassword} onChange={e=>setRepeatPassword(e.target.value)} placeholder="Digite a mesma senha novamente"/>
+  </label>
+  {message&&<div className="auth-message" role="status">{message}</div>}
+  <button className="primary auth-submit" disabled={busy} type="submit">{busy?"Salvando...":"Salvar nova senha"}</button>
+  <small>Por segurança, será necessário entrar novamente depois de alterar a senha.</small>
+ </form></div>;
+ if(recoveryMode&&!session)return <div className="auth-center"><section className="auth-card">
+  <div className="auth-logo"><Leaf size={25}/></div>
+  <h1>Costa&Costa</h1><h2>Link de recuperação inválido ou expirado</h2>
+  <p>Solicite outro e-mail de recuperação para redefinir sua senha com segurança.</p>
+  <button type="button" className="primary auth-submit" onClick={()=>{
+   window.history.replaceState({}, "", window.location.pathname);
+   setRecoveryMode(false);setShowAuth(true);setMode("reset");setMessage("");
+  }}>Solicitar novo link</button>
+ </section></div>;
  if(session&&onboarding==="checking")return <div className="auth-center">Preparando sua experiência Costa&Costa...</div>;
  if(session&&onboarding==="needed")return <Onboarding userId={session.user.id} onDone={()=>setOnboarding("done")}/>;
  if(session)return <>{children}</>;
