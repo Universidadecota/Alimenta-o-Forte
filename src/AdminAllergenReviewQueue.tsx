@@ -1,5 +1,6 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
+import AdminAllergenIngredientEvidence from "./AdminAllergenIngredientEvidence";
 import {collectAllergenTriageHints,type AllergenTriageHints} from "./lib/allergenTriageHints.mjs";
 
 type CatalogRecipe={recipe_id:string;title:string;enabled:boolean};
@@ -14,12 +15,13 @@ type AllergenReview={
  reviewed_at:string|null;
 };
 type Source={
+ reference_hash:string;
  original_ingredients:string;
  original_preparation:string;
  ingredient_review_status:string;
  commercial_rights_status:string;
 };
-type Ingredient={name:string;quantity:number|null;unit:string};
+type Ingredient={id:string;name:string;position:number;quantity:number|null;unit:string};
 
 const reviewLabel:Record<ReviewStatus,string>={
  pending:"Pendente",in_review:"Em revisão",verified:"Verificada (editorial)",rejected:"Rejeitada"
@@ -99,10 +101,10 @@ export default function AdminAllergenReviewQueue(){
   try{
    const [sourceResult,ingredientResult]=await Promise.all([
     client.from("cc_official_recipe_source_records")
-     .select("original_ingredients,original_preparation,ingredient_review_status,commercial_rights_status")
+     .select("reference_hash,original_ingredients,original_preparation,ingredient_review_status,commercial_rights_status")
      .eq("recipe_id",recipe.recipe_id).maybeSingle(),
     client.from("recipe_ingredients")
-     .select("name,quantity,unit").eq("recipe_id",recipe.recipe_id).order("position")
+     .select("id,name,quantity,unit,position").eq("recipe_id",recipe.recipe_id).order("position")
    ]);
    if(sourceResult.error)throw sourceResult.error;
    if(ingredientResult.error)throw ingredientResult.error;
@@ -231,6 +233,7 @@ export default function AdminAllergenReviewQueue(){
      <p>Revisão de medidas: {source?.ingredient_review_status??"não informada"} · Direitos: {source?.commercial_rights_status??"não informado"}.</p>
      <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit"}}>{source?.original_preparation??"Não encontrado"}</pre>
     </details>
+    <AdminAllergenIngredientEvidence key={selected.recipe_id} recipeId={selected.recipe_id} sourceHash={source?.reference_hash??""} ingredients={ingredients} editable={Boolean(editable)}/>
     <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:6,marginTop:18}}>
      <label htmlFor="cc-review-allergens">Suspeitas de alergênicos ou derivados (separadas por vírgula)</label>
      <input id="cc-review-allergens" style={{display:"block",width:"100%",minWidth:0,boxSizing:"border-box"}} value={allergenDraft} disabled={!editable} onChange={e=>setAllergenDraft(e.target.value)} placeholder="Ex.: soja, leite — apenas hipóteses"/>
