@@ -32,5 +32,7 @@ jobs:
         run: node scripts/test-measure-inventory-audit.mjs
       - name: Validate private beta catalog access guards
         run: node scripts/test-beta-private-access.mjs
+      - name: Validate allergen review triage stays fail-closed
+        run: node scripts/test-allergen-triage-guard.mjs
       - name: Validate planner, shopping and allergy guards
         run: npm run test:pilot-flow
