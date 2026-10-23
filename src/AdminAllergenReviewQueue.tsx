@@ -1,5 +1,6 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
+import {collectAllergenTriageHints,type AllergenTriageHints} from "./lib/allergenTriageHints.mjs";
 
 type CatalogRecipe={recipe_id:string;title:string;enabled:boolean};
 type ReviewStatus="pending"|"in_review"|"verified"|"rejected";
@@ -34,6 +35,9 @@ export default function AdminAllergenReviewQueue(){
  const [evidenceDraft,setEvidenceDraft]=useState("");
  const [contactDraft,setContactDraft]=useState("");
  const [search,setSearch]=useState("");
+ const [hints,setHints]=useState<Record<string,AllergenTriageHints>>({});
+ const [hintState,setHintState]=useState<"loading"|"ready"|"error">("loading");
+ const [hintFilter,setHintFilter]=useState<"all"|"with"|"without"|"missing">("all");
  const [filter,setFilter]=useState<"all"|"pending"|"in_review"|"verified"|"rejected">("all");
  const [loading,setLoading]=useState(true);
  const [detailsLoading,setDetailsLoading]=useState(false);
@@ -44,7 +48,7 @@ export default function AdminAllergenReviewQueue(){
  const load=async()=>{
   if(!supabase)return;
   const client=supabase;
-  setLoading(true);setError("");
+  setLoading(true);setError("");setHintState("loading");setHints({});
   try{
    const [catalogResult,reviewResult]=await Promise.all([
     client.rpc("cc_admin_beta_catalog_overview"),
@@ -52,12 +56,33 @@ export default function AdminAllergenReviewQueue(){
    ]);
    if(catalogResult.error)throw catalogResult.error;
    if(reviewResult.error)throw reviewResult.error;
-   setCatalog(((catalogResult.data??[]) as CatalogRecipe[]).filter(row=>row.enabled));
+   const enabled=((catalogResult.data??[]) as CatalogRecipe[]).filter(row=>row.enabled);
+   setCatalog(enabled);
    const next:Record<string,AllergenReview>={};
    for(const review of (reviewResult.data??[]) as AllergenReview[])next[review.recipe_id]=review;
    setReviews(next);
+   // Apenas leitura administrativa dos textos originais; 30 IDs por lote evitam URLs extensas.
+   // Falha nas pistas NÃO bloqueia a fila original e jamais declara receita segura.
+   try{
+    const nextHints:Record<string,AllergenTriageHints>={};
+    for(const row of enabled)nextHints[row.recipe_id]=collectAllergenTriageHints(null);
+    const chunks:string[][]=[];
+    for(let i=0;i<enabled.length;i+=30)chunks.push(enabled.slice(i,i+30).map(row=>row.recipe_id));
+    const results=await Promise.all(chunks.map(ids=>client.from("cc_official_recipe_source_records")
+     .select("recipe_id,original_ingredients").in("recipe_id",ids)));
+    for(const result of results){
+     if(result.error)throw result.error;
+     for(const row of (result.data??[]) as Array<{recipe_id:string;original_ingredients:string|null}>){
+      nextHints[row.recipe_id]=collectAllergenTriageHints(row.original_ingredients);
+     }
+    }
+    setHints(nextHints);setHintState("ready");
+   }catch{
+    setHints({});setHintState("error");
+   }
   }catch{
    setError("Não foi possível carregar a fila de revisão. Confira sua permissão administrativa.");
+   setHintState("error");
   }finally{setLoading(false);}
  };
  useEffect(()=>{void load();},[]);
@@ -122,11 +147,31 @@ export default function AdminAllergenReviewQueue(){
 
  const visible=catalog.filter(row=>{
   const status=reviews[row.recipe_id]?.status??"pending";
-  return (filter==="all"||status===filter)&&row.title.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"));
+  const hint=hints[row.recipe_id];
+  const matched=hintFilter==="all"||hintState!=="ready"||
+   (hintFilter==="with"&&Boolean(hint?.hints.length||hint?.composedTerms.length))||
+   (hintFilter==="without"&&Boolean(hint?.sourceAvailable)&&!hint?.hints.length&&!hint?.composedTerms.length)||
+   (hintFilter==="missing"&&!hint?.sourceAvailable);
+  return matched&&(filter==="all"||status===filter)&&row.title.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"));
  });
  const totalByStatus=(status:ReviewStatus)=>catalog.filter(row=>(reviews[row.recipe_id]?.status??"pending")===status).length;
  const existing=selected?reviews[selected.recipe_id]:undefined;
  const editable=selected&&!detailsLoading&&!busy&&existing?.status!=="verified"&&existing?.status!=="rejected";
+ const selectedHints=selected?hints[selected.recipe_id]:undefined;
+ const countHinted=catalog.filter(row=>{
+  const item=hints[row.recipe_id];return Boolean(item?.hints.length||item?.composedTerms.length);
+ }).length;
+ const countNoSource=catalog.filter(row=>!hints[row.recipe_id]?.sourceAvailable).length;
+ const copyHints=()=>{
+  if(!editable||!selectedHints?.hints.length)return;
+  const values=[...allergenDraft.split(",").map(v=>v.trim()).filter(Boolean)];
+  const seen=new Set(values.map(v=>v.toLocaleLowerCase("pt-BR")));
+  for(const item of selectedHints.hints){
+   if(!seen.has(item.code)){values.push(item.code);seen.add(item.code);}
+  }
+  setAllergenDraft(values.join(", "));
+  setMessage("Pistas copiadas apenas para este formulário. Confira manualmente antes de salvar; nenhuma receita foi aprovada.");
+ };
 
  return <section className="detail-panel" style={{marginTop:20}} aria-label="Fila de revisão editorial de alergênicos">
   <h3>Triagem editorial de alergênicos · Beta</h3>
@@ -144,18 +189,38 @@ export default function AdminAllergenReviewQueue(){
     <option value="verified">Verificadas</option>
     <option value="rejected">Rejeitadas</option>
    </select>
+   <select aria-label="Filtrar pistas textuais não conclusivas" disabled={hintState!=="ready"} value={hintFilter} onChange={e=>setHintFilter(e.target.value as typeof hintFilter)}>
+    <option value="all">Todas as pistas</option>
+    <option value="with">Com pistas para investigar</option>
+    <option value="without">Sem termos encontrados (não liberadas)</option>
+    <option value="missing">Sem origem textual</option>
+   </select>
    <button type="button" className="secondary" disabled={busy||loading} onClick={()=>void load()}>Atualizar fila</button>
   </div>
+  {hintState==="ready"&&<p className="detail-note" role="status">Pré-triagem textual: {countHinted} receitas com pistas para investigar · {catalog.length-countHinted-countNoSource} sem termos encontrados · {countNoSource} sem texto de origem. <strong>Nenhum desses números significa segurança alimentar.</strong></p>}
+  {hintState==="error"&&<p role="status" className="detail-note">Pistas indisponíveis nesta consulta; a fila editorial permanece acessível e sem aprovações automáticas.</p>}
   {loading?<p role="status">Carregando fila...</p>:<p className="detail-note">{visible.length} receitas nos filtros atuais.</p>}
   <div style={{maxHeight:250,overflowY:"auto",marginBottom:16}}>
    {visible.map(row=><button type="button" className="secondary" key={row.recipe_id} disabled={busy} onClick={()=>void choose(row)} style={{display:"flex",width:"100%",gap:8,justifyContent:"space-between",textAlign:"left",marginBottom:4}}>
-    <span>{row.title}</span><small>{reviewLabel[reviews[row.recipe_id]?.status??"pending"]}</small>
+    <span>{row.title}</span><span style={{display:"grid",gap:3,textAlign:"right",flexShrink:0}}>
+     <small>{reviewLabel[reviews[row.recipe_id]?.status??"pending"]}</small>
+     {hintState==="ready"&&<small>{!hints[row.recipe_id]?.sourceAvailable?"Sem fonte":(hints[row.recipe_id].hints.length+hints[row.recipe_id].composedTerms.length)>0?"Pistas textuais":"Sem pistas ≠ seguro"}</small>}
+    </span>
    </button>)}
   </div>
   {selected&&<div className="cc-admin-pilot-readonly">
    <h4>{selected.title}</h4>
    <p className="detail-note">Situação: {reviewLabel[existing?.status??"pending"]}. O texto original é preservado; esta área não altera receita, preparo nem quantidades.</p>
    {detailsLoading?<p role="status">Carregando detalhes...</p>:<>
+    {hintState==="ready"&&<div className="notice" style={{marginBottom:12}}>
+     <strong>Pré-triagem assistida — apenas pistas, sem conclusão de segurança</strong>
+     {selectedHints?.sourceAvailable?selectedHints.hints.length||selectedHints.composedTerms.length?
+      <ul>{selectedHints.hints.map(item=><li key={item.code}>{item.label}: termos “{item.terms.join(", ")}”</li>)}
+       {selectedHints.composedTerms.map(term=><li key={term}>Ingrediente composto “{term}”: verificar rótulo e fornecedor.</li>)}</ul>:
+      <p>Nenhum termo localizado. Isso NÃO indica ausência de alergênicos, derivados ou contato cruzado.</p>:
+      <p>Texto de origem não localizado nesta pré-triagem. Não considerar receita liberada.</p>}
+     {editable&&Boolean(selectedHints?.hints.length)&&<button type="button" className="secondary" onClick={copyHints}>Copiar pistas para o rascunho (sem salvar)</button>}
+    </div>}
     <details open>
      <summary>Ingredientes originais e transcritos</summary>
      {source?<pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit"}}>{source.original_ingredients}</pre>:<p>Fonte original não localizada.</p>}
