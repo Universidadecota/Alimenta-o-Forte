@@ -37,6 +37,7 @@ const matches=(whole,term)=>{
   const start=m.index+m[1].length;
   if(term==="leite"&&/^leite\s+de\s+(coco|soja|aveia|amendoas?|castanhas?|arroz)\b/.test(whole.slice(start)))continue;
   if(term==="manteiga"&&/^manteiga\s+de\s+(amendoim|coco|castanhas?|amendoas?)\b/.test(whole.slice(start)))continue;
+  if(term==="noz"&&/^noz\s+moscada\b/.test(whole.slice(start)))continue;
   return true;
  }
  return false;
