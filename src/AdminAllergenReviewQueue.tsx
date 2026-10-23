@@ -1,6 +1,7 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
 import AdminAllergenIngredientEvidence from "./AdminAllergenIngredientEvidence";
+import AdminAllergenStructuredFindings from "./AdminAllergenStructuredFindings";
 import {collectAllergenTriageHints,type AllergenTriageHints} from "./lib/allergenTriageHints.mjs";
 
 type CatalogRecipe={recipe_id:string;title:string;enabled:boolean};
@@ -234,6 +235,7 @@ export default function AdminAllergenReviewQueue(){
      <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit"}}>{source?.original_preparation??"Não encontrado"}</pre>
     </details>
     <AdminAllergenIngredientEvidence key={selected.recipe_id} recipeId={selected.recipe_id} sourceHash={source?.reference_hash??""} ingredients={ingredients} editable={Boolean(editable)}/>
+    <AdminAllergenStructuredFindings key={"a4-"+selected.recipe_id} recipeId={selected.recipe_id} sourceHash={source?.reference_hash??""} ingredients={ingredients} editable={Boolean(editable)}/>
     <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:6,marginTop:18}}>
      <label htmlFor="cc-review-allergens">Suspeitas de alergênicos ou derivados (separadas por vírgula)</label>
      <input id="cc-review-allergens" style={{display:"block",width:"100%",minWidth:0,boxSizing:"border-box"}} value={allergenDraft} disabled={!editable} onChange={e=>setAllergenDraft(e.target.value)} placeholder="Ex.: soja, leite — apenas hipóteses"/>

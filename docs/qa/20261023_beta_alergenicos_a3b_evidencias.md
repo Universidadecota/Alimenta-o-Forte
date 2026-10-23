@@ -14,13 +14,12 @@ Data: 23/10/2026. Branch `feat/revisao-alergenos-fase1-12out2026`. PR #16 segue 
 - `supabase/migrations/20261023185000_cc_allergen_ingredient_evidence_a3b.sql`: tabela com RLS administrativa, trigger de captura de origem no servidor, sem concessão de `UPDATE/DELETE` a `authenticated` e sem qualquer procedimento de aprovação.
 - `scripts/test-allergen-a3b-evidence.mjs`: travas estáticas de regressão ligadas ao CI.
 
-## Ativação controlada (pendente)
-**A migração está preparada no repositório e NÃO deve ser aplicada automaticamente no banco principal.** Antes:
-1. Registrar um backup recuperável do banco principal (ou ponto de restauração equivalente) e identificar o destino exato `gclhailalyrokvmkwllm`.
-2. Revisar SQL de criação, políticas RLS, permissões e comportamento do trigger.
-3. Aplicar a migração com autorização para este passo no banco principal já escolhido pelo usuário; não criar outro ambiente.
-4. Executar consultas de auditoria: tabela vazia inicialmente; apenas admin consegue ler e inserir; anon/usuário comum não acessa; atualizar/apagar via app são negados; o insert captura a origem real.
-5. Só então fazer uma nova verificação visual **da novidade A3B**, sem repetir cadastro, autenticação, compras, isolamento nem a A3.
+## Ativação controlada (CONCLUÍDA em 23/10/2026)
+- O usuário dispensou expressamente o backup e autorizou prosseguir. O banco de destino foi o principal gclhailalyrokvmkwllm, sem criar novo ambiente.
+- A migração foi aplicada e figura no histórico Supabase como 20261023181942 cc_allergen_ingredient_evidence_a3b.
+- Auditoria: RLS habilitada; anon sem SELECT; somente administrador pode SELECT/INSERT; app sem UPDATE/DELETE. Testes administrativos e de usuário comum ocorreram em transações revertidas, sem inserir linhas artificiais.
+- A captura da interface mostrou o módulo A3B ativo. Em 23/10/2026 às 15h37 (Brasília) o usuário registrou uma evidência real do ingrediente 2 ovos com fonte recipe_text, status investigating, código ovos, notas e contato cruzado pendente.
+- Consulta somente leitura ao banco confirmou a persistência. A3B está **validada** e não requer repetição.
 
 ## Limites e próximo gate
 - Mesmo evidências completas de um ingrediente não provam segurança da receita inteira. Rótulos mudam com lotes e fornecedores, equipamentos e ambiente de preparo.
