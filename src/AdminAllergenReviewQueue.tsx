@@ -166,15 +166,18 @@ export default function AdminAllergenReviewQueue(){
      <p>Revisão de medidas: {source?.ingredient_review_status??"não informada"} · Direitos: {source?.commercial_rights_status??"não informado"}.</p>
      <pre style={{whiteSpace:"pre-wrap",fontFamily:"inherit"}}>{source?.original_preparation??"Não encontrado"}</pre>
     </details>
-    <label>Suspeitas de alergênicos ou derivados (separadas por vírgula)
-     <input value={allergenDraft} disabled={!editable} onChange={e=>setAllergenDraft(e.target.value)} placeholder="Ex.: soja, leite — apenas hipóteses"/>
-    </label>
-    <label>Fontes e pendências da análise
-     <textarea value={evidenceDraft} disabled={!editable} onChange={e=>setEvidenceDraft(e.target.value)} rows={3} placeholder="Documentos conferidos, informação ausente, fornecedor, rótulo..."/>
-    </label>
-    <label>Pendências de contato cruzado
-     <textarea value={contactDraft} disabled={!editable} onChange={e=>setContactDraft(e.target.value)} rows={2} placeholder="Ex.: utensílios, fabricação, fornecedor ou ambiente a esclarecer"/>
-    </label>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:6,marginTop:18}}>
+     <label htmlFor="cc-review-allergens">Suspeitas de alergênicos ou derivados (separadas por vírgula)</label>
+     <input id="cc-review-allergens" style={{display:"block",width:"100%",minWidth:0,boxSizing:"border-box"}} value={allergenDraft} disabled={!editable} onChange={e=>setAllergenDraft(e.target.value)} placeholder="Ex.: soja, leite — apenas hipóteses"/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:6,marginTop:14}}>
+     <label htmlFor="cc-review-evidence">Fontes e pendências da análise</label>
+     <textarea id="cc-review-evidence" style={{display:"block",width:"100%",minWidth:0,boxSizing:"border-box",minHeight:112,resize:"vertical"}} value={evidenceDraft} disabled={!editable} onChange={e=>setEvidenceDraft(e.target.value)} rows={4} placeholder="Documentos conferidos, informação ausente, fornecedor, rótulo..."/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr)",gap:6,marginTop:14}}>
+     <label htmlFor="cc-review-cross-contact">Pendências de contato cruzado</label>
+     <textarea id="cc-review-cross-contact" style={{display:"block",width:"100%",minWidth:0,boxSizing:"border-box",minHeight:90,resize:"vertical"}} value={contactDraft} disabled={!editable} onChange={e=>setContactDraft(e.target.value)} rows={3} placeholder="Ex.: utensílios, fabricação, fornecedor ou ambiente a esclarecer"/>
+    </div>
     <p className="detail-note">Ao salvar, o status será “Em revisão” e o contato cruzado continuará “Desconhecido”. A marca “Verificada” não pode ser concedida aqui.</p>
     <button type="button" className="primary" disabled={!editable} onClick={()=>void saveDraft()}>{busy?"Salvando...":"Salvar triagem pendente"}</button>
    </>}
