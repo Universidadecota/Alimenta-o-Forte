@@ -18,6 +18,8 @@ assert.equal(has("manteiga de amendoim","amendoim"),true);
 assert.equal(has("manteiga de amendoim","leite"),false);
 assert.equal(has("pão integral","trigo"),true,"Pão é pista conservadora, não confirmação.");
 assert.equal(has("castanha-de-caju","castanha_caju"),true);
+assert.equal(has("noz-moscada, sal e pimenta","nozes"),false,"Noz-moscada é especiaria, não nozes.");
+assert.equal(has("nozes picadas","nozes"),true,"Nozes explícitas geram pista.");
 assert.equal(has("salmão assado","peixes"),true);
 assert.equal(has("camarão grelhado","crustaceos"),true);
 assert.equal(has("ovosidade e inovação","ovos"),false,"Não aceitar fragmentos dentro de palavras.");
