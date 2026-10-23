@@ -32,6 +32,8 @@ Data: 23/10/2026. Branch feat/revisao-alergenos-fase1-12out2026. PR #16 permanec
 - src/AdminAllergenReviewQueue.tsx: integra seção A4 abaixo da A3B.
 - supabase/migrations/20261023193000_cc_allergen_a4_structured_findings.sql: esquema, taxonomia inicial, políticas RLS e trigger.
 - scripts/test-allergen-a4-findings.mjs: testes de regressão estática; CI executa o script.
-- Próximo gate: testes locais/CI → revisar migração e executar testes de permissão transacionais → ativação controlada no Supabase principal → uma única validação visual nova de A4, sem refazer QA encerrada.
+- **Ativação A4 concluída:** migração Supabase principal gclhailalyrokvmkwllm registrada como 20261023225054 cc_allergen_a4_structured_findings. Verificados 21 códigos, RLS nas duas tabelas e duas políticas de acesso à tabela de constatações; anon sem SELECT, autenticados sem UPDATE/DELETE; INSERT admin transacional permitido, INSERT não admin negado; ROLLBACK deixou zero constatações A4 e preservou a evidência real A3B de ovos.
+- **Código e build:** commit b15ae87ce712e77b07c46f3453c4bae12c7e9fb3 na branch da PR #16; build Vite/TypeScript e regressões A2/A3B/A4/planejador aprovados. Status Vercel no GitHub = success.
+- **Gate remanescente:** apenas verificação visual da **nova seção A4** no endereço oficial. Inspeção detalhada de deployment pelo conector Vercel não foi autorizada para o escopo da equipe (403); não presumir que o domínio oficial já sirva o novo build. Não repetir QA de autenticação, compras, isolamento ou A3B.
 
 **Registro A4 é triagem preliminar, nunca liberação nutricional, médica ou de cardápio.**
