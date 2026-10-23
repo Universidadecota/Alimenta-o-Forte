@@ -14,8 +14,14 @@ assert.match(queue,/status:"in_review"/);
 assert.match(queue,/cross_contact_status:"unknown"/);
 assert.doesNotMatch(queue,/status:"verified"/,"Triagem não pode aprovar automaticamente.");
 assert.match(queue,/A marca “Verificada” não pode ser concedida aqui/);
+for(const id of ["cc-review-allergens","cc-review-evidence","cc-review-cross-contact"]){
+ assert.match(queue,new RegExp('htmlFor="'+id+'"'),"Rótulo acessível ausente: "+id);
+ assert.match(queue,new RegExp('id="'+id+'" style=\\{\\{display:"block",width:"100%",minWidth:0,boxSizing:"border-box"'),"Campo precisa ocupar toda a largura disponível: "+id);
+}
+assert.match(queue,/minHeight:112,resize:"vertical"/,"Notas de evidência devem permitir leitura e redimensionamento.");
+assert.match(queue,/minHeight:90,resize:"vertical"/,"Notas de contato cruzado devem permitir leitura e redimensionamento.");
 assert.match(suggestions,/if\(prefs\.allergies\.length\)throw new Error/);
 assert.match(migration,/cc_allergen_reviews_admin_insert/);
 assert.match(migration,/cc_allergen_reviews_admin_update/);
 assert.match(migration,/enable row level security/);
-console.log("OK: fila restrita, triagem sem aprovação e bloqueio de sugestões preservados.");
+console.log("OK: fila restrita, formulário legível e acessível, sem aprovação; sugestões ainda bloqueadas.");
