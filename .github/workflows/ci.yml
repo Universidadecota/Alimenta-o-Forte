@@ -34,6 +34,8 @@ jobs:
         run: node scripts/test-beta-private-access.mjs
       - name: Validate allergen review triage stays fail-closed
         run: node scripts/test-allergen-triage-guard.mjs
+      - name: Validate A3 allergen text hints remain non-conclusive
+        run: node scripts/test-allergen-a3-text-hints.mjs
       - name: Validate future allergy eligibility fails closed
         run: node scripts/test-allergen-eligibility.mjs
       - name: Validate planner, shopping and allergy guards
