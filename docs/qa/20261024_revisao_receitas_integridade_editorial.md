@@ -15,17 +15,17 @@
 - Alteração transacional, com verificação do ID, título, documento, número da entrada, página, hash de referência anterior, ausência de evidência A3B/A4 e quantidade de ingredientes. Arquivo de reprodução: `20261024_semana4_receita_ovos_correcao_controlada.sql`.
 - Novo hash da fonte da receita corrigida: `f3babecdf97e8f272d3110824817556d`.
 
-## Outras referências incompletas encontradas
+## Outras referências incompletas encontradas — corrigidas na mesma data
 
-Nos 119 registros oficiais, havia **quatro** fichas com referência a instruções situadas fora da própria ficha (incluindo a salada de ovos corrigida). **Três permanecem pendentes de consolidação editorial:**
+Nos 119 registros oficiais, havia **quatro** fichas com referência a instruções situadas fora da própria ficha (incluindo a salada de ovos corrigida). As outras três foram **consolidadas editorialmente** em 24/10/2026, depois da triagem inicial:
 
-| Receita exibida isoladamente | Referência atual que pode confundir o usuário | Preparação complementar existente no cadastro | Ação proposta |
+| Receita exibida isoladamente | Referência original que confundia o usuário | Preparação complementar no cadastro | Correção efetuada |
 | --- | --- | --- | --- |
-| **Caesar sem queijo, com frango** | `Molho Caesar (receita abaixo)` | **Molho Caesar sem queijo** (entrada 12 de *Saladas Verdes com Proteína*); contém gema crua e anchovas | Incorporar composição e preparo do molho à ficha da salada, revisar **ovos e peixe** no controle de alergênicos e incluir o aviso de segurança |
-| **Asiática de repolho, alga e frango desfiado** | `vinagrete de gengibre (receita abaixo)` | **Vinagrete de gengibre** (entrada 15 do mesmo documento) | Inserir ingredientes e passos do vinagrete na ficha principal, sem duplicar as quantidades na lista de compras |
-| **Peito de peru com abacate, brotos e molho verde** | `molho cremoso de abacate (receita abaixo)` | **Molho cremoso de abacate e ervas** (entrada 13 do mesmo documento) | Inserir ingredientes e preparo do molho na ficha principal, preservando o vínculo com a fonte |
+| **Caesar sem queijo, com frango** | `Molho Caesar (receita abaixo)` | **Molho Caesar sem queijo** (entrada 12 de *Saladas Verdes com Proteína*); contém gema crua e anchovas | Ingredientes e preparo incorporados; referências de compra substituídas por itens reais; alerta de gema, peixe e gergelim na interface |
+| **Asiática de repolho, alga e frango desfiado** | `vinagrete de gengibre (receita abaixo)` | **Vinagrete de gengibre** (entrada 15 do mesmo documento) | Ingredientes e preparo incorporados; gergelim original e do molho representados separadamente; aviso para checar soja no rótulo |
+| **Peito de peru com abacate, brotos e molho verde** | `molho cremoso de abacate (receita abaixo)` | **Molho cremoso de abacate e ervas** (entrada 13 do mesmo documento) | Ingredientes e preparo incorporados; rendimento original de 2 a 3 porções exposto |
 
-Essas três fichas não foram alteradas nesta correção: a integração de ingredientes de molhos em receitas principais exige reestruturação e nova avaliação de alergênicos antes de disponibilizá-las para quem tem restrições alimentares. As receitas independentes dos molhos permanecem preservadas.
+As **fichas independentes** dos três molhos permaneceram intactas. As fichas das saladas agora incorporam integralmente as receitas dos molhos, com rendimentos próprios não redimensionados. Foi preservada a trilha editorial de composição, inclusive hashes anteriores, no script `20261024_tres_saladas_molhos_autossuficientes.sql`. A classificação de alergênicos segue **pendente**; nenhuma receita foi homologada como segura para alergias.
 
 ## Pontos de detalhamento da Semana 4
 
@@ -41,14 +41,15 @@ Esses são **pontos de revisão**, não receitas declaradas inválidas, e não t
 
 ## Apresentação e segurança no aplicativo
 
-- `src/RecipeDetails.tsx` no PR #16: quebras de linha do texto dos ingredientes agora são respeitadas.
+- `src/RecipeDetails.tsx` no PR #16: quebras de linha do texto dos ingredientes agora são respeitadas; fichas de saladas com molho incorporado informam que se trata de **composição editorial** com o rendimento original do molho.
 - Na área **Ver informações sobre medidas e segurança**: aviso contextual sobre molhos com gema não cozida, recomendando gema pasteurizada; aviso sobre ceviche de peixe cru.
 - O texto editorial sobre “sobra dura 2 dias na geladeira” foi preservado como fornecido. A advertência informa que esse prazo **não é garantia de segurança microbiológica**.
-- **A interface alterada depende de implantação da branch correspondente**. Alteração no banco validada não equivale a implantação automática da nova interface no endereço de produção.
+- **Implantação confirmada** em pré-visualização, vinculada ao domínio `alimentacaoforte.epsacore.com.br`. O domínio acompanha a branch de trabalho e não é ainda um deployment convencional de produção.
 
 ## Critério de conclusão
 
 1. **Concluído:** receita de ovos detalhada no banco, fonte revisada, fragmentos da lista de compras, dois rótulos de dia corrigidos.
-2. **Implementado na branch, implantação pendente:** avisos de segurança e respeito às quebras de linha na interface.
-3. **Identificado e pendente:** 3 receitas com molhos referenciados fora da ficha; 5 observações de detalhamento e segurança na Semana 4.
-4. **Não realizado:** aprovação formal de alergênicos para qualquer receita, merge de PR, implantação de migração de proteção A5.1 ou modificação do calendário planejado.
+2. **Concluído na pré-visualização vinculada ao domínio:** avisos de segurança, molhos incorporados e respeito às quebras de linha na interface; verificação visual da salada de ovos recebida do usuário.
+3. **Concluído após revisão inicial:** 3 receitas com molhos referenciados fora da ficha, agora autossuficientes e com ingredientes na lista de compras.
+4. **Identificado e pendente:** homologação de alergênicos das fichas alteradas e 5 observações de detalhamento e segurança na Semana 4.
+5. **Não realizado:** aprovação formal de alergênicos para qualquer receita, merge de PR, implantação de migração de proteção A5.1 ou modificação do calendário planejado.
