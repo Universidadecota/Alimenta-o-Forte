@@ -1,6 +1,7 @@
 /**
  * A3 · Pistas textuais para triagem EDITORIAL, nunca para liberar refeições.
- * Vocabulário inicial orientado às classes de alergênicos de rotulagem da Anvisa.
+ * Vocabulário inicial orientado às classes de rotulagem da Anvisa e riscos
+ * adicionais, como gergelim, reconhecido também fora da lista obrigatória.
  * Pistas podem ser falsas, incompletas ou omitir derivados, marcas e contato cruzado.
  * A AUSÊNCIA de uma pista NÃO demonstra ausência de alérgenos.
  */
@@ -14,6 +15,7 @@ const entries=[
  {code:"peixes",label:"Peixes",terms:["peixe","peixes","salmao","atum","sardinha","tilapia","bacalhau","anchova"]},
  {code:"amendoim",label:"Amendoim",terms:["amendoim","amendoins"]},
  {code:"soja",label:"Soja (possível)",terms:["soja","tofu","shoyu","miso","tempeh","edamame"]},
+ {code:"gergelim",label:"Gergelim (possível)",terms:["gergelim","sesamo","sesame","tahine","tahini"]},
  {code:"leite",label:"Leite e derivados (possível)",terms:["leite","queijo","queijos","iogurte","requeijao","manteiga","nata","caseina","soro de leite","creme de leite","leite condensado"]},
  {code:"amendoa",label:"Amêndoas",terms:["amendoa","amendoas"]},
  {code:"avela",label:"Avelãs",terms:["avela","avelas"]},
