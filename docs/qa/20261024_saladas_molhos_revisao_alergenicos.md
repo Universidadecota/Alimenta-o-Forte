@@ -23,7 +23,7 @@ Foi utilizado o mesmo documento de origem **Saladas Verdes com Proteína - Desaf
 | Asiática | **Gergelim:** 1 colher (sopa) na salada + 1 colher (chá) no vinagrete. **Soja:** não está declarada na fórmula; confirmar no rótulo da alga se temperada ou processada com molho de soja. | Gergelim é ingrediente explícito; soja é **possibilidade dependente do rótulo**, não evidência de presença confirmada |
 | Peru com molho verde | Peito de peru caseiro ou industrializado conforme rótulo; demais ingredientes não informam, por si só, cobertura de todos os alergênicos. | Confirmar ingrediente real e rótulo do produto escolhido; não declarar ausência comprovada de alergênicos |
 
-**Lacuna específica do catálogo A4:** códigos `ovos`, `peixes` e `soja` existem; **`gergelim` não estava cadastrado** na taxonomia A4 durante a verificação. Sua classificação precisa ser planejada e validada antes de qualquer indicação de cobertura completa para usuários alérgicos. Não foi inserido um código isolado sem integrar a política de elegibilidade e a interface.
+**Lacuna específica do catálogo A4 (corrigida parcialmente no mesmo dia):** códigos `ovos`, `peixes` e `soja` existiam; `gergelim` não estava cadastrado durante a verificação inicial. Em 24/10 foi inserido o código `gergelim` com o rótulo **Gergelim (sésamo)**, junto a uma opção de seleção no cadastro e pistas A3 para gergelim, sésamo e tahine. A política de elegibilidade permanece estritamente bloqueada para usuários alérgicos: classificação preliminar não equivale a cobertura completa ou liberação.
 
 **Estado de homologação:** nas três saladas, 0 evidências A3B, 0 findings A4, 0 avaliações finais positivas. A atualização de texto e ingredientes aciona as invalidações técnicas existentes, mas **não autoriza a geração automática de cardápios para alérgicos**.
 
@@ -37,6 +37,6 @@ Foi utilizado o mesmo documento de origem **Saladas Verdes com Proteína - Desaf
 ## Próximas ações de segurança
 
 1. Executar a triagem A3B e classificação preliminar A4 por usuário administrador autenticado, com as novas referências/hashes e textos dos ingredientes; registrar presença de **ovos** e **peixes** na Caesar.
-2. Decidir e testar a inclusão de **gergelim** na taxonomia e no fluxo de preferências/eligibilidade de alergias, sem inferir cobertura automática.
+2. Homologar visualmente a nova opção **Gergelim** no cadastro e a pista editorial na fila A3, sem inferir cobertura automática.
 3. Validar rótulos e possibilidade de soja na alga escolhida, além das versões de peito de peru industrializado.
 4. Manter bloqueada a sugestão automática para perfis alérgicos até concluir as garantias de segurança no servidor e a homologação pertinente.
