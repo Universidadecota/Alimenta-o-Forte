@@ -20,8 +20,8 @@ for(const id of ["cc-review-allergens","cc-review-evidence","cc-review-cross-con
 }
 assert.match(queue,/minHeight:112,resize:"vertical"/,"Notas de evidência devem permitir leitura e redimensionamento.");
 assert.match(queue,/minHeight:90,resize:"vertical"/,"Notas de contato cruzado devem permitir leitura e redimensionamento.");
-assert.match(suggestions,/if\(prefs\.allergies\.length\)throw new Error/);
+assert.match(suggestions,/if\(prefs\.allergies\.length && !preliminaryEligibleIds\)/);
 assert.match(migration,/cc_allergen_reviews_admin_insert/);
 assert.match(migration,/cc_allergen_reviews_admin_update/);
 assert.match(migration,/enable row level security/);
-console.log("OK: fila restrita, formulário legível e acessível, sem aprovação; sugestões ainda bloqueadas.");
+console.log("OK: fila restrita, formulário legível, sem certificação; sugestões condicionadas ao filtro do servidor.");

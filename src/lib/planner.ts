@@ -111,6 +111,15 @@ export async function loadWeek(userId:string,weekStart:string):Promise<Plan>{
  const {data,error}=await supabase.from("planned_meals").select("meal_date,slot,recipe_id,servings").eq("user_id",userId).eq("meal_plan_id",plans.id);
  if(error)throw error;return toPlan(data||[]);
 }
+/** IDs pré-triados no servidor para as alergias do usuário autenticado.
+ * Não representam comprovação de ausência de alergênicos ou contato cruzado.
+ */
+export async function loadPreliminaryAllergyCandidates():Promise<ReadonlySet<string>>{
+ if(!supabase)throw new Error("A triagem de alergênicos necessita de conexão com o servidor.");
+ const {data,error}=await supabase.rpc("cc_allergy_candidate_ids");
+ if(error)throw new Error("Não foi possível conferir os ingredientes no servidor. A sugestão não foi liberada. "+error.message);
+ return new Set((data??[]).map((id:string)=>id));
+}
 export async function saveMeal(userId:string,weekStart:string,day:string,slot:Slot,recipeId:string,servings=1):Promise<void>{
  if(!supabase)throw new Error("Supabase indisponível");
  if(!Number.isInteger(servings)||servings<1||servings>20)throw new Error("Porções inválidas.");

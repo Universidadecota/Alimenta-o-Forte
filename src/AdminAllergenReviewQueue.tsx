@@ -178,7 +178,7 @@ export default function AdminAllergenReviewQueue(){
 
  return <section className="detail-panel" style={{marginTop:20}} aria-label="Fila de revisão editorial de alergênicos">
   <h3>Triagem editorial de alergênicos · Beta</h3>
-  <p className="detail-note">Fila administrativa das receitas habilitadas no Beta. Registros iniciados aqui são apenas rascunhos de investigação: ausência de termos não demonstra ausência de alergênicos. Nenhuma triagem habilita sugestões automáticas.</p>
+  <p className="detail-note">Fila administrativa das receitas habilitadas no Beta. Registros iniciados aqui são apenas rascunhos de investigação: ausência de termos não demonstra ausência de alergênicos. A pré-triagem das sugestões semanais não utiliza estes rascunhos como certificação de segurança.</p>
   <div className="notice" role="status">
    <strong>Proteção alimentar mantida:</strong> a revisão exige avaliação específica de derivados, rótulos, fornecedores e contato cruzado. A aprovação final não é feita neste painel.
   </div>

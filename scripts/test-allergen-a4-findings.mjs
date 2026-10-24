@@ -37,6 +37,6 @@ assert.match(panel,/current\.source_reference_hash_snapshot===sourceHash/);
 assert.doesNotMatch(panel,/status:"verified"|ingredientClearances|crossContactClearances/);
 assert.match(queue,/import AdminAllergenStructuredFindings from "\.\/AdminAllergenStructuredFindings"/);
 assert.match(queue,/<AdminAllergenStructuredFindings/);
-assert.match(suggestions,/if\(prefs\.allergies\.length\)throw new Error/);
+assert.match(suggestions,/if\(prefs\.allergies\.length && !preliminaryEligibleIds\)/);
 
-console.log("OK: A4 vincula constatacoes a A3B vigente com RLS e historico append-only; nenhuma exclusao ou sugestao a alergicos.");
+console.log("OK: A4 vincula constatações à evidência A3B com RLS e histórico append-only, sem conceder certificação para sugestões.");

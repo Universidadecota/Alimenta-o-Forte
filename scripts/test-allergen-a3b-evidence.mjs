@@ -37,5 +37,5 @@ assert.match(queue,/select\("id,name,quantity,unit,position"\)/);
 assert.match(queue,/reference_hash/);
 assert.match(queue,/<AdminAllergenIngredientEvidence/);
 
-assert.match(suggestions,/if\(prefs\.allergies\.length\)throw new Error/);
-console.log("OK: A3B somente historico administrativo append-only, RLS e snapshots; gerador ainda bloqueado.");
+assert.match(suggestions,/if\(prefs\.allergies\.length && !preliminaryEligibleIds\)/);
+console.log("OK: A3B mantém histórico administrativo append-only, RLS e snapshots; gerador exige triagem específica independente.");

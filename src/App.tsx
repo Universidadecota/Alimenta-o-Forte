@@ -17,7 +17,7 @@ import PersonalRecipeForm from "./PersonalRecipeForm";
 import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
-import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, saveMeal, replaceWeekMainMeals, removeMeal, moveMeal } from "./lib/planner";
+import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, loadPreliminaryAllergyCandidates, saveMeal, replaceWeekMainMeals, removeMeal, moveMeal } from "./lib/planner";
 import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
@@ -182,36 +182,45 @@ export default function App(){
    setError("Aguarde o carregamento de receitas, cardápio, preferências e alergias antes de gerar sugestões.");return;
   }
   if(loading||saving)return;
-  setError("");setWeekSuggestionProgress("");
-  let proposal:Plan;
-  try{proposal=proposeWeek(recipes,preferences,days,plan);}
-  catch(err){setError(err instanceof Error?err.message:"Não foi possível sugerir a semana.");return;}
-  const next:Plan={...plan};
-  let changed=0;
-  for(const day of days){
-   const key=dateKey(day);
-   next[key]={...plan[key],...proposal[key]};
-   for(const slot of slots)if(plan[key]?.[slot]?.id!==proposal[key]?.[slot]?.id)changed++;
+  const hasAllergies=preferences.allergies.length>0;
+  if(hasAllergies&&preferences.allergies.some(a=>a.normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toLowerCase()==="outros")){
+   setError("Você marcou 'Outros' como alergia, mas não informou qual ingrediente deve ser evitado. Não é possível pré-triar as receitas sem identificar esse risco. Atualize suas alergias antes de gerar a semana.");return;
   }
-  if(!confirm("Gerar um NOVO cardápio para esta semana e SUBSTITUIR todas as 21 refeições principais? As escolhas atuais serão trocadas pelas novas sugestões. Lanches e ceia opcionais serão preservados e a lista de compras será recalculada."))return;
-  setSaving(true);
-  setWeekSuggestionProgress("Renovando as 21 refeições da semana...");
+  setSaving(true);setError("");
+  setWeekSuggestionProgress(hasAllergies?"Verificando os ingredientes declarados para as alergias cadastradas...":"Preparando sugestões...");
   try{
+   const eligible=hasAllergies?await loadPreliminaryAllergyCandidates():undefined;
+   const proposal=proposeWeek(recipes,preferences,days,plan,eligible);
+   const next:Plan={...plan};
+   let changed=0;
+   for(const day of days){
+    const key=dateKey(day);
+    next[key]={...plan[key],...proposal[key]};
+    for(const slot of slots)if(plan[key]?.[slot]?.id!==proposal[key]?.[slot]?.id)changed++;
+   }
+   const caution=hasAllergies
+    ?"\n\n⚠️ ATENÇÃO — ALERGIAS: "+preferences.allergies.join(", ")+". A seleção apenas descarta receitas com ingredientes de risco reconhecidos na triagem textual. NÃO HÁ VERIFICAÇÃO de derivados ocultos, rótulos ou contato cruzado. Isto NÃO significa que as refeições sejam seguras para sua alergia. Confira TODAS as receitas, embalagens e condições de preparo antes de consumir. Em caso de dúvida, não consuma.\n\nVocê compreende que este é um cardápio PRELIMINAR e quer salvá-lo mesmo assim?"
+    :"";
+   if(!confirm("Gerar um NOVO cardápio e SUBSTITUIR todas as 21 refeições principais? Lanches e ceia serão preservados; a lista de compras será recalculada."+caution)){
+    setWeekSuggestionProgress("");return;
+   }
+   setWeekSuggestionProgress("Renovando as 21 refeições da semana...");
    if(supabase)await replaceWeekMainMeals(userId!,weekStart,days,next,plan);
    else localStorage.setItem("cc_demo_plan",JSON.stringify(next));
    setPlan(next);
    await syncChangedPurchases(plan,next);
-   setWeekSuggestionProgress(changed===21
-    ?"21 refeições renovadas com sucesso."
-    :"Cardápio renovado: "+changed+" receitas trocadas. As demais não tinham alternativa compatível.");
+   setWeekSuggestionProgress((changed===21
+    ?"21 refeições renovadas."
+    :"Cardápio renovado: "+changed+" receitas trocadas; as demais não tinham alternativa disponível.")
+    +(hasAllergies?" ATENÇÃO: PRÉ-TRIAGEM SEM CERTIFICAÇÃO. Confira ingredientes, rótulos e contato cruzado antes de consumir.":""));
   }catch(err){
    setWeekSuggestionProgress("");
    const detail=err instanceof Error?err.message:"Falha de conexão";
-   if(supabase&&userId){
+   if(supabase&&userId&&detail.toLowerCase().includes("cardápio alterado")){
     try{setPlan(await loadWeek(userId,weekStart));}
     catch{setError("Não foi possível confirmar o estado salvo. Atualize o cardápio antes de continuar.");return;}
    }
-   setError("Não foi possível confirmar a renovação. O cardápio foi recarregado do banco; confira as refeições exibidas antes de tentar novamente. "+detail);
+   setError("Não foi possível gerar ou salvar a sugestão. Nenhuma nova refeição foi confirmada pela interface. "+detail);
   }finally{setSaving(false);}
  };
  const copyMeal=async(slot:Slot,destinationDay:string)=>{
@@ -393,7 +402,7 @@ export default function App(){
   onOpenRecipes={()=>{setRecipeForm(false);setDetailId(null);setPage("Receitas");}}
   onViewRecipe={id=>{setRecipeForm(false);setEditingId(null);setDetailOrigin("Início");setDetailId(id);setPage("Receitas");}}
  />}
- {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>Alergias/intolerâncias cadastradas: {preferences.allergies.join(", ")}</strong><span>As receitas ainda não tiveram alergênicos e contato cruzado verificados. Confira cada uma antes de consumir.</span><details><summary>Entenda a orientação de segurança</summary><p>As receitas não têm validação suficiente para assegurar ausência de alérgenos ou contato cruzado. {plannedCount>0?`As ${plannedCount} refeições já planejadas nesta semana permanecem no cardápio, mas precisam ser conferidas individualmente.`:"Confira cada receita antes de escolher uma refeição."} A seleção manual não representa uma recomendação segura. Consulte ingredientes, rótulos, condições de preparo e orientação profissional quando necessário.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady||!preferencesReady} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("fridge")}><Printer size={16}/> Imprimir só o cardápio</button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("week")}><Printer size={16}/> Imprimir cardápio e receitas / Salvar PDF</button>{weekSuggestionProgress&&<span role="status" className="cc-manual-planning-notice">{weekSuggestionProgress}</span>}<span className="cc-manual-planning-notice">{preferences.allergies.length?"Sugestões automáticas indisponíveis enquanto os alergênicos das receitas não forem verificados.":"Substitui as 21 refeições principais por novas sugestões; lanches e ceia são preservados."}</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
+ {page==="Cardápio"&&<>{preferences.allergies.length>0&&<div className="notice cc-allergy-alert" role="alert"><strong>⚠️ ALERTA DE ALERGIA — {preferences.allergies.join(", ")}</strong><span><b>As sugestões automáticas são apenas pré-triadas, não certificadas como seguras.</b> Receitas com alergênicos identificados são excluídas, mas ingredientes ocultos, rótulos e contato cruzado ainda não foram verificados.</span><span><b>ANTES DE CONSUMIR:</b> confira cada ingrediente, derivados, embalagem e condições de preparo. Em caso de dúvida, não consuma.</span><details><summary>Entenda as limitações da triagem</summary><p>Não encontrar a palavra do alergênico na receita não comprova sua ausência. {plannedCount>0?`As ${plannedCount} refeições já planejadas também precisam de conferência individual.`:"Confira todas as receitas sugeridas antes de utilizá-las."} A escolha manual ou automática não representa aprovação clínica, nem substitui orientação profissional.</p></details></div>}<div className="toolbar"><div><h2>Planejamento da semana</h2><span>Altere as refeições quando quiser · {preferences.household_size} pessoas em casa</span></div><div className="toolbar-actions"><button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button><strong>{fmt(days[0])} — {fmt(days[6])}</strong><button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady||!preferencesReady} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("fridge")}><Printer size={16}/> Imprimir só o cardápio</button><button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("week")}><Printer size={16}/> Imprimir cardápio e receitas / Salvar PDF</button>{weekSuggestionProgress&&<span role="status" className="cc-manual-planning-notice">{weekSuggestionProgress}</span>}<span className="cc-manual-planning-notice">{preferences.allergies.length?"Pré-triagem automática dos ingredientes declarados; cada receita exige conferência antes do consumo.":"Substitui as 21 refeições principais por novas sugestões; lanches e ceia são preservados."}</span></div></div>{pendingPlacement&&<section className="cc-snack-placement" aria-label="Escolher horário da refeição">
  <div><strong>Em qual horário deseja adicionar esta receita?</strong>
  <p>{recipes.find(r=>r.id===pendingPlacement.recipeId)?.title??"Receita selecionada"} · {pendingPlacement.servings} {pendingPlacement.servings===1?"porção":"porções"} · {selected.split("-").reverse().join("/")}</p></div>
  <label>Horário<select aria-label="Horário para a receita selecionada" value={placementTarget} disabled={loading||saving}

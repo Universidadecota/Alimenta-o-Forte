@@ -44,6 +44,6 @@ assert.match(code,/Nenhum termo localizado\. Isso NÃO indica ausência/);
 assert.match(code,/status:"in_review"/);
 assert.match(code,/cross_contact_status:"unknown"/);
 assert.doesNotMatch(code,/status:"verified"/);
-assert.match(suggestions,/if\(prefs\.allergies\.length\)throw new Error/);
+assert.match(suggestions,/if\(prefs\.allergies\.length && !preliminaryEligibleIds\)/);
 assert.match(gate,/review\.status!=="verified"/);
-console.log("OK: A3 sugere pistas textuais sem concluir ausência, não aprova receitas e preserva bloqueio de cardápios com alergias.");
+console.log("OK: A3 oferece pistas sem concluir segurança ou aprovar receitas; sugestões dependem da pré-triagem específica do servidor.");

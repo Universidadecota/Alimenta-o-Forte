@@ -283,7 +283,7 @@ assert.equal(saladWeek[dayKey]["Almoço"].id,"salada-completa",
 const noAllergenAdvice=[makeMeal("teste","Almoço",[ingredient("Feijão",100,"g")])];
 assert.throws(()=>suggest.proposeWeek(noAllergenAdvice,{
  ...suggest.defaultPreferences,allergies:["Soja"]
-},[monday]),/alergias\/intolerâncias/);
+},[monday]),/análise de ingredientes/);
 assert.deepEqual(pilotPlan[dayKey]["Ceia"],{id:"piloto",servings:4},
  "A soma das compras não pode alterar o planejamento");
 const betaBreakfast=makeMeal("beta-café","Café da manhã",[],"week",2);
@@ -302,7 +302,7 @@ assert.equal(betaSuggested[dayKey]["Almoço"].servings,3,"Não alterar rendiment
 assert.equal(suggest.canMatchAvoidedIngredient(betaLunch,["frango"]),true,"Respeitar ingredientes originais não estruturados");
 assert.throws(()=>suggest.proposeWeek([betaBreakfast,betaLunch,betaDinner],{
  ...suggest.defaultPreferences,allergies:["Soja","Glúten"]
-},betaDays),/alergias\/intolerâncias/,"Sem verificação de alergênicos não gerar semana automaticamente");
+},betaDays),/análise de ingredientes/,"Sem pré-triagem do servidor não gerar semana automaticamente");
 
 // Cada novo clique deve trocar todos os horários principais quando houver alternativas.
 const otherBreakfast=makeMeal("outro-café","Café da manhã",[ingredient("Banana",1)]);
@@ -324,7 +324,7 @@ assert.equal(fixedWeek[dayKey]["Almoço"].id,allowedLunch.id,
  "Sem alternativa, a receita única permanece disponível");
 assert.throws(()=>suggest.proposeWeek(twoPerSlot,{
  ...suggest.defaultPreferences,allergies:["Soja"]
-},betaDays,initialWeek),/alergias\/intolerâncias/,
+},betaDays,initialWeek),/análise de ingredientes/,
  "Regenerar uma semana não pode ignorar alergias cadastradas");
 const printWeek=printable.buildWeeklyPrintHtml({
  kind:"week",days:betaDays,plan:betaSuggested,
@@ -405,4 +405,4 @@ const preferredWeek=suggest.proposeWeek([demoMeal,quickBreakfast,allowedLunch,qu
 assert.ok(betaDays.every(day=>preferredWeek[planner.dateKey(day)]["Café da manhã"].id===quickBreakfast.id),
  "Receitas reais devem prevalecer sobre itens [Exemplo] quando estão disponíveis");
 
-console.log("OK: horários, acervo piloto, quantidades de compras e bloqueio por alergias, sem Supabase.");
+console.log("OK: horários, acervo piloto, compras e bloqueio quando falta pré-triagem de alergias, sem Supabase.");

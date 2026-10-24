@@ -8,13 +8,15 @@ export function canMatchAvoidedIngredient(meal:Meal,avoids:string[]):boolean{
  return avoids.some(food=>{const terms=groups[normal(food)]??[normal(food)];return names.some(name=>terms.some(term=>name.includes(term)));});
 }
 /** Novas sugestões para 7 dias; preserva o plano antigo até o usuário confirmar. */
-export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],current:Plan={}):Plan{
- if(prefs.allergies.length)throw new Error("Há alergias/intolerâncias cadastradas, mas as receitas ainda não têm dados verificados de alérgenos. Por segurança, a sugestão automática está desabilitada. Consulte os ingredientes e um profissional qualificado.");
+export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],current:Plan={},preliminaryEligibleIds?:ReadonlySet<string>):Plan{
+ if(prefs.allergies.length && !preliminaryEligibleIds)
+  throw new Error("A análise de ingredientes para as alergias cadastradas não está disponível. Nenhuma sugestão foi liberada.");
  const servings=Math.max(1,Math.min(20,Math.trunc(prefs.household_size)||1));
  const result:Plan={};
  const used=new Map<string,number>();
  for(const slot of slots){
   const available=recipes.filter(r=>recipeFitsSlot(r,slot)
+   &&(!prefs.allergies.length||preliminaryEligibleIds!.has(r.id))
    &&(r.ingredients.length>0||Boolean(r.pilotSource?.originalIngredients.trim()))
    &&!canMatchAvoidedIngredient(r,prefs.disliked_foods));
   const withinTime=available.filter(r=>r.minutes<=prefs.cooking_minutes);
@@ -22,7 +24,9 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],cur
   // não como sugestão prioritária quando existe catálogo normal compatível.
   const regular=withinTime.filter(r=>!/^\s*\[Exemplo\]/i.test(r.title));
   const candidates=regular.length?regular:withinTime;
-  if(!candidates.length)throw new Error("Não há receitas na categoria "+slot+" dentro do tempo de preparo escolhido. Ajuste o tempo disponível ou cadastre receitas.");
+  if(!candidates.length)throw new Error(prefs.allergies.length
+   ?"Nenhuma receita passou pela pré-triagem para "+slot+" com as alergias e o tempo de preparo informados. Não serão usadas receitas com riscos identificados nem alternativas sem dados suficientes."
+   :"Não há receitas na categoria "+slot+" dentro do tempo de preparo escolhido. Ajuste o tempo disponível ou cadastre receitas.");
   let previousId:string|null=null;
   for(const day of days){
    const key=dateKey(day);
