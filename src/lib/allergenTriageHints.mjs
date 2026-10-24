@@ -12,7 +12,7 @@ const entries=[
  {code:"aveia",label:"Aveia",terms:["aveia","farelo de aveia"]},
  {code:"crustaceos",label:"Crustáceos",terms:["camarao","lagosta","caranguejo","siri","crustaceos"]},
  {code:"ovos",label:"Ovos (possível)",terms:["ovo","ovos","gema","gemas","clara","claras","maionese"]},
- {code:"peixes",label:"Peixes",terms:["peixe","peixes","salmao","atum","sardinha","tilapia","bacalhau","anchova"]},
+ {code:"peixes",label:"Peixes",terms:["peixe","peixes","salmao","atum","sardinha","tilapia","bacalhau","anchova","anchovas","aliche","aliches","anchovy","anchovies"]},
  {code:"amendoim",label:"Amendoim",terms:["amendoim","amendoins"]},
  {code:"soja",label:"Soja (possível)",terms:["soja","tofu","shoyu","miso","tempeh","edamame"]},
  {code:"gergelim",label:"Gergelim (possível)",terms:["gergelim","sesamo","sesame","tahine","tahini"]},
@@ -29,7 +29,7 @@ const entries=[
  {code:"castanhas",label:"Castanhas sem espécie definida",terms:["castanha","castanhas"]},
  {code:"latex",label:"Látex natural",terms:["latex natural","latex"]}
 ];
-const composed=["molho pronto","caldo em cubo","tempero pronto","mistura pronta","embutido","embutidos"];
+const composed=["molho pronto","caldo em cubo","tempero pronto","mistura pronta","embutido","embutidos","bacon"];
 const normal=(text)=>text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()
  .replace(/[-–—]/g," ").replace(/\s+/g," ").trim();
 const matches=(whole,term)=>{
