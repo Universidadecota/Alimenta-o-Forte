@@ -10,6 +10,9 @@ type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(serv
 export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas"}:Props){
  const [servings,setServings]=useState(recipe.servings);
  const steps=recipe.instructions?.split(/(?:\\n|\r?\n)+/).map(s=>s.trim()).filter(Boolean)??[];
+ const includesHomemadeMayonnaise=Boolean(recipe.pilotSource&&
+  /maionese\s+(?:caseira|artesanal)|maionese\s*:/iu.test(recipe.pilotSource.originalIngredients));
+ const includesRawFishPreparation=Boolean(recipe.pilotSource&&/ceviche/i.test(recipe.title));
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> {backLabel}</button>
   <div className="recipe-detail-head">
@@ -25,10 +28,13 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
    :<div className="portion-stepper"><span>Porções</span><button type="button" disabled={servings<=1} onClick={()=>setServings(v=>Math.max(1,v-1))} aria-label="Diminuir porções"><Minus size={16}/></button><strong>{servings}</strong><button type="button" disabled={servings>=20} onClick={()=>setServings(v=>Math.min(20,v+1))} aria-label="Aumentar porções"><Plus size={16}/></button></div>}
    {recipe.pilotSource?<div className="cc-pilot-source-ingredients">
     <p><strong>Ingredientes conforme o documento original:</strong></p>
-    <p>{recipe.pilotSource.originalIngredients}</p>
+    <p style={{whiteSpace:"pre-line"}}>{recipe.pilotSource.originalIngredients}</p>
 
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
-   {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>Receita autoral em uso pessoal: ingredientes e modo de preparo originais preservados. Não há redimensionamento automático das porções até a revisão das medidas.</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p></div></details>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
+   {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>Receita autoral em uso pessoal: ingredientes e modo de preparo originais preservados. Não há redimensionamento automático das porções até a revisão das medidas.</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p>
+    {includesHomemadeMayonnaise&&<p className="notice" role="alert"><strong>Atenção à maionese caseira:</strong> a preparação descrita utiliza gema sem cocção. Para maionese não cozida, utilize gema pasteurizada; não considere segura a utilização de ovo cru comum. Mantenha ingredientes e utensílios higienizados e refrigere imediatamente. A indicação de conservação por até dois dias no documento não garante segurança microbiológica.</p>}
+    {includesRawFishPreparation&&<p className="notice" role="alert"><strong>Atenção ao ceviche:</strong> marinar peixe em limão não equivale a cozinhá-lo nem elimina todos os riscos de microrganismos e parasitas. Utilize apenas pescado controlado para consumo cru ou prefira o preparo com o peixe completamente cozido, especialmente para pessoas de maior risco.</p>}
+   </div></details>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
    <section className="detail-panel"><h3>Modo de preparo</h3>{steps.length>0?<ol className="preparation">{steps.map((step,i)=><li key={i}>{step}</li>)}</ol>:<p className="detail-note">O modo de preparo desta receita ainda não foi cadastrado e revisado. Não vamos apresentar instruções inventadas como definitivas.</p>}
    <button type="button" className="primary" disabled={!canAdd} onClick={()=>onAdd(servings)}><Plus size={16}/> {recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"?"Escolher horário · "+destinationDateLabel:"Adicionar em "+destinationDateLabel}</button>
