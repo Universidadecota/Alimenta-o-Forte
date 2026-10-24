@@ -6,11 +6,12 @@ import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
 import { formatRecipeIngredient } from "./lib/ingredientMeasures";
 import {formatPilotRecipeTime} from "./lib/pilotRecipeTime.mjs";
+import {parseRecipePreparation} from "./lib/recipePreparationSections.mjs";
 
 type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean;backLabel?:string};
 export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas"}:Props){
  const [servings,setServings]=useState(recipe.servings);
- const steps=recipe.instructions?.split(/(?:\\n|\r?\n)+/).map(s=>s.trim()).filter(Boolean)??[];
+ const {steps,tips,safety}=parseRecipePreparation(recipe.instructions);
  const includesCompiledSauce=Boolean(recipe.pilotSource&&
   /rendimento próprio: 2 a 3 porções/iu.test(recipe.pilotSource.originalIngredients));
  const includesUncookedYolkSauce=Boolean(recipe.pilotSource&&
@@ -45,6 +46,8 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
    </div></details>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
    <section className="detail-panel"><h3>Modo de preparo</h3>{steps.length>0?<ol className="preparation">{steps.map((step,i)=><li key={i}>{step}</li>)}</ol>:<p className="detail-note">O modo de preparo desta receita ainda não foi cadastrado e revisado. Não vamos apresentar instruções inventadas como definitivas.</p>}
+   {tips.length>0&&<aside className="recipe-preparation-tips"><h4>Dicas para dar certo</h4><ul>{tips.map((tip,i)=><li key={i}>{tip}</li>)}</ul></aside>}
+   {safety.length>0&&<aside className="recipe-preparation-safety"><h4>Cuidados de segurança</h4><ul>{safety.map((warning,i)=><li key={i}>{warning}</li>)}</ul></aside>}
    <button type="button" className="primary" disabled={!canAdd} onClick={()=>onAdd(servings)}><Plus size={16}/> {recipe.category==="Lanche"||recipe.pilotSource?.kind==="salad"?"Escolher horário · "+destinationDateLabel:"Adicionar em "+destinationDateLabel}</button>
    </section>
   </div>

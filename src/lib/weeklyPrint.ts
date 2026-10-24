@@ -2,6 +2,7 @@ import {dateKey,daySlots,type Meal,type Plan} from "./planner";
 import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasures";
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
+import {parseRecipePreparation} from "./recipePreparationSections.mjs";
 
 export type PrintKind="fridge"|"week"|"shopping";
 export type WeeklyPrintData={
@@ -14,7 +15,6 @@ const escapeHtml=(value:unknown)=>String(value??"").replace(/[&<>"']/g,char=>({
 })[char]??char);
 const displayDate=(date:Date)=>date.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"});
 const period=(days:Date[])=>days.length?days[0].toLocaleDateString("pt-BR")+" a "+days[days.length-1].toLocaleDateString("pt-BR"):"";
-const steps=(text:string|null)=>text?.split(/(?:\\n|\r?\n)+/).map(s=>s.trim()).filter(Boolean)??[];
 const safe=(value:unknown)=>escapeHtml(value);
 
 export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
@@ -50,15 +50,17 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
   const ingredientMarkup=recipe.pilotSource
    ?`<p class="original">${safe(recipe.pilotSource.originalIngredients)}</p>`
    :`<ul>${recipe.ingredients.map(i=>`<li>${safe(i.name)} — ${safe(formatRecipeIngredient(i))}</li>`).join("")}</ul>`;
-  const instructions=steps(recipe.instructions);
-  const preparation=instructions.length
-   ?`<ol>${instructions.map(s=>`<li>${safe(s)}</li>`).join("")}</ol>`
+  const instructions=parseRecipePreparation(recipe.instructions);
+  const preparation=instructions.steps.length
+   ?`<ol>${instructions.steps.map(s=>`<li>${safe(s)}</li>`).join("")}</ol>`
    :'<p class="muted">Modo de preparo ainda não cadastrado.</p>';
+  const tips=instructions.tips.length?`<h4>Dicas para dar certo</h4><ul>${instructions.tips.map(s=>`<li>${safe(s)}</li>`).join("")}</ul>`:"";
+  const safety=instructions.safety.length?`<div class="warning"><h4>Cuidados de segurança</h4><ul>${instructions.safety.map(s=>`<li>${safe(s)}</li>`).join("")}</ul></div>`:"";
   return `<article class="recipe"><h3>${safe(recipe.title)}</h3><p class="muted">
    ${safe(where.join(" | "))}</p><p><strong>Tempo:</strong> ${safe(timeText)}
    · <strong>Rendimento original:</strong> ${safe(yieldText)}</p>
    <div class="recipe-body"><section><h4>Ingredientes</h4>${ingredientMarkup}</section>
-   <section><h4>Modo de preparo</h4>${preparation}</section></div>
+   <section><h4>Modo de preparo</h4>${preparation}${tips}${safety}</section></div>
    ${recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?'<p class="warning">Medidas originais preservadas; não houve redimensionamento automático.</p>':""}
    </article>`;
  }).join("");
