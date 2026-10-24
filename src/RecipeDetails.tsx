@@ -10,8 +10,8 @@ type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(serv
 export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas"}:Props){
  const [servings,setServings]=useState(recipe.servings);
  const steps=recipe.instructions?.split(/(?:\\n|\r?\n)+/).map(s=>s.trim()).filter(Boolean)??[];
- const includesHomemadeMayonnaise=Boolean(recipe.pilotSource&&
-  /maionese\s+(?:caseira|artesanal)|maionese\s*:/iu.test(recipe.pilotSource.originalIngredients));
+ const includesUncookedYolkSauce=Boolean(recipe.pilotSource&&
+  /maionese\s+(?:caseira|artesanal)|maionese\s*:|molho caesar/iu.test(recipe.pilotSource.originalIngredients));
  const includesRawFishPreparation=Boolean(recipe.pilotSource&&/ceviche/i.test(recipe.title));
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> {backLabel}</button>
@@ -32,7 +32,7 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
 
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
    {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>Receita autoral em uso pessoal: ingredientes e modo de preparo originais preservados. Não há redimensionamento automático das porções até a revisão das medidas.</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p>
-    {includesHomemadeMayonnaise&&<p className="notice" role="alert"><strong>Atenção à maionese caseira:</strong> a preparação descrita utiliza gema sem cocção. Para maionese não cozida, utilize gema pasteurizada; não considere segura a utilização de ovo cru comum. Mantenha ingredientes e utensílios higienizados e refrigere imediatamente. A indicação de conservação por até dois dias no documento não garante segurança microbiológica.</p>}
+    {includesUncookedYolkSauce&&<p className="notice" role="alert"><strong>Atenção à maionese ou molho com gema:</strong> a preparação descrita utiliza gema sem cocção. Para molhos não cozidos, utilize gema pasteurizada; não considere segura a utilização de ovo cru comum. Mantenha ingredientes e utensílios higienizados e refrigere imediatamente. A eventual indicação de conservação por até dois dias no documento não garante segurança microbiológica.</p>}
     {includesRawFishPreparation&&<p className="notice" role="alert"><strong>Atenção ao ceviche:</strong> marinar peixe em limão não equivale a cozinhá-lo nem elimina todos os riscos de microrganismos e parasitas. Utilize apenas pescado controlado para consumo cru ou prefira o preparo com o peixe completamente cozido, especialmente para pessoas de maior risco.</p>}
    </div></details>:<p className="detail-note">As quantidades são referências demonstrativas. Ao adicionar ao cardápio, as porções selecionadas também serão consideradas na lista de compras.</p>}
    </section>
