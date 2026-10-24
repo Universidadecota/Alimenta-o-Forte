@@ -11,6 +11,11 @@ const sample="1 abacate médio, 2 ovos, páprica, sal, pimenta, cebolinha picada
 assert.equal(has(sample,"ovos"),true,"Ovo deve gerar pista editorial.");
 assert.equal(has(sample,"soja"),false,"Ausência de soja literal não deve inventar um achado.");
 assert.equal(has("tofu, molho shoyu e cebolinha","soja"),true,"Derivados usuais devem gerar pista, não aprovação.");
+assert.equal(has("1 colher (sopa) de gergelim torrado","gergelim"),true,"Gergelim explícito exige pista editorial.");
+assert.equal(has("2 colheres (sopa) de tahine","gergelim"),true,"Pasta de gergelim deve ser reconhecida.");
+assert.equal(has("óleo de sésamo","gergelim"),true,"Sésamo é sinônimo de gergelim.");
+assert.equal(has("sesame seeds","gergelim"),true,"Rótulo importado com sesame deve gerar pista.");
+assert.equal(has("sementes de girassol","gergelim"),false,"Não inferir gergelim de outras sementes.");
 assert.equal(has("2 ovos e queijo ralado","leite"),true);
 assert.equal(has("leite de coco com manteiga de amendoim","leite"),false,"Leite vegetal explícito não equivale automaticamente a leite animal.");
 assert.equal(has("leite de coco e leite integral","leite"),true,"Outras ocorrências não podem ser ignoradas.");
