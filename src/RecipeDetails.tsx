@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
 import { formatRecipeIngredient } from "./lib/ingredientMeasures";
+import {formatPilotRecipeTime} from "./lib/pilotRecipeTime.mjs";
 
 type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean;backLabel?:string};
 export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas"}:Props){
@@ -17,13 +18,14 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
  const includesRawFishPreparation=Boolean(recipe.pilotSource&&/ceviche/i.test(recipe.title));
  const includesAnchovy=Boolean(recipe.pilotSource&&/anchovas?|aliches?/iu.test(recipe.pilotSource.originalIngredients));
  const includesSeasonedSeaweed=Boolean(recipe.pilotSource&&/wakame|nori/iu.test(recipe.pilotSource.originalIngredients));
+ const displayedTime=formatPilotRecipeTime(recipe);
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> {backLabel}</button>
   <div className="recipe-detail-head">
    <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} isAi={recipe.imageIsAi} large/></div>
    <div><span className="eyebrow">{recipe.pilotSource?.kind==="supper"?"Ceia":recipe.pilotSource?.kind==="salad"?"Salada · almoço ou jantar":recipe.pilotSource?.kind==="snack"?"Lanche":recipe.category}</span><h2>{recipe.title}</h2>
-    <p>{recipe.pilotSource?(includesCompiledSauce?"Receita autoral Costa&Costa para uso pessoal. O molho foi incorporado de outra ficha do mesmo documento, preservando seu rendimento; confira rótulos e alergênicos.":"Receita autoral Costa&Costa para uso pessoal. Ingredientes e preparo mantidos conforme o original; confira rótulos e alergênicos antes de consumir."):recipe.description || "Receita em organização culinária."}</p>
-    <div className="recipe-meta"><span><Clock3 size={17}/> {recipe.pilotSource?.originalTime??recipe.minutes+" minutos"}</span>{!recipe.pilotSource&&<span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span>}</div>
+    <p>{recipe.pilotSource?(includesCompiledSauce?"Receita autoral Costa&Costa para uso pessoal. O molho foi incorporado de outra ficha do mesmo documento, preservando seu rendimento; confira rótulos e alergênicos.":"Receita autoral Costa&Costa para uso pessoal. O documento de origem é preservado; a ficha exibida pode incluir correções editoriais de clareza. Confira rótulos e alergênicos antes de consumir."):recipe.description || "Receita em organização culinária."}</p>
+    <div className="recipe-meta"><span><Clock3 size={17}/> {displayedTime}</span>{!recipe.pilotSource&&<span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span>}</div>
    </div>
   </div>
   <div className="detail-columns">
@@ -35,7 +37,7 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
     <p style={{whiteSpace:"pre-line"}}>{recipe.pilotSource.originalIngredients}</p>
 
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
-   {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>{includesCompiledSauce?"O molho foi transcrito de outra ficha do mesmo documento, com as quantidades do lote original. A salada e o molho não foram redimensionados automaticamente.":"Receita autoral em uso pessoal: ingredientes e modo de preparo originais preservados. Não há redimensionamento automático das porções até a revisão das medidas."}</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p>
+   {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>{includesCompiledSauce?"O molho foi transcrito de outra ficha do mesmo documento, com as quantidades do lote original. A salada e o molho não foram redimensionados automaticamente.":"O documento de origem está preservado; a apresentação pode conter ajustes editoriais de leitura e etapas de preparo. Não há redimensionamento automático das porções até a revisão das medidas."}</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p>
     {includesUncookedYolkSauce&&<p className="notice" role="alert"><strong>Atenção à maionese ou molho com gema:</strong> a preparação descrita utiliza gema sem cocção. Para molhos não cozidos, utilize gema pasteurizada; não considere segura a utilização de ovo cru comum. Mantenha ingredientes e utensílios higienizados e refrigere imediatamente. A eventual indicação de conservação por até dois dias no documento não garante segurança microbiológica.</p>}
     {includesAnchovy&&<p className="notice" role="alert"><strong>Atenção aos alergênicos:</strong> a receita contém anchovas, que são peixe. O molho Caesar também contém gema (ovo), e a salada leva gergelim. Essas informações não substituem uma revisão formal de alergênicos e contaminação cruzada.</p>}
     {includesSeasonedSeaweed&&<p className="notice" role="alert"><strong>Atenção ao rótulo da alga:</strong> confirme se o produto contém soja ou outros ingredientes alergênicos, especialmente se estiver temperado. A salada e o vinagrete também contêm gergelim.</p>}
