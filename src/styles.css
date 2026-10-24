@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#26332d;background:#f6f4ee;font-synthesis:none}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}.shell{display:flex;min-height:100vh}.sidebar{width:260px;flex-shrink:0;background:#fff;padding:32px 19px;display:flex;flex-direction:column;border-right:1px solid #ecece6}.brand{display:flex;gap:11px;align-items:center;margin:0 8px 53px}.brand-mark{width:43px;height:43px;display:grid;place-items:center;background:#183f35;color:#dfedb3;border-radius:13px}.brand strong{display:block;font-size:20px;letter-spacing:-.8px}.brand small{font-size:9px;letter-spacing:1.5px;color:#73927f}.sidebar nav{display:grid;gap:7px}.sidebar nav button{display:flex;gap:15px;align-items:center;border:0;background:transparent;padding:14px 17px;border-radius:12px;color:#59675e;text-align:left;font-weight:600}.sidebar nav button.active{background:#eaf2ea;color:#183f35}.sidebar-foot{margin-top:auto;color:#8a9c90;font-size:13px;line-height:1.6;padding-left:17px}main{max-width:1300px;padding:46px clamp(20px,5vw,75px) 100px;flex:1;min-width:0}header{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px}.eyebrow{display:block;font-size:11px;letter-spacing:2px;font-weight:800;color:#7e9e83;margin-bottom:9px}.eyebrow.light{color:#bdd8b7}h1{font-size:clamp(27px,3vw,39px);letter-spacing:-1.4px;margin:0}h2{font-size:24px;letter-spacing:-.7px;margin:0}h3{font-size:18px;line-height:1.25}.avatar{background:#e4ece0;color:#28513c;border-radius:50%;width:46px;height:46px;display:grid;place-items:center;font-size:12px;font-weight:800}.notice{border:1px solid #eddcb8;background:#fff9eb;border-radius:12px;padding:12px 15px;font-size:12px;color:#756343;margin-bottom:25px;line-height:1.5}.hero{background:#183f35;color:#fff;border-radius:24px;display:flex;align-items:center;justify-content:space-between;padding:clamp(25px,5vw,54px);margin-bottom:24px;min-height:310px}.hero h2{max-width:480px;font-size:clamp(28px,4vw,46px);line-height:1.08;letter-spacing:-1px}.hero p{max-width:440px;line-height:1.65;color:#d4e4d9}.hero-graphic{display:grid;place-items:center;background:#245244;border-radius:50%;width:200px;height:200px;color:#bad6ae;flex-shrink:0}.primary,.secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:10px;font-weight:700;padding:12px 17px}.primary{background:#183f35;color:white}.primary.light-button{background:#e2edca;color:#183f35}.secondary{background:#e6eee5;color:#183f35}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.cards button{display:flex;flex-direction:column;align-items:flex-start;gap:13px;border:1px solid #e8e9e2;border-radius:18px;background:#fff;text-align:left;padding:24px;min-height:164px;color:#183f35}.cards strong{font-size:17px}.cards span{color:#6c786e;font-size:13px}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:20px 0 23px}.toolbar span{display:block;color:#7d887e;font-size:13px;margin-top:7px}.toolbar-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.toolbar-actions strong{font-size:13px}.icon-button{display:grid;place-items:center;padding:8px;border-radius:9px;border:1px solid #dce4d9;background:white}.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:20px 0}.day{border:1px solid #e3e9e1;background:white;border-radius:13px;display:flex;align-items:center;flex-direction:column;gap:7px;padding:15px 5px;color:#5a695d}.day small{text-transform:capitalize}.day strong{font-size:24px}.day span{font-size:11px}.day.selected{background:#183f35;color:white}.meal-list,.shopping-list{border:1px solid #e7e9e3;border-radius:18px;background:#fff;overflow:hidden;margin:20px 0}.meal-row{display:flex;align-items:center;gap:18px;padding:21px;border-bottom:1px solid #eff0eb}.meal-row:last-child{border:0}.meal-icon{width:55px;height:55px;display:grid;place-items:center;background:#edf3e7;color:#416e4c;border-radius:14px}.meal-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}.meal-info small{color:#879787}.meal-info strong{font-size:15px}.meal-info span{font-size:12px;color:#839087}.meal-row select{width:min(240px,45%);border:1px solid #d9e4d9;border-radius:9px;background:white;padding:10px;color:#27422d}.recipe-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:17px}.recipe{background:white;border:1px solid #e9ece5;border-radius:18px;overflow:hidden}.recipe-art{height:135px;display:grid;place-items:center;color:#7aab78;background:linear-gradient(125deg,#e2f0dc,#f5f1db)}.recipe-body{padding:20px}.recipe-body small{color:#77917a}.recipe-body p{font-size:13px;color:#778077;line-height:1.6;min-height:42px}.recipe-body button{font-size:12px}.portions{display:flex;align-items:center;gap:9px;font-size:13px}.portions input{width:55px;border:1px solid #dce5db;border-radius:8px;padding:9px}.shopping-item{border:0;border-bottom:1px solid #edf0e9;background:white;display:flex;gap:13px;align-items:center;padding:15px 21px;width:100%;text-align:left}.shopping-item:last-child{border:0}.shopping-item span:nth-child(2){flex:1}.shopping-item.checked span:nth-child(2){text-decoration:line-through;color:#9ca79d}.checkmark{height:21px;width:21px;border:1px solid #91af98;border-radius:5px;display:grid;place-items:center;color:white}.checked .checkmark{background:#183f35}.empty{padding:32px;color:#778579;text-align:center}.mobile-nav{display:none}@media(max-width:800px){.sidebar{display:none}main{padding:25px 17px 105px}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8df;padding:10px 3px max(10px,env(safe-area-inset-bottom));justify-content:space-around;z-index:10}.mobile-nav button{display:flex;align-items:center;flex-direction:column;gap:5px;background:transparent;border:0;font-size:11px;color:#819183}.mobile-nav button.active{color:#183f35;font-weight:800}.hero{min-height:0}.hero-graphic{display:none}.cards{grid-template-columns:1fr}.cards button{min-height:115px}.week-grid{gap:4px}.day{padding:10px 2px}.day strong{font-size:19px}.meal-row{gap:10px;padding:15px}.meal-icon{width:40px;height:40px;flex-shrink:0}.meal-info strong{font-size:13px}.meal-row select{width:34%;font-size:12px;padding:7px}.toolbar-actions{width:100%;justify-content:space-between}}
 
 .recipe-details{display:grid;gap:22px}.recipe-details>.secondary{justify-self:start}.recipe-detail-head{display:flex;gap:24px;align-items:center;background:#fff;border:1px solid #e9ece5;border-radius:20px;padding:24px}.recipe-detail-head h2{font-size:clamp(22px,3vw,32px)}.recipe-detail-head p{color:#748176;line-height:1.5}.detail-symbol{background:linear-gradient(135deg,#deecd9,#f8f1dd);color:#618e68;border-radius:16px;display:grid;place-items:center;width:130px;height:130px;flex-shrink:0}.recipe-meta{display:flex;gap:18px;flex-wrap:wrap;color:#496851;font-weight:650;font-size:13px}.recipe-meta span{display:flex;align-items:center;gap:7px}.detail-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}.detail-panel{background:#fff;border:1px solid #e9ece5;border-radius:18px;padding:24px}.detail-panel h3{margin-top:0}.portion-stepper{display:flex;gap:12px;align-items:center;margin-bottom:20px}.portion-stepper>span{margin-right:auto;color:#617568}.portion-stepper button{display:grid;place-items:center;border:1px solid #dce8dc;background:#f4f8f1;border-radius:8px;width:30px;height:30px}.portion-stepper button:disabled{opacity:.4;cursor:not-allowed}.ingredients{list-style:none;padding:0}.ingredients li{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #eef0ec;font-size:14px}.ingredients li strong{white-space:nowrap}.detail-note{color:#748176;font-size:13px;line-height:1.65}.preparation{padding-left:22px;line-height:1.8}.detail-panel>.primary{margin-top:15px}.recipe-body button{margin:4px 7px 3px 0}@media(max-width:700px){.detail-columns{grid-template-columns:1fr}.recipe-detail-head{align-items:flex-start;flex-direction:column}.detail-symbol{height:95px;width:100%}}
@@ -11,7 +12,6 @@
 
 
 /* Costa&Costa editorial design system — v1 */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 :root{--cc-forest:#153f35;--cc-sage:#afc4b0;--cc-cream:#f5f2ea;--cc-sand:#e9e2d4;--cc-terracotta:#c98e62;--cc-muted:#6b736a;background:var(--cc-cream);color:#223a30;font-family:"DM Sans",Inter,ui-sans-serif,system-ui,sans-serif}
 body{background:var(--cc-cream)}button,select,input,textarea{font-family:inherit}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--cc-terracotta);outline-offset:2px}
 h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"Playfair Display",Georgia,serif;letter-spacing:-.025em;font-weight:600}
@@ -51,3 +51,572 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-editor-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:12px 0}.cc-editor-actions button{padding:12px 17px;border:0;border-radius:12px;background:#194437;color:#fff;cursor:pointer;font-weight:650}.cc-editor-actions button.secondary{color:#194437;background:#e7eee4}.cc-editor-overlay{position:fixed;z-index:12000;inset:0;padding:20px;background:rgba(11,31,25,.72);display:grid;place-items:center}.cc-editor-dialog{max-height:90vh;overflow:auto;width:min(100%,680px);padding:26px;background:#fffdf8;border-radius:20px;box-shadow:0 18px 60px #102b2450;color:#163e34}.cc-editor-dialog>img{max-width:100%;max-height:320px;object-fit:contain;border-radius:12px}.cc-editor-dialog ul,.cc-editor-dialog ol{padding-left:24px}.cc-editor-dialog li{margin-bottom:9px}@media(max-width:600px){.cc-editor-dialog{padding:18px}.cc-editor-actions{align-items:stretch}.cc-editor-actions button{flex:1}}
 
 .cc-admin-tabs{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0}.cc-admin-tabs button{border:1px solid #d7e1d5;background:#edf1e9;border-radius:12px;color:#173f34;padding:12px 16px;font-weight:700;cursor:pointer}.cc-admin-tabs button.selected{background:#173f34;color:#fff}.cc-admin-private{background:#fff;border:1px solid #dfe8df;border-radius:18px;padding:24px}.cc-admin-private ul{list-style:none;padding:0;margin:20px 0}.cc-admin-private li{padding:14px 4px;border-bottom:1px solid #e7ece5;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.cc-admin-private li span{font-size:13px;color:#557267}@media(max-width:620px){.cc-admin-tabs button{flex:1}.cc-admin-private{padding:16px}}
+
+
+/* Início operacional Costa&Costa — informações reais do cardápio */
+.dashboard-home{display:flex;flex-direction:column;gap:26px}
+.dashboard-welcome{border-radius:24px;background:#183f35;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:clamp(24px,4vw,42px);overflow:hidden}
+.dashboard-welcome-content{max-width:760px;position:relative;z-index:1}
+.dashboard-welcome h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(27px,3.6vw,43px);line-height:1.18;letter-spacing:-1px}
+.dashboard-welcome p{color:#e0eadf;font-size:14px;line-height:1.7;margin:12px 0}
+.dashboard-welcome .dashboard-today{color:#dcebbb;font-weight:700;text-transform:capitalize;margin:14px 0 0}
+.dashboard-welcome .dashboard-goal{font-size:12px;opacity:.92}
+.dashboard-leaf-mark{width:155px;height:155px;display:grid;place-items:center;flex:none;border-radius:50%;background:#285345;color:#c1daba}
+.dashboard-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.dashboard-hero-outline{background:transparent;color:#fff;border:1px solid #a4c3b4;border-radius:10px;padding:12px 17px;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.dashboard-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.dashboard-stat-card{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:20px 22px;border:1px solid #e2e8e0;border-radius:17px;background:#fff}
+.dashboard-stat-card>span{font-size:12px;color:#728375;font-weight:600}
+.dashboard-stat-card>strong{color:#183f35;font-size:27px;line-height:1.2}
+.dashboard-stat-card>strong.dashboard-next-step{font-size:17px;line-height:1.35;min-height:33px}
+.dashboard-stat-card small{color:#728375;font-size:11px;line-height:1.5}
+.dashboard-stat-card button,.dashboard-meal-card button{display:inline-flex;gap:6px;align-items:center;justify-content:flex-start;border:0;background:none;padding:4px 0;color:#235b44;font-size:12px;font-weight:700}
+.dashboard-today-section{display:flex;flex-direction:column;gap:18px}
+.dashboard-section-heading{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.dashboard-meal-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.dashboard-meal-card{min-width:0;border:1px solid #e4eae3;border-radius:17px;background:#fff;padding:21px;display:flex;flex-direction:column;align-items:flex-start;gap:11px}
+.dashboard-meal-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#e8f0e4;color:#426e4a}
+.dashboard-meal-slot{color:#688273;font-size:12px;font-weight:700}
+.dashboard-meal-card h3{margin:0;color:#173b31;font-family:"Playfair Display",Georgia,serif;font-size:18px;line-height:1.3}
+.dashboard-meal-card p{color:#6d7a71;font-size:12px;line-height:1.55;margin:0;flex:1}
+.dashboard-meal-card button{margin-top:4px}
+.dashboard-empty{border-radius:15px;padding:22px;background:#fff;border:1px solid #e4eae3;color:#657568}
+.dashboard-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.dashboard-shortcuts>button{display:flex;align-items:center;gap:15px;background:#fff;border:1px solid #e4eae3;border-radius:16px;padding:20px;text-align:left;color:#183f35}
+.dashboard-shortcuts>button>span{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.dashboard-shortcuts strong{font-size:14px}
+.dashboard-shortcuts small{font-size:12px;color:#6c7b70;line-height:1.5}
+.dashboard-home button:focus-visible{outline:3px solid #e9a66a;outline-offset:3px}
+@media(max-width:920px){.dashboard-stat-grid,.dashboard-meal-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-leaf-mark{width:115px;height:115px}}
+@media(max-width:600px){
+ .dashboard-home{gap:20px}.dashboard-welcome{padding:23px;align-items:start}
+ .dashboard-welcome h2{font-size:30px}.dashboard-welcome p{font-size:13px}
+ .dashboard-leaf-mark{display:none}.dashboard-actions{flex-direction:column}
+ .dashboard-actions button{width:100%;justify-content:center}
+ .dashboard-stat-grid,.dashboard-meal-grid,.dashboard-shortcuts{grid-template-columns:minmax(0,1fr)}
+ .dashboard-stat-card{padding:17px}.dashboard-section-heading{align-items:start}
+ .dashboard-section-heading .secondary{width:100%}
+ .dashboard-meal-card{padding:17px}
+}
+
+/* Sessao integrada ao cabecalho, sem elemento flutuante sobre conteudos */
+.cc-account-controls{display:flex;align-items:center;gap:10px;min-width:0;flex-shrink:0}
+.cc-account-email{font-size:11px;color:#557364;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc-account-controls button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 12px;border:1px solid #d9e5d8;border-radius:10px;background:#e7eee5;color:#183f35;font-size:12px;font-weight:700;white-space:nowrap}
+.cc-account-controls button:hover{background:#dce8da}
+@media(max-width:650px){.shell main>header{align-items:flex-start;gap:11px;flex-wrap:wrap}.cc-account-controls{width:100%;justify-content:flex-end}.cc-account-email{max-width:min(52vw,230px)}}
+
+
+/* Ações contextuais do cardápio: hover e teclado no desktop, três pontos no touch */
+.meal-info{position:relative}
+.meal-info:has(.cc-meal-actions)>strong{padding-right:100px}
+.cc-meal-actions{width:100%;min-width:0}
+.cc-meal-quick-actions{
+ position:absolute;top:-7px;right:0;z-index:1;display:flex;align-items:center;
+ opacity:0;pointer-events:none;transform:translateY(3px);
+ transition:opacity .16s ease,transform .16s ease;
+ background:#fff;border:1px solid #e1e8df;border-radius:10px;
+ box-shadow:0 3px 12px #183f350d;padding:2px
+}
+.meal-row:hover .cc-meal-quick-actions,
+.meal-row:focus-within .cc-meal-quick-actions,
+.cc-meal-actions.is-open .cc-meal-quick-actions{
+ opacity:1;pointer-events:auto;transform:none
+}
+.cc-meal-desktop-buttons{display:flex;gap:2px}
+.cc-meal-action-icon,.cc-meal-mobile-trigger{
+ border:0;background:transparent;color:#486b57;cursor:pointer;
+ width:34px;height:34px;border-radius:8px;display:grid;place-items:center
+}
+.cc-meal-action-icon:hover,.cc-meal-mobile-trigger:hover,
+.cc-meal-action-icon:focus-visible,.cc-meal-mobile-trigger:focus-visible{
+ background:#eaf1e8;color:#183f35
+}
+.cc-meal-mobile-trigger{display:none}
+.meal-list:has(.cc-meal-actions.is-open){
+ overflow:visible;position:relative;z-index:3
+}
+.meal-row:has(.cc-meal-actions.is-open){
+ position:relative;z-index:4
+}
+.cc-meal-mobile-menu{
+ position:absolute;top:41px;right:0;z-index:11;
+ display:flex;flex-direction:column;gap:4px;margin:0;padding:6px;
+ width:min(230px,100%);border:1px solid #e0e8e0;border-radius:12px;
+ background:white;box-shadow:0 14px 32px #183f3522
+}
+.cc-meal-mobile-menu button{
+ display:inline-flex;align-items:center;gap:8px;background:#f1f5ef;color:#183f35;
+ border:1px solid #e1e9df;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:650;
+ min-height:40px
+}
+.cc-meal-action-editor{
+ position:absolute;top:41px;right:0;z-index:10;
+ width:min(390px,100%);margin:0;padding:14px;
+ border:1px solid #dfe9df;border-radius:13px;background:#fff;
+ box-shadow:0 16px 36px #183f3524
+}
+.cc-meal-action-title{display:flex;align-items:center;gap:8px;color:#183f35;margin-bottom:12px}
+.cc-meal-action-title strong{font-size:13px;flex:1}
+.cc-meal-action-close{
+ display:grid;place-items:center;width:30px;height:30px;min-width:30px;
+ border:0;border-radius:8px;background:transparent;color:#6a7a70
+}
+.cc-meal-action-close:hover{background:#e9f0e8}
+.cc-meal-action-fields{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:9px;row-gap:5px;align-items:end}
+.cc-meal-action-fields label{grid-column:1/-1;color:#5c7565;font-size:12px;font-weight:650}
+.meal-row .cc-meal-action-fields select{
+ width:100%;min-width:0;max-width:100%;min-height:40px;padding:8px 10px;
+ border:1px solid #ccdcca;border-radius:9px;background:#fff;color:#183f35;font-size:12px
+}
+.cc-meal-action-confirm{
+ display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ min-height:40px;padding:8px 12px;background:#183f35;color:#fff;
+ border:0;border-radius:9px;font-weight:700;font-size:12px;white-space:nowrap
+}
+.cc-meal-action-editor p{margin:10px 0 0;font-size:11px;line-height:1.5;color:#698170}
+.cc-meal-actions button:disabled,.cc-meal-actions select:disabled{opacity:.5;cursor:not-allowed}
+.cc-meal-actions button:focus-visible,.cc-meal-actions select:focus-visible{
+ outline:3px solid #e9a66a;outline-offset:2px
+}
+@media(max-width:800px),(hover:none),(pointer:coarse){
+ .meal-info:has(.cc-meal-actions)>strong{padding-right:43px}
+ .cc-meal-desktop-buttons{display:none}
+ .cc-meal-mobile-trigger{display:grid}
+ .cc-meal-quick-actions{opacity:1;pointer-events:auto;transform:none;box-shadow:none}
+ .cc-meal-mobile-menu button{flex:1 1 auto;width:100%;justify-content:flex-start}
+}
+@media(max-width:700px){
+ .meal-row{flex-wrap:wrap}
+ .meal-row>select{width:100%;margin-left:0;font-size:13px}
+ .cc-meal-action-fields{grid-template-columns:minmax(0,1fr)}
+ .cc-meal-action-confirm{width:100%;white-space:normal}
+ .cc-meal-action-editor{padding:12px;width:100%;max-width:100%}
+ .cc-meal-mobile-menu{width:min(225px,100%)}
+ .cc-meal-action-fields select{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.cc-meal-quick-actions{transition:none}}
+
+
+/* Periodos opcionais sem sobrecarregar as tres refeicoes principais */
+.cc-optional-toolbar{
+ display:flex;justify-content:space-between;align-items:center;gap:15px;
+ padding:15px 17px;border:1px solid #e2e9df;border-radius:14px;
+ background:#fbfcf9;margin:17px 0 -7px
+}
+.cc-optional-toolbar>div{display:flex;flex-direction:column;gap:4px}
+.cc-optional-toolbar strong{color:#254b36;font-size:13px}
+.cc-optional-toolbar span{color:#718174;font-size:12px;line-height:1.45}
+.cc-optional-toolbar button{font-size:12px;white-space:normal;text-align:center}
+.cc-optional-meal-row{background:#fbfdfb}
+.cc-optional-meal-row .meal-icon{background:#f0f4ef}
+.cc-snack-placement{
+ display:flex;flex-wrap:wrap;align-items:end;gap:12px;
+ padding:16px;margin:18px 0;background:#f9fbf8;
+ border:1px solid #b7cdb7;border-radius:14px
+}
+.cc-snack-placement>div{flex:1 1 220px}
+.cc-snack-placement strong{font-size:14px;color:#183f35}
+.cc-snack-placement p{font-size:12px;line-height:1.5;color:#647768;margin:5px 0 0}
+.cc-snack-placement label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#46604c;font-weight:650}
+.cc-snack-placement select{min-height:42px;border-radius:9px;border:1px solid #ceddd0;background:white;padding:8px 12px;color:#183f35}
+.cc-snack-placement button{min-height:42px}
+@media(max-width:700px){.cc-optional-toolbar{align-items:start;flex-direction:column}.cc-optional-toolbar button{width:100%}
+ .cc-snack-placement{flex-direction:column;align-items:stretch}
+ .cc-snack-placement>div{flex:initial}.cc-snack-placement label{width:100%}}
+
+
+/* Ingredientes com medidas reais, opcionais e observações editoriais */
+.cc-ingredient-editor{
+ display:grid;grid-template-columns:minmax(160px,2fr) minmax(125px,1.2fr) minmax(100px,.8fr) minmax(115px,1fr);
+ gap:10px;align-items:end;padding:14px;border:1px solid #e0e9df;border-radius:13px;background:#fbfcfa;
+}
+.cc-ingredient-editor>label{display:grid;gap:6px;color:#46644f;font-size:12px;font-weight:650}
+.cc-ingredient-editor input:not([type="checkbox"]),.cc-ingredient-editor select{
+ min-width:0;width:100%;min-height:40px;padding:9px;border:1px solid #d3e0d3;border-radius:9px;background:white;color:#26332d
+}
+.cc-ingredient-optional{display:flex!important;align-items:center;gap:8px!important;white-space:normal}
+.cc-ingredient-optional input{width:18px;height:18px;accent-color:#183f35;flex-shrink:0}
+.cc-ingredient-remove{width:40px;height:40px;border:0;border-radius:9px;background:#f9eae7;color:#9b493f;display:grid;place-items:center}
+.cc-ingredient-remove:disabled{opacity:.4}
+.cc-ingredient-hint{grid-column:1/-1;color:#708374;font-size:12px;margin:0}
+.cc-shopping-notes{border:1px solid #dde9db;border-radius:16px;background:#fbfdfb;margin:17px 0;padding:20px}
+.cc-shopping-notes h3{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 6px}
+.cc-shopping-notes p{font-size:12px;color:#657c68;line-height:1.5;margin:0 0 10px}
+.cc-shopping-notes ul{list-style:none;margin:0;padding:0}
+.cc-shopping-notes li{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;border-top:1px solid #e4ece2;padding:12px 0;font-size:13px}
+.cc-shopping-notes li strong{color:#55705b;font-weight:650;text-align:right}
+@media(max-width:920px){.cc-ingredient-editor{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-ingredient-editor>label:first-child{grid-column:1/-1}}
+@media(max-width:520px){.cc-ingredient-editor{grid-template-columns:minmax(0,1fr)}.cc-ingredient-editor>label:first-child{grid-column:auto}
+ .cc-shopping-notes li{flex-direction:column;gap:4px}}
+
+
+/* Biblioteca de Alimentos — editorial leve, pesquisa e detalhes */
+.cc-food-library{width:100%;min-width:0}
+.cc-food-intro{display:flex;gap:18px;align-items:center;margin:8px 0 22px}
+.cc-food-intro-icon{width:65px;height:65px;border-radius:20px;display:grid;place-items:center;flex-shrink:0;background:#e4eee2;color:#183f35}
+.cc-food-kicker{color:#698770;letter-spacing:1.5px;font-size:10px;font-weight:800;margin:0 0 7px}
+.cc-food-intro h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(23px,2.6vw,33px);letter-spacing:-.5px}
+.cc-food-intro p:not(.cc-food-kicker){color:#6a7b6e;font-size:13px;line-height:1.65;max-width:690px;margin:8px 0 0}
+.cc-food-caution{display:flex;align-items:flex-start;gap:11px;background:#fff9ec;color:#846943;border:1px solid #ecdcb8;padding:13px 16px;border-radius:13px;font-size:12px;line-height:1.55;margin-bottom:19px}
+.cc-food-caution svg{flex-shrink:0}
+.cc-food-search{display:grid;gap:9px;border:1px solid #e2e8df;background:white;padding:18px;border-radius:16px}
+.cc-food-search label{color:#335846;font-size:13px;font-weight:700}
+.cc-food-search>div{display:flex;gap:10px;align-items:center;border:1px solid #d9e4d8;border-radius:11px;padding:5px 5px 5px 12px}
+.cc-food-search>div svg{color:#6f8a75;flex-shrink:0}
+.cc-food-search input{flex:1;width:100%;min-width:0;min-height:37px;border:0;outline:0;background:transparent;color:#26332d;font-size:14px}
+.cc-food-search>div:focus-within{outline:2px solid #a2bba5;outline-offset:2px}
+.cc-food-search .primary{min-height:40px}
+.cc-food-filters{display:flex;flex-wrap:wrap;gap:7px;margin:20px 0}
+.cc-food-filters button{border:1px solid #dfe8de;background:#fff;color:#49634e;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:650;min-height:39px}
+.cc-food-filters button.active,.cc-food-filters button[aria-pressed="true"]{background:#183f35;color:#fff;border-color:#183f35}
+.cc-food-filters button:focus-visible,.cc-food-card:focus-visible{outline:3px solid #e9a66a;outline-offset:3px}
+.cc-food-results-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:13px}
+.cc-food-results-heading p{font-size:12px;color:#718174;margin:0}
+.cc-food-results-heading button{border:0;background:transparent;color:#23573f;text-decoration:underline;font-size:12px}
+.cc-food-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cc-food-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:9px;border:1px solid #e0e9df;border-radius:17px;background:#fff;min-width:0;min-height:230px;padding:18px;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.cc-food-card:hover{border-color:#afc8b2;box-shadow:0 9px 27px #183f350b;transform:translateY(-1px)}
+.cc-food-card-art{display:grid;place-items:center;width:49px;height:49px;background:#edf3e9;border-radius:13px;color:#356348;margin-bottom:4px}
+.cc-food-card-category{color:#708574;font-size:11px}
+.cc-food-card strong{color:#183f35;font-size:18px;font-family:"Playfair Display",Georgia,serif;line-height:1.25}
+.cc-food-card-meta{font-size:11px;color:#829188}
+.cc-food-card-link{display:flex;align-items:center;gap:5px;color:#24533c;font-size:12px;font-weight:750;margin-top:auto}
+.cc-food-pages{display:flex;justify-content:center;align-items:center;gap:18px;margin:23px 0}
+.cc-food-pages span{color:#687d6c;font-size:12px;font-weight:650}
+.cc-food-pages button:disabled{opacity:.4;cursor:not-allowed}
+.cc-food-empty,.cc-food-error{text-align:center;border:1px dashed #dce7db;border-radius:15px;padding:38px;background:#fff;color:#667b6b}
+.cc-food-empty svg{color:#7d9d80}
+.cc-food-error p{margin:0 0 15px}
+.cc-food-back{display:inline-flex;align-items:center;gap:8px;margin:4px 0 21px;background:none;border:0;color:#36664d;font-weight:700;font-size:13px}
+.cc-food-detail{border:1px solid #e2e8e0;border-radius:20px;background:#fff;padding:clamp(19px,4vw,34px)}
+.cc-food-detail-header{display:flex;align-items:center;gap:19px;padding-bottom:24px;border-bottom:1px solid #e9eee7}
+.cc-food-detail-symbol{width:76px;height:76px;border-radius:20px;background:#e8f1e4;color:#245642;display:grid;place-items:center;flex-shrink:0}
+.cc-food-detail h2{font-family:"Playfair Display",Georgia,serif;font-size:clamp(24px,3vw,36px);margin:0 0 8px}
+.cc-food-category-label{font-size:12px;color:#627b67}
+.cc-food-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px;padding-top:24px}
+.cc-food-detail-grid h3{font-family:"Playfair Display",Georgia,serif;color:#183f35;font-size:21px;margin:0 0 11px}
+.cc-food-detail-grid p{color:#566b5c;font-size:13px;line-height:1.75;margin:0 0 14px}
+.cc-food-detail-grid p strong{color:#264a36}
+.cc-food-safety{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;background:#fff9ec;border:1px solid #eedebc;color:#735b36;border-radius:12px;margin-top:15px}
+.cc-food-safety svg{flex-shrink:0}
+.cc-food-safety p{font-size:12px;line-height:1.6;margin:0}
+.cc-food-footnote{font-size:11px;color:#758376;line-height:1.6;margin:18px 0 0}
+@media(max-width:950px){.cc-food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.cc-food-intro{align-items:flex-start}.cc-food-grid{grid-template-columns:minmax(0,1fr)}.cc-food-card{min-height:186px}
+ .cc-food-search{padding:12px}.cc-food-search>div{flex-wrap:wrap;padding:9px}
+ .cc-food-search input{flex:1 1 calc(100% - 36px)}
+ .cc-food-search .primary{width:100%}
+ .cc-food-detail-grid{grid-template-columns:minmax(0,1fr)}.cc-food-detail-header{align-items:flex-start}.cc-food-detail-symbol{height:55px;width:55px}
+ .cc-food-pages{gap:8px}.cc-food-pages button{padding:9px}}
+@media(prefers-reduced-motion:reduce){.cc-food-card{transition:none}}
+
+/* Biblioteca de Alimentos: composição centralizada apenas em telas pequenas. */
+@media(max-width:620px){
+ .cc-food-intro{flex-direction:column;align-items:center;text-align:center;gap:12px}
+ .cc-food-intro>div:last-child{min-width:0;width:100%}
+ .cc-food-intro p:not(.cc-food-kicker){margin-left:auto;margin-right:auto}
+ .cc-food-filters{justify-content:center}
+ .cc-food-search>label{text-align:center}
+ .cc-food-results-heading{justify-content:center;flex-wrap:wrap;text-align:center}
+ .cc-food-card{align-items:center;text-align:center}
+ .cc-food-card-art{margin-left:auto;margin-right:auto}
+ .cc-food-card-link{justify-content:center}
+ .cc-food-detail-header{flex-direction:column;align-items:center;text-align:center;gap:12px}
+ .cc-food-detail-grid h3{text-align:center}
+ .cc-food-pages{flex-wrap:wrap;gap:8px}
+ .cc-food-back{display:flex;margin-left:auto;margin-right:auto;justify-content:center}
+}
+
+/* Alertas de segurança: priorizar a leitura no cardápio em telas estreitas. */
+@media(max-width:620px){
+ .notice[role="alert"]{flex-direction:column;align-items:stretch;gap:8px;padding:15px}
+ .notice[role="alert"]>strong,.notice[role="alert"]>span{display:block;min-width:0;width:100%;overflow-wrap:break-word}
+ .notice[role="alert"]>strong{line-height:1.45}
+ .notice[role="alert"]>span{line-height:1.65}
+}
+
+/* Alerta acessível e compacto; detalhes completos mediante expansão voluntária. */
+.notice.cc-allergy-alert{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:14px 16px}
+.cc-allergy-alert strong{color:#73532b;line-height:1.5}
+.cc-allergy-alert>span{line-height:1.6}
+.cc-allergy-alert details{width:100%;min-width:0}
+.cc-allergy-alert summary{width:fit-content;font-size:12px;font-weight:700;cursor:pointer;color:#225442;padding:6px 0;text-decoration:underline;text-underline-offset:3px}
+.cc-allergy-alert summary:focus-visible{outline:2px solid #225442;outline-offset:3px;border-radius:3px}
+.cc-allergy-alert details p{margin:8px 0 0;line-height:1.65;max-width:80ch}
+@media(max-width:620px){.notice.cc-allergy-alert{padding:12px 14px;gap:6px}}
+
+/* Ficha da receita: medidas longas podem quebrar sem sobrepor o ingrediente no celular. */
+@media(max-width:620px){
+ .recipe-details .ingredients li{align-items:flex-start}
+ .recipe-details .ingredients li>span{flex:1 1 42%;min-width:0;overflow-wrap:break-word}
+ .recipe-details .ingredients li>strong{flex:0 1 56%;min-width:0;white-space:normal;overflow-wrap:break-word;text-align:right;line-height:1.45}
+}
+
+/* Fase 2A: ficha tecnica de revisao editorial, exclusiva da area administrativa. */
+.cc-tech-sheet{display:grid;gap:12px;background:#fff;border:1px solid #dce7dc;border-radius:18px;padding:clamp(16px,3vw,26px)}
+.cc-tech-sheet h3{margin:0;color:#183f35}
+.cc-tech-sheet .detail-note{margin:0}
+.cc-tech-review{display:grid;gap:7px;background:#f7f4e9;border:1px solid #eee3c9;border-radius:12px;padding:12px 15px;font-size:13px;line-height:1.6;color:#6d5940}
+.cc-tech-review strong{color:#604d33}
+.cc-tech-form{display:grid;gap:15px}
+.cc-tech-form label{display:flex;flex-direction:column;gap:7px;color:#315243;font-size:13px;font-weight:700;min-width:0}
+.cc-tech-form input,.cc-tech-form select,.cc-tech-form textarea{width:100%;max-width:100%;min-width:0;box-sizing:border-box;font:inherit;font-weight:400;color:#163e32;border:1px solid #d3e0d3;border-radius:10px;padding:11px 12px;background:#fff}
+.cc-tech-form textarea{resize:vertical;line-height:1.5}
+.cc-tech-form :is(input,select,textarea):focus-visible{outline:2px solid #245a49;outline-offset:2px}
+.cc-tech-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.cc-tech-error{color:#8a3030;font-size:13px;margin:0}
+.cc-tech-success{color:#285b3a;font-size:13px;margin:0}
+.cc-tech-form>.primary{justify-self:start}
+@media(max-width:700px){.cc-tech-fields{grid-template-columns:1fr}.cc-tech-form>.primary{width:100%}}
+
+/* Fase 2B: cadastro de dados por 100 g e correspondencia dos ingredientes. */
+.cc-food-nutrition-section{border:1px solid #d9e5d9;border-radius:16px;background:#fff;padding:15px;margin:10px 0}
+.cc-food-nutrition-section>summary{cursor:pointer;font-weight:750;color:#1e503d;padding:5px 0}
+.cc-food-nutrition-section>summary:focus-visible{outline:2px solid #285845;outline-offset:3px}
+.cc-food-nutrition-admin{display:grid;gap:14px;padding-top:20px;max-width:980px}
+.cc-food-nutrition-admin>label,.cc-mapping-item>label{display:grid;gap:7px;font-size:13px;font-weight:700;color:#285543;min-width:0}
+.cc-food-nutrition-admin select,.cc-mapping-item input,.cc-mapping-item select{width:100%;min-width:0;max-width:100%;padding:11px 12px;border:1px solid #d3dfd3;border-radius:10px;color:#153e32;background:#fff;box-sizing:border-box}
+.cc-nutrient-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.cc-food-nutrition-admin h4{margin:8px 0 0}
+.cc-ingredient-mapping{display:grid;gap:14px;border-top:1px solid #e3ece1;margin-top:16px;padding-top:22px}
+.cc-ingredient-mapping h3{margin:0}
+.cc-mapping-item{display:grid;gap:11px;border:1px solid #e2eae1;border-radius:15px;padding:16px;background:#fcfdf9}
+.cc-mapping-item h4{margin:0;color:#1b4438}
+.cc-mapping-item .detail-note{margin:0}
+.cc-mapping-item .secondary{justify-self:start}
+@media(max-width:700px){
+ .cc-nutrient-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cc-mapping-item .secondary{width:100%}
+}
+@media(max-width:420px){.cc-nutrient-grid{grid-template-columns:1fr}}
+
+/* Revisão técnica nutricional: pedido administrativo e histórico de pareceres. */
+.cc-nutrition-review-panel{display:grid;gap:12px;margin-top:16px;padding:18px;border:1px solid #d9e5dc;border-radius:15px;background:#fcfdfa}
+.cc-nutrition-review-panel>h4{margin:0;color:#194538}
+.cc-nutrition-review-panel .cc-tech-review p{margin:2px 0;overflow-wrap:anywhere}
+.cc-nutrition-review-panel .cc-tech-form{max-width:100%}
+.cc-nutrition-review-panel .cc-tech-form>.primary{justify-self:start}
+.cc-nutrition-review-history{padding:9px 0;border-top:1px solid #dce6de}
+.cc-nutrition-review-history summary{cursor:pointer;font-weight:700;color:#23503f}
+.cc-nutrition-review-history summary:focus-visible{outline:2px solid #245a49;outline-offset:3px}
+.cc-nutrition-review-history ol{padding-left:22px;margin:12px 0 0}
+.cc-nutrition-review-history li{padding:6px 0}
+.cc-nutrition-review-history li p{margin:4px 0;overflow-wrap:anywhere}
+@media(max-width:620px){.cc-nutrition-review-panel{padding:14px}.cc-nutrition-review-panel .cc-tech-form>.primary{width:100%}}
+
+/* Credenciamento medico: acompanhamento estritamente administrativo, sem convite automatico. */
+.cc-medical-onboarding{display:grid;gap:15px;padding-top:18px}
+.cc-medical-onboarding h3{color:#194538;margin:0}
+.cc-medical-onboarding .cc-tech-review{gap:6px}
+.cc-medical-onboarding .cc-tech-review p{margin:0;overflow-wrap:anywhere}
+
+/* Piloto pessoal: busca, categorias e navegacao em listas extensas de receitas. */
+.cc-recipes-filterbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:14px 0 18px}
+.cc-recipes-filterbar label{display:grid;gap:6px;font-size:13px;font-weight:700;flex:1 1 220px}
+.cc-recipes-filterbar input,.cc-recipes-filterbar select{width:100%;min-height:43px;border:1px solid #d1ddd5;border-radius:10px;padding:8px 12px;background:#fff;color:#173b31}
+.cc-recipes-filterbar>span{padding-bottom:12px;font-size:13px;color:#58665f}
+.cc-recipe-pages{display:flex;gap:12px;align-items:center;justify-content:center;margin:20px 0 25px}
+.cc-recipe-pages span{font-weight:650;font-size:14px}
+.cc-pilot-source-ingredients{white-space:normal;overflow-wrap:anywhere}
+.cc-pilot-source-ingredients>p:not(.detail-note){line-height:1.65}
+@media(max-width:620px){.cc-recipes-filterbar label{flex-basis:100%}.cc-recipes-filterbar>span{padding-bottom:0}.cc-recipe-pages{justify-content:space-between}}
+
+/* Checklist utilizável do acervo pessoal; medidas originais não são somadas sem revisão. */
+.cc-pilot-shopping{margin-top:18px;display:grid;gap:10px}
+.cc-pilot-shopping h3{font-size:1.25rem;margin:0}
+.cc-pilot-shopping p{color:#61756b;font-size:13px;line-height:1.6;margin:0 0 7px}
+.cc-pilot-shopping .cc-pilot-shopping-text{min-width:0;overflow-wrap:anywhere}
+.cc-pilot-shopping-text small{display:block;font-weight:400;font-size:12px;color:#6b7d73;margin-top:5px}
+.cc-pilot-shopping .shopping-item strong{white-space:nowrap}
+@media(max-width:620px){.cc-pilot-shopping .shopping-item{align-items:start}.cc-pilot-shopping .shopping-item strong{white-space:normal;text-align:right}}
+
+/* Piloto culinário autoral: instrução não interativa em lugar de sugestão automática. */
+.cc-manual-planning-notice{display:inline-flex;align-items:center;max-width:350px;font-size:13px;line-height:1.45;color:#30584a;background:#eaf2eb;border:1px solid #dce9df;border-radius:10px;padding:9px 12px}
+
+/* Avisos de escolha e componentes originais de receitas no checklist. */
+.cc-pilot-shopping-attention{color:#805325!important;font-weight:650!important}
+.cc-pilot-shopping .cc-pilot-shopping-text small{overflow-wrap:anywhere}
+
+/* Destino explícito ao adicionar uma receita a um dia do cardápio. */
+.cc-recipe-target-date{display:flex;gap:18px;align-items:end;flex-wrap:wrap;padding:16px 18px;margin:14px 0 22px;border:1px solid #cbded1;border-radius:14px;background:#edf5ed;color:#23483b}
+.cc-recipe-target-summary{flex:1 1 260px;min-width:0}
+.cc-recipe-target-summary>strong{font-size:15px}
+.cc-recipe-target-summary p{font-size:14px;line-height:1.55;margin:7px 0 3px}
+.cc-recipe-target-summary p strong{color:#143c30}
+.cc-recipe-target-summary small{font-size:12px;color:#617868}
+.cc-recipe-target-date label{display:grid;gap:7px;flex:1 1 255px;max-width:360px;font-size:13px;font-weight:700}
+.cc-recipe-target-date select{width:100%;min-height:44px;border:1px solid #bed4c5;border-radius:10px;padding:9px 12px;background:#fff;color:#183f35}
+.cc-recipe-target-date>.secondary{min-height:44px}
+@media(max-width:640px){.cc-recipe-target-date{align-items:stretch;gap:13px}.cc-recipe-target-date label{max-width:none;flex-basis:100%}.cc-recipe-target-date>.secondary{width:100%}}
+
+/* Fotografia do piloto: texto culinário somente leitura para evitar reimportação. */
+.cc-admin-pilot-readonly{padding:16px 18px;border:1px solid #dce8de;border-radius:12px;background:#f8fbf8;display:grid;gap:10px}
+.cc-admin-pilot-readonly h4{margin:0;color:#194437}
+.cc-admin-pilot-readonly p{margin:0;line-height:1.6}
+.cc-admin-pilot-readonly details{padding:9px 0;border-top:1px solid #e1e8df}
+.cc-admin-pilot-readonly summary{font-weight:650;cursor:pointer}
+.cc-admin-pilot-readonly ul{padding-left:22px;line-height:1.7;overflow-wrap:anywhere}
+.cc-admin-pilot-prep{white-space:pre-wrap;overflow-wrap:anywhere}
+
+
+/* Fase 3I: revisão privada e paginada de medidas, sem alterar receitas. */
+.cc-measure-review{display:grid;gap:14px;padding:14px 0}
+.cc-measure-review>p{font-size:13px;line-height:1.65;color:#486054;margin:0}
+.cc-measure-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.cc-measure-filters label{display:grid;gap:6px;flex:1 1 230px;font-size:13px;font-weight:650}
+.cc-measure-filters select,.cc-measure-filters input,.cc-measure-edit select,.cc-measure-edit input,.cc-measure-edit textarea{background:#fff;border:1px solid #cadacc;border-radius:9px;padding:10px;min-width:0;max-width:100%;color:#173e33}
+.cc-measure-queue{display:grid;gap:8px}
+.cc-measure-row{display:flex;align-items:start;gap:9px;flex-direction:column;padding:12px 14px;border:1px solid #dde8df;border-radius:10px;background:#fafcf9;min-width:0}
+.cc-measure-row>small{color:#687c6f;overflow-wrap:anywhere}
+.cc-measure-row>strong{color:#173d31;overflow-wrap:anywhere}
+.cc-measure-row>button{align-self:start}
+.cc-measure-edit{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;width:100%;border-top:1px solid #e0e9e2;padding-top:10px}
+.cc-measure-edit p,.cc-measure-edit label:nth-last-of-type(1),.cc-measure-edit .cc-measure-actions{grid-column:1/-1}
+.cc-measure-edit p{margin:0;font-size:13px;color:#607467}
+.cc-measure-edit label{display:grid;gap:5px;font-size:12px;font-weight:650;min-width:0}
+.cc-measure-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:640px){.cc-measure-edit{grid-template-columns:minmax(0,1fr)}.cc-measure-edit p,.cc-measure-edit label:nth-last-of-type(1),.cc-measure-edit .cc-measure-actions{grid-column:1}}
+
+/* Pré-análise em lote da Fase 3I.2: somente leitura, sem aprovação automática. */
+.cc-measure-batch{border:1px solid #d5e1d7;background:#f7faf6;border-radius:13px;padding:14px;display:grid;gap:13px}
+.cc-measure-batch-header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.cc-measure-batch-header>div{flex:1 1 290px}
+.cc-measure-batch-header strong{color:#173f33;font-size:14px}
+.cc-measure-batch-header p,.cc-measure-batch>div>p{margin:7px 0 0;color:#5a7263;font-size:12px;line-height:1.6}
+.cc-measure-batch-header button{min-height:42px}
+.cc-measure-batch-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.cc-measure-batch-group{display:grid;align-content:start;gap:5px;background:#fff;border:1px solid #e1ebe4;border-radius:10px;padding:12px;min-width:0}
+.cc-measure-batch-group>strong{color:#154237;font-size:23px;line-height:1.2;font-variant-numeric:tabular-nums}
+.cc-measure-batch-group>span{font-size:13px;font-weight:700;color:#204d3d}
+.cc-measure-batch-group>small{color:#63776a;font-size:11px;line-height:1.5}
+.cc-measure-batch-group details{font-size:12px;border-top:1px solid #edf1ed;padding-top:7px}
+.cc-measure-batch-group summary{cursor:pointer;font-weight:650}
+.cc-measure-batch-group ul{padding-left:17px;display:grid;gap:8px;margin:7px 0 0}
+.cc-measure-batch-group li{overflow-wrap:anywhere}
+.cc-measure-batch-group li button{height:auto;max-width:100%;white-space:normal;text-align:left;padding:6px;font-size:11px}
+.cc-measure-batch-group li small{display:block;color:#65786b}
+@media(max-width:850px){.cc-measure-batch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.cc-measure-batch-grid{grid-template-columns:minmax(0,1fr)}.cc-measure-batch-header button{width:100%}}
+
+
+/* Fase 3I.3 — lote de rascunhos com seleção explícita, sem aprovação automática. */
+.cc-measure-draft-preview{margin-top:18px;padding:16px;border:1px solid #d9e3d9;background:#fff;border-radius:12px;display:grid;gap:12px}
+.cc-measure-draft-preview h4{margin:0;color:#19473a;font-size:15px}
+.cc-measure-draft-preview p{color:#5b7464;margin:0;font-size:12px;line-height:1.6}
+.cc-measure-draft-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:430px;overflow:auto}
+.cc-measure-draft-item{display:flex;gap:10px;align-items:start;min-width:0;padding:10px;border:1px solid #dfe7df;background:#f9fbf9;border-radius:9px;cursor:pointer}
+.cc-measure-draft-item input{margin:4px 0 0;flex:0 0 auto;width:17px;height:17px;accent-color:#19483a}
+.cc-measure-draft-item span{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.cc-measure-draft-item strong{color:#1c4337;font-size:12px}
+.cc-measure-draft-item small{color:#687d6c;font-size:11px;line-height:1.45}
+@media(max-width:670px){.cc-measure-draft-list{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Fase 3I.4: revisão editorial individual, independente de nutrição e receitas. */
+.cc-measure-editorial{display:grid;gap:12px;padding:16px;border:1px solid #d7e5db;border-radius:12px;background:#f7faf7}
+.cc-measure-editorial-head{display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:12px}
+.cc-measure-editorial-head>div{flex:1 1 270px}
+.cc-measure-editorial-head h4{font-size:16px;margin:0 0 8px;color:#1d4838}
+.cc-measure-editorial-head p{font-size:12px;line-height:1.6;color:#586d60;margin:0}
+.cc-measure-editorial-list{display:grid;gap:10px}
+.cc-measure-editorial-row{background:#fff;border:1px solid #dfe8e0;border-radius:10px;padding:14px;display:grid;gap:8px;min-width:0}
+.cc-measure-editorial-row>strong,.cc-measure-editorial-row>small{overflow-wrap:anywhere}
+.cc-measure-editorial-row small{color:#657968}
+.cc-measure-editorial-row p{margin:0;font-size:12px;color:#526d60;line-height:1.55}
+.cc-measure-editorial-row>button{justify-self:start}
+.cc-measure-editorial-decision{display:grid;gap:12px;padding-top:12px;border-top:1px solid #dde9dd}
+.cc-measure-editorial-decision>label:not(.cc-measure-editorial-ack){display:grid;gap:7px;font-size:12px;font-weight:650}
+.cc-measure-editorial-decision textarea{border:1px solid #cbdacb;border-radius:9px;resize:vertical;min-height:75px;padding:10px;background:#fff;color:#163c31;width:100%}
+.cc-measure-editorial-ack{display:flex;align-items:start;gap:10px;font-size:12px;line-height:1.5;color:#264b3d}
+.cc-measure-editorial-ack input{margin:3px 0 0;flex:0 0 auto;width:16px;height:16px;accent-color:#19483a}
+.cc-measure-editorial-history{border-top:1px solid #d9e4da;padding-top:12px;font-size:12px;color:#395949}
+.cc-measure-editorial-history summary{cursor:pointer;font-weight:700}
+.cc-measure-editorial-history ul{padding-left:18px;display:grid;gap:9px}
+.cc-measure-editorial-history li{overflow-wrap:anywhere;line-height:1.55}
+.cc-measure-editorial-history li small{display:block;color:#668171}
+@media(max-width:650px){.cc-measure-editorial-head>button{width:100%}.cc-measure-editorial-decision .cc-measure-actions button{width:100%}}
+
+
+/* Fase 3I.5 — revisão humana em lotes de até cinco rascunhos. */
+.cc-measure-multi{display:grid;gap:12px;border-top:1px solid #d9e4d9;padding-top:16px}
+.cc-measure-multi h4{margin:0;color:#164333;font-size:15px}
+.cc-measure-multi>p{font-size:12px;color:#557364;line-height:1.55;margin:0}
+.cc-measure-multi-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:520px;overflow:auto}
+.cc-measure-multi-item{display:grid;gap:8px;align-content:start;background:#fff;border:1px solid #dce7dc;padding:12px;border-radius:10px;min-width:0}
+.cc-measure-multi-item>small{color:#687d6c;overflow-wrap:anywhere}
+.cc-measure-multi-item>strong{font-size:13px;color:#183f33;overflow-wrap:anywhere}
+.cc-measure-multi-item>span{font-size:12px;color:#4c6a58;overflow-wrap:anywhere}
+.cc-measure-multi-item>p[role=alert]{color:#992d2d}
+.cc-measure-multi-check{display:flex;align-items:start;gap:8px;font-size:12px;line-height:1.45;cursor:pointer}
+.cc-measure-multi-check input{margin:3px 0 0;accent-color:#19483a;flex:0 0 auto;width:17px;height:17px}
+.cc-measure-multi-form{display:grid;gap:10px;border-top:1px solid #e4ece5;padding-top:10px}
+.cc-measure-multi-form label{display:grid;gap:6px;font-size:12px;font-weight:600}
+.cc-measure-multi-form select,.cc-measure-multi-form textarea{padding:9px;border:1px solid #cbdacb;border-radius:8px;width:100%;min-width:0;background:#fff;color:#173d32}
+.cc-measure-multi-footer{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.cc-measure-multi-footer>span{flex:1 1 180px;color:#52705e;font-size:12px}
+@media(max-width:760px){.cc-measure-multi-items{grid-template-columns:minmax(0,1fr)}.cc-measure-multi-footer button{flex:1 1 150px}}
+
+
+/* Beta: referências nutricionais e ícones próprios, com leitura acessível no celular. */
+.cc-food-nutrition h3,.cc-recipe-nutrition h3{margin:0 0 10px}
+.cc-nutrition-variant{border:1px solid #dfe9dd;background:#f9fbf6;padding:15px;border-radius:12px;margin:13px 0}
+.cc-nutrition-variant h4{font-size:15px;color:#193f34;margin:0 0 7px}
+.cc-nutrition-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 14px;margin:12px 0 15px}
+.cc-nutrition-grid>div{background:#fff;border:1px solid #e3e9e2;border-radius:9px;padding:10px;min-width:0}
+.cc-nutrition-grid dt{font-size:11px;color:#728276;margin:0 0 4px}
+.cc-nutrition-grid dd{font-weight:700;font-size:14px;color:#183f35;margin:0;font-variant-numeric:tabular-nums}
+.cc-nutrition-status{display:inline-flex;color:#776137;background:#fff3d9;border:1px solid #efe0ba;border-radius:7px;padding:5px 8px;font-size:12px;font-weight:650}
+.cc-nutrition-pending{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cc-nutrition-pending span{display:flex;flex-direction:column;gap:5px;border:1px solid #e8ece6;background:#fafbf8;color:#66776d;border-radius:9px;padding:9px;font-size:12px}
+.cc-nutrition-pending strong{color:#7b897e;font-size:19px}
+.cc-food-nutrition a{color:#205d42;text-decoration:underline;text-underline-offset:2px}
+@media(max-width:650px){.cc-nutrition-grid,.cc-nutrition-pending{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Painel N2: triagem por ingrediente, sem autorizações automáticas. */
+.cc-n2-admin{margin-top:20px}
+.cc-n2-admin>select{display:block;width:100%;max-width:680px;margin:9px 0 14px}
+.cc-n2-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:15px 0}
+.cc-n2-stats span{background:#f3f7f1;border:1px solid #dfe8db;border-radius:10px;padding:12px;font-size:12px;color:#557166}
+.cc-n2-stats strong{display:block;font-size:23px;color:#173f34;margin-bottom:3px}
+.cc-n2-ingredients{display:grid;gap:12px;margin:16px 0}
+.cc-n2-row{border:1px solid #dfe7dd;background:#fbfcfa;border-radius:13px;overflow:hidden}
+.cc-n2-row>summary{cursor:pointer;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:700;color:#173e32}
+.cc-n2-row>summary small{font-size:11px;font-weight:500;color:#64796b;white-space:nowrap}
+.cc-n2-row[open]>summary{background:#eaf2e9}
+.cc-n2-row-body{padding:16px}
+.cc-n2-fields{min-width:0;border:1px solid #e0e6dd;border-radius:10px;background:white;padding:14px;margin:15px 0;display:grid;gap:12px}
+.cc-n2-fields legend{font-size:14px;font-weight:700;padding:0 6px;color:#173f34}
+.cc-n2-fields label{display:grid;gap:5px;font-size:12px;font-weight:600;color:#425c4d}
+.cc-n2-fields input,.cc-n2-fields textarea,.cc-n2-fields select{width:100%;box-sizing:border-box;border:1px solid #cbd8c9;border-radius:8px;background:#fff;color:#173f34;padding:10px;font:inherit}
+.cc-n2-fields button{justify-self:start}
+.cc-n2-error{color:#8a2c17;background:#fff0e9;padding:10px 13px;border-radius:9px}
+.cc-n2-success{color:#174e3a;background:#e9f3e9;padding:10px 13px;border-radius:9px}
+@media(max-width:720px){.cc-n2-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cc-n2-row>summary{flex-direction:column;align-items:flex-start}.cc-n2-row>summary small{white-space:normal}.cc-n2-row-body{padding:10px}}
+
+
+/* N2: revisão assistida mantém claro que sugestões não são aprovações. */
+.cc-n2-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:10px 0 14px}
+.cc-n2-assist{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#f0f5ed;border:1px solid #d5e5d2;border-radius:12px;padding:16px;margin:12px 0 17px}
+.cc-n2-assist>div{flex:1 1 250px}
+.cc-n2-assist strong{color:#164538}
+.cc-n2-assist p{margin:7px 0 0}
+.cc-n2-assist button{flex:0 1 270px;text-align:center}
+.cc-n2-suggestion{border-left:3px solid #7b9a78;background:#f4f8f1;padding:10px 14px;border-radius:0 9px 9px 0;margin:10px 0}
+.cc-n2-suggestion p{margin:0 0 9px}
+.cc-n2-suggestion button{font-size:12px;padding:8px 11px}
+@media(max-width:650px){.cc-n2-assist button{flex:1 1 100%}.cc-n2-suggestion{padding:9px}}
+
+
+/* Fila N2 — pré-cadastro não é publicação e não equivale a nutrição validada. */
+.cc-n2-availability{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.cc-n2-availability strong{background:#fff;border:1px solid #d6e2d4;border-radius:8px;padding:7px 9px;font-size:12px;font-weight:600;color:#2b503b}
+.cc-n2-preliminary{border:1px solid #e7d4a9;background:#fff8e7;color:#6a5221;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;margin:8px 0}
+
+
+/* N2: validação humana do lote antes de gravar apenas pendências editoriais. */
+.cc-n2-batch-actions{display:flex;flex-direction:column;align-items:stretch;gap:9px;flex:0 1 285px;min-width:235px}
+.cc-n2-assist .cc-n2-batch-actions button{flex:none;width:100%;white-space:normal;line-height:1.35}
+.cc-n2-batch-actions>p{margin:2px 0 0}
+@media(max-width:720px){.cc-n2-batch-actions{flex:1 1 100%;min-width:0}}

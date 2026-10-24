@@ -7,8 +7,10 @@ on:
 permissions:
   contents: read
 jobs:
-  build:
+  validate:
+    name: Build e testes de regressao
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,3 +22,27 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Type check and build
         run: npm run build
+      - name: Validate recipe ingredient parsing
+        run: npm run test:ingredients
+      - name: Validate measure draft batches
+        run: npm run test:measure-batch
+      - name: Validate editorial review batches
+        run: npm run test:editorial-batch
+      - name: Validate full-inventory dry-run auditor
+        run: node scripts/test-measure-inventory-audit.mjs
+      - name: Validate private beta catalog access guards
+        run: node scripts/test-beta-private-access.mjs
+      - name: Validate allergen review triage stays fail-closed
+        run: node scripts/test-allergen-triage-guard.mjs
+      - name: Validate A3 allergen text hints remain non-conclusive
+        run: node scripts/test-allergen-a3-text-hints.mjs
+      - name: Validate A3B evidence stays append-only and non-conclusive
+        run: node scripts/test-allergen-a3b-evidence.mjs
+      - name: Validate A4 findings require current A3B evidence and stay non-conclusive
+        run: node scripts/test-allergen-a4-findings.mjs
+      - name: Validate A5.1 weekly server guard rejects allergy profiles before writes
+        run: node scripts/test-allergen-a5-week-guard.mjs
+      - name: Validate future allergy eligibility fails closed
+        run: node scripts/test-allergen-eligibility.mjs
+      - name: Validate planner, shopping and allergy guards
+        run: npm run test:pilot-flow

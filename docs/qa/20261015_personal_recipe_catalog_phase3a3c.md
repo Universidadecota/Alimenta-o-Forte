@@ -1,0 +1,136 @@
+# Costa&Costa — Fase 3A–3C: Acervo pessoal de 119 receitas e 172 alimentos do piloto
+**Data:** 15/10/2026 · **Branch:** `feat/revisao-alergenos-fase1-12out2026` · **PR #16:** draft/sem merge.
+
+## Pedido do responsável
+Uso **pessoal por cerca de três meses**, com possibilidade de comercialização futura somente após decisão posterior. Material-fonte: **6 PDFs** de quatro semanas de cardápios, dez saladas proteicas, dez lanches e dez ceias. O responsável proibiu alterar ingredientes, preparo, alternativas, quantidades e receitas. Não atribuir as receitas a dias; permitir escolha livre no cardápio pessoal.
+
+## Importação realizada no Supabase (auditada)
+- Criada e aplicada migração `supabase/migrations/20261016100000_cc_official_recipe_sources_pilot_3a.sql`: tabela `cc_official_recipe_source_records` com RLS somente para administrador autenticado, fonte exata, página, dia apenas **da fonte** (sem criar agendamento), ingredientes originais, preparo, duração, rendimento e checksum de cada receita.
+- Foram registradas **119 receitas oficiais NÃO publicadas** na tabela `recipes` (`published=false`, `owner_user_id=NULL`) vinculadas a **119** fontes preservadas.
+- Distribuição: **84 refeições semanais (4×21)**, **10 saladas**, **10 lanches**, **10 ceias**, **5 molhos caseiros adicionais**. **114** podem ser escolhidas no planejador, cinco molhos servem somente como preparos complementares (não como refeição diária).
+- A importação foi feita **diretamente no Supabase**, em lotes transacionais de um documento cada, com checagem de índice e hash para evitar substituição indevida de receita existente. **O texto integral dos PDFs não foi enviado ao GitHub**; foi produzido arquivo JSON de backup particular no ambiente da conversa.
+- `recipe_ingredients` contém **1.073 expressões originais** divididas conservadoramente por vírgula; quantidade/medida ainda `unspecified`. A **fonte textual completa** é a verdade, e o front do piloto apresenta ingredientes originais, sem alegar ter convertido colheres, unidades, xícaras ou alternativas em medidas consolidadas. **Lista de compras automática:** não somar essas expressões até revisão editorial e estruturação individual; apresentar texto original por receita como conferência manual.
+- Os seis PDFs incluem recomendações, dicas e receitas complementares; as instruções de cada receita foram preservadas, mas orientações gerais continuam nos documentos originais (que não foram publicados no repositório).
+
+## Alimentos cadastrados
+- Criada e aplicada migração `supabase/migrations/20261016110000_cc_pilot_food_registry_phase3b.sql` com tabela de vínculo `cc_pilot_food_registry` (RLS administrativa).
+- Inventário inicial **172 nomes de alimentos/ingredientes do conjunto de PDFs**: **148 novos** em `food_items`, **24 já existentes** reaproveitados, registrados na tabela de piloto.
+- Após a carga, a biblioteca contém **197 alimentos totais**, **34 publicados (anteriores)** e **163 não publicados**. Os novos permanecem **`editorial_status=preliminary`, `published=false` e `nutrition_per_100g=NULL`**. Não marcar alimentos como clinicamente seguros, aceleradores confirmados ou nutricionalmente aprovados.
+- O inventário é uma **primeira revisão de nomes**, ainda exige reconciliação de sinônimos, tipos de peixe/carne, produtos de embalagem, formas cruas/cozidas e opções de ingredientes. Não atribuir nutrientes por correspondência genérica ou sugerir substituições automáticas.
+
+## Disponibilização no uso pessoal, sem publicação comercial
+- `src/lib/planner.ts`: quando `cc_is_admin()` é verdadeiro, busca as 114 receitas do piloto na tabela privada e permite que o administrador as selecione. Usuários comuns veem somente receitas públicas e suas próprias receitas. Cada receita mantém seu subtipo e texto original.
+- `src/App.tsx`: seleção por **Café da manhã, Almoço, Jantar, Lanche da manhã, Lanche da tarde, Ceia**. As saladas do PDF podem ser escolhidas em almoço **ou** jantar; lanches somente em horários de lanche; ceias exclusivamente no horário de ceia; o título do PDF não define a data em que o usuário consumirá a receita.
+- `src/RecipeDetails.tsx`: mostra os ingredientes e o tempo **originais** no modo piloto, sem converter ou multiplicar quantidades que não foram estruturadas. As porções da fonte ficam visíveis; escolher uma porção de planejamento não reescreve o PDF.
+- `src/lib/shopping.ts`: ingredientes de receitas piloto ainda não estruturadas ficam em **observações para conferência manual**, nunca somados em compras com quantidades fictícias. Para receitas antigas estruturadas, a consolidação anterior permanece.
+- `src/lib/suggestions.ts`: **não** incorpora rascunhos do piloto à geração automática de semana enquanto ingredientes não estiverem validados. A escolha **manual** no cardápio continua liberada.
+- `src/lib/foodLibrary.ts` e `src/FoodLibrary.tsx`: o administrador pode consultar os alimentos preliminares com indicação de uso pessoal; usuários comuns continuam vendo somente alimentos `published=true`.
+- `supabase/migrations/20261016120000_cc_planner_private_pilot_admin_guard_phase3c.sql`: substitui função guard do planejamento para permitir **somente** que um administrador autenticado planeje uma receita oficial não publicada identificada como `personal_pilot` para o **próprio usuário**. Demais regras originais mantidas.
+
+## Verificação de integridade (SQL)
+| Item | Encontrado |
+|---|---:|
+| Registros com fonte original | 119 |
+| Planejáveis manualmente | 114 |
+| Molhos complementares não planejáveis | 5 |
+| Receitas do piloto publicadas | **0** |
+| Receitas do piloto não publicadas | **119** |
+| Expressões de ingredientes preservadas em linhas | 1.073 |
+| Alimentos do inventário piloto | 172 |
+| Alimentos totais | 197 |
+| Alimentos publicados anteriormente | 34 |
+| Nutrientes publicados no catálogo de alimentos | **0** |
+| Refeições planejadas preexistentes | **25**, preservadas |
+
+Conferência amostral de textos no banco: `Omelete de espinafre e tomate` (10 min, porção 1), `Salada Cobb completa` (25 min), `Leite dourado de coco` (ceia, 8 min), `Molho Caesar sem queijo` (molho, 5 min). Os seis documentos possuem índices consecutivos e nenhum preparo vazio. Teste de inserção de refeição piloto sob conta administradora em transação `BEGIN/ROLLBACK` executado sem erro, sem registro permanente.
+
+## Pendências/limites antes de comercializar
+1. **Homologar o build Windows** (`git pull --ff-only`, `npm run build`) e o acesso visual em **Receitas**, **Cardápio** (salada em jantar, ceia só em ceia) e **Alimentos**. Ainda não declarar interface homologada.
+2. Conciliar os 172 nomes: alimentos/variedades específicas e opções "ou" dos PDFs; estruturar individualmente as 1.073 expressões em unidades corretas, sem inventar gramas nem substituições, antes de habilitar soma automática e redimensionamento.
+3. Verificar custos, notas de rótulo e ingredientes compostos (molhos, maionese), riscos de alimentos crus, alergênicos e contato cruzado com profissional habilitado. **Não alterar o texto original dos PDFs**; adicionar notas editoriais separadas quando necessárias.
+4. Preparar acesso multiusuário pago, direitos de uso do conteúdo, termos, LGPD, perfil de alergias e revisão técnico-profissional **somente em fase comercial posterior**. Nenhum resultado de saúde individual ou promessa de emagrecimento pode ser inferido do material.
+5. Manter PR #16 aberto/draft; harmonizar migrações aplicadas no Supabase com repositório antes de deploy/merge.
+
+
+## Complemento final — escolha manual, proteção de horários e navegação
+
+- **Regra por horário também no servidor:** `supabase/migrations/20261016122000_cc_pilot_recipe_slot_guard_phase3c1.sql`, aplicada remotamente com sucesso como `cc_pilot_recipe_slot_guard_phase3c1_cloud`. Trigger em `planned_meals` recusa horário incompatível: ceia só no campo `supper`, lanche em manhã/tarde, salada em almoço/jantar, refeições semanais nas três categorias originais e molhos nunca como refeição.
+- **Teste transacional:** com a identidade administradora autenticada sob `SET LOCAL ROLE authenticated`, gravou temporariamente salada no almoço e jantar e ceia no horário correto; recusou tentativas de salada em ceia e ceia em lanche, com erro esperado; `ROLLBACK` executado, sem vincular qualquer receita a uma data real. As **25 refeições anteriores** seguem preservadas.
+- **Navegação na interface:** `src/App.tsx` adiciona busca textual por título, filtros por Café da manhã, Almoço, Jantar, Saladas, Lanches, Ceias e Minhas, com **18 receitas por página**. Os filtros operam sobre as receitas já carregadas no cliente; não confundir com paginação SQL. `src/styles.css` adapta os controles ao celular.
+- **Exibição:** `src/RecipeDetails.tsx` mostra ingredientes, rendimento e duração **originais**. `src/lib/planner.ts` prioriza receitas do acervo pessoal e só as inclui para conta de administrador, preservando as regras públicas; `src/lib/shopping.ts` não soma quantidades indefinidas. `src/FoodLibrary.tsx` distingue alimentos preliminares dos públicos.
+- **Sugestão automática da semana** permanece intencionalmente indisponível no piloto enquanto houver receitas não estruturadas; o usuário pode escolher manualmente cada uma das 114 receitas para cada dia/horário correto. Não houve alocação automática nem publicação.
+- **Revisão de integridade:** 119/119 hashes de conteúdo correspondem aos títulos/ingredientes/preparos registrados; 119 receitas oficiais do piloto `published=false`; 114 planejáveis, 5 molhos complementares. 197 alimentos totais, 34 públicos prévios, 163 não publicados, 172 vinculados ao registro piloto, 0 nutrientes publicados. Simulação `authenticated` não administradora: `cc_is_admin=false`, 0 fontes privadas, 0 receitas oficiais não publicadas e 34 alimentos visíveis via RLS.
+- **Exportação de conferência no ambiente de trabalho:** JSON com os textos, origem e checksum SHA-256 dos seis PDFs disponibilizado como arquivo anexo da conversa. Não publicar conteúdo completo no GitHub nem misturar os documentos originais com dados de comércio.
+- **Estado de homologação:** SQL e RLS simulados aprovados conforme evidências; **frontend ainda não compilado/homologado no Windows** após as alterações desta fase. O próximo teste é `git pull --ff-only` seguido de `npm run build`; depois verificar a lista e seleção manual na interface. Não repetir os testes da fase médica.
+
+**Antes da eventual venda:** reconciliar formas dos ingredientes e suas medidas, revisar alimentos compostos e alergênicos, implementar permissões comerciais separadas do piloto, avaliar direitos do conteúdo original e obter validação técnico-profissional sem modificar as receitas enviadas. O uso pessoal durante três meses não demonstra eficácia ou segurança para outros usuários.
+
+## Homologação do build Windows — acervo pessoal (15/10/2026)
+
+O responsável executou em PowerShell, no diretório do projeto Alimenta-o-Forte:
+
+- `git pull --ff-only`: fast-forward de `1caf164` para `f17cc8b`, branch `feat/revisao-alergenos-fase1-12out2026`, com os quatro arquivos SQL de migração e os ajustes de catálogo/interface.
+- `npm run build` = `tsc -b && vite build`: **sem erro de TypeScript**, Vite v6.4.4, **1.646 módulos**, **20,00 segundos**.
+- Artefatos observados: `dist/assets/index-zRLd4xJs.css` = **52,15 kB** (gzip 11,25 kB); `dist/assets/index-D8RNzuoS.js` = **506,76 kB** (gzip 143,52 kB).
+- Aviso Rollup/Vite: bundle JavaScript minimizado ultrapassa 500 kB; **não bloqueia** a compilação, anotado para otimização posterior de carregamento por módulos.
+
+**Resultado:** sincronização local, TypeScript e build de produção da Fase 3A–3C **aprovados**. **Ainda pendente:** teste visual real da página Receitas filtrada por **Ceias** (dez receitas), conferência de ingredientes/preparo, seleção manual de uma ceia no horário adequado, e biblioteca privada de alimentos na sessão de administrador. Não declarar a interface homologada sem captura/evidência. Nenhuma nova receita foi publicada comercialmente ou atribuída automaticamente a datas.
+
+**Próximo passo do responsável:** atualizar `localhost:5173`, entrar na página **Receitas**, filtrar **Ceias** e enviar uma captura da listagem e, se possível, dos detalhes de uma ceia. Não repetir o build ou testes já aprovados.
+
+## Homologação visual das ceias e ajustes pontuais de UX — 15/10/2026
+
+**Evidências:** três capturas fornecidas do aplicativo local `localhost:5173`, sem alteração de dados no banco. Página **Receitas** com filtro **Ceias** ativo e indicador **10 receitas encontradas**. As capturas da primeira e da segunda metade da listagem mostram dez cartões do acervo piloto, inclusive `Leite dourado de coco`.
+
+**Detalhes da receita:** a captura da ficha `Leite dourado de coco` mostra o texto original dos ingredientes e do preparo, tempo `8 min`, porção de referência `1`, e as ressalvas de que quantidades e alergênicos não estão revisados. O texto visível está coerente com a fonte importada; não houve evidência de alteração de ingredientes.
+
+**Resultado visual aprovado:** contagem de dez ceias, filtro, cartões e consulta da ficha de ingrediente/preparo. **Não foram testados:** salvar uma ceia no cardápio, troca de dia/semana, persistência após recarga e biblioteca de alimentos.
+
+**Inconsistências detectadas e corrigidas no GitHub (ainda sem novo build Windows):**
+- A ficha de uma ceia mostrava o rótulo genérico `Lanche`, por causa da categoria legada do banco. Agora a interface apresenta **Ceia** pelo subtipo original (e **Salada · almoço ou jantar** nas saladas).
+- O botão da ficha tinha a legenda `Adicionar ao dia selecionado`, mas ceias/lanche precisavam de escolha de horário. Agora aparece **Escolher horário no cardápio**; o fluxo exibe apenas horários compatíveis. Para saladas, possibilita selecionar **Almoço** ou **Jantar**, sem alterar o texto da receita.
+- O controle de aumento/diminuição de porções podia sugerir ajuste automático das quantidades originais não estruturadas. Foi retirado das fichas do piloto; o planejamento informa o rendimento original e não permite alterar porções até a revisão. As receitas antigas estruturadas mantêm seu controle de porção.
+- A ficha passou a evitar repetir o rendimento no cabeçalho quando ele já consta de `originalTime`.
+
+**Cuidados:** nenhuma receita foi publicada para usuários externos. Preservar modo de preparo, ingredientes, alternativas, quantidade e rendimento dos PDFs. O novo código **precisa de `git pull --ff-only` e `npm run build`** antes da homologação visual da correção; não repetir o teste já aprovado do filtro das dez ceias. PR #16 permanece draft/sem merge.
+
+
+## Fase 3D — piloto funcional: compras marcáveis e correção de compilação
+
+**Data:** 15/10/2026. **Solicitação:** durante os próximos **3 meses de uso pessoal**, as 119 receitas devem funcionar no cardápio e nas compras, independentemente da futura publicação comercial, sem modificar nenhuma receita.
+
+### Evidências recebidas
+- Três capturas mostram alerta explícito sobre alergia/intolerância antes da inserção manual; a receita **Leite dourado de coco** foi selecionada na área **Ceia** e consta na lista de compras como observação original.
+- Supabase foi consultado após as capturas: **26 planejamentos**, sendo **1 receita do piloto**; **119 fontes**, **114 receitas planejáveis**, **1.073 expressões de ingredientes originais**, **0 receitas piloto públicas**, **34 alimentos públicos anteriores** e **0 nutrientes publicados**. Isso comprova gravação no banco, não prova de recarga de tela.
+- O usuário executou `git pull --ff-only` até `6363877`, mas `npm run build` falhou com **TS2345** na linha 282 de `src/App.tsx`, pois o TypeScript não estreita `Meal | undefined` usando `Boolean(meal)` antes de `recipeFitsSlot`.
+
+### Correções feitas no GitHub — ainda requerem novo build local
+1. **Correção TS2345:** `src/App.tsx` usa `meal !== undefined && recipeFitsSlot(meal,slot)`. Commit de correção `8b99e27`. O build anterior **não está homologado**.
+2. **Compras do piloto:** `src/lib/shopping.ts` apresenta os fragmentos literais das receitas incluídas na semana, no mesmo formato e com as medidas do documento original, em uma **lista própria de compras**, sem relegá-los a uma observação única por receita. Expressões idênticas aparecem agrupadas e mostram número de ocorrências; **não é soma de gramas nem escolha entre alternativas**.
+3. **Marcação persistente:** `src/App.tsx` usa o fluxo existente `purchaseKey`/`savePurchasedItem` para os novos itens, com prefixo `Piloto ·` na chave; o item é apresentado sem o prefixo, mostrando texto original e título(s) da receita. Os itens também entram em **Copiar lista**. Compras legadas estruturadas seguem iguais.
+4. **Rendimento correto:** `src/App.tsx` assegura que a seleção de receita piloto com medidas não estruturadas usa as **porções originais**, sem assumir `household_size` e sem multiplicar ingredientes arbitrariamente.
+5. **Identificação do ambiente:** cabeçalho administrativo indica **uso pessoal em testes**, sem declarar revisão técnica inexistente.
+6. **Estilo:** `src/styles.css` acrescenta apresentação responsiva para os ingredientes do piloto e a identificação das receitas usadas.
+
+### Limites explícitos
+- Todas as 114 refeições podem ser escolhidas e planejadas e seus ingredientes entram na lista marcável da semana. O **agrupamento por texto literal** é utilizável para compras, mas **não equivale ainda** a agregação quantitativa por ingrediente canônico (colheres/xícaras/g/ml) ou conversão de rendimentos. Em alternativas `ou`, a decisão é do usuário, que deve conferir produto e rótulo.
+- Como o usuário registrou alergia/intolerância, a advertência antes da seleção manual permanece. **Nenhuma** receita passou a ser classificada como segura em alergênicos; a geração automática de semanas permanece bloqueada nesta fase.
+- O cadastro de 172 alimentos preliminares continua distinto de avaliações nutricionais, links ingredient-food confirmados ou publicação comercial.
+- **Não repetir** teste visual das dez ceias, origem do texto, RLS ou fase médica. Testar apenas o build corrigido e a **nova lista de compras** após inserir uma receita pessoal. Verificar marcados após recarga. Não mesclar PR #16 sem homologação e conferências posteriores.
+
+### Roteiro curto
+No PowerShell: `git pull --ff-only` e `npm run build`. No `localhost:5173`: abrir **Compras**, localizar seção **Ingredientes das receitas do acervo pessoal**, conferir como item comprável a medida literal do `Leite dourado de coco` e testar a marcação de um item/recarga. Receitas e dia já incluídos não devem ser modificados. O relatório do teste visual não é homologação de código não compilado.
+
+## Homologação do build corrigido e da listagem de compras — 15/10/2026
+
+**Evidências fornecidas pelo responsável:**
+
+- Primeira execução na branch desatualizada até `6363877` falhou em `src/App.tsx:282`, `TS2345`. O novo `git pull --ff-only` avançou corretamente até **`8ba45e0`**, contendo a correção do narrow TypeScript e a lista de compras do piloto.
+- `npm run build` subsequente executou `tsc -b && vite build` **sem erros**: Vite 6.4.4, **1.646 módulos transformados**, concluído em **39,42 s**, CSS `index-mZtypeNP.css` **52,73 kB**, JS `index-rAgTdM6j.js` **509,58 kB**. Aviso de chunk superior a 500 kB é não bloqueante e fica pendente para otimização.
+- A captura da página **Compras** no `localhost:5173` apresenta **Ingredientes das receitas do acervo pessoal (7)**, com os sete fragmentos de ingredientes do **Leite dourado de coco** separados, preservando termos como `½ colher (chá) de canela` e `1 xícara de leite de coco`, exibindo origem da receita, `1 uso` e checkboxes visíveis.
+
+**Homologações aprovadas:** build Windows corrigido; visualização de sete itens individuais; texto literal, origem, ocorrência e controles de marcação na lista de compras. **Ainda não homologado:** clicar na marcação e confirmá-la após recarregar a página, persistência da marcação no Supabase, duplicação entre receitas distintas e consolidação quantitativa canônica de medidas compatíveis. Não afirmar que as 119 receitas possuem medidas estruturadas, nem que `1 uso` é quantidade física.
+
+**Próximo teste exclusivamente funcional:** marcar apenas um item da lista do piloto, atualizar o navegador e observar se o item permanece marcado, sem repetir build, filtro das ceias ou receitas cadastradas. 
+
+**Prioridade do piloto de três meses:** avançar com modelagem/extração fiel das medidas e agrupamento quantitativo quando as expressões forem inequivocamente compatíveis; manter alternativas, `a gosto`, medidas dependentes de produto e ambiguidade à vista, sem inventar conversões, mexer nos PDFs ou publicar receitas comercialmente. PR #16 permanece em rascunho e sem merge.
