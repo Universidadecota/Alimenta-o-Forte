@@ -33,4 +33,12 @@ for(const fragment of ['cc_allergy_candidate_ids','cc_allergy_preliminary_pass',
 for(const group of ['leite','gluten','amendoim','castanhas','ovo','peixes','crustaceos','soja','gergelim']){
  assert.ok(sql.includes(`v_allergy='${group}'`),`Grupo sem triagem no servidor: ${group}`);
 }
+const app=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
+const styles=readFileSync(new URL('../src/styles.css',import.meta.url),'utf8');
+assert.match(app,/cc-allergy-alert" role="region" aria-label="Orientações sobre alergias"><details><summary>⚠️ ALERTA DE ALERGIA/,
+ 'O alerta deve ficar fechado por padrão, e a frase completa precisa ser clicável');
+assert.match(app,/className="cc-allergy-details-content"/,
+ 'As instruções completas de segurança devem permanecer disponíveis ao expandir');
+assert.match(styles,/\.cc-allergy-alert summary:focus-visible/,
+ 'O alerta deve permitir navegação visível por teclado');
 console.log('OK: 21 refeições respeitam o conjunto de IDs pré-triados, falham fechadas e todos os grupos conhecidos constam do contrato SQL.');

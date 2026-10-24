@@ -336,18 +336,18 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .notice[role="alert"]>span{line-height:1.65}
 }
 
-/* Alerta acessível e compacto; detalhes completos mediante expansão voluntária. */
-.notice.cc-allergy-alert{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:14px 16px}
-.cc-allergy-alert strong{color:#73532b;line-height:1.5}
-.cc-allergy-alert>span{line-height:1.6}
+/* A frase de alerta e o unico conteudo visivel ate a expansao pelo usuario. */
+.notice.cc-allergy-alert{display:block;padding:0;background:#fff6f3;border:1px solid #d89a94;border-left:5px solid #b3261e;border-radius:12px;box-shadow:0 3px 12px rgba(139,24,24,.07);color:#681c1c}
 .cc-allergy-alert details{width:100%;min-width:0}
-.notice.cc-allergy-alert{background:#fff0ef;border:3px solid #c72c2c;border-left-width:8px;box-shadow:0 4px 18px rgba(139,24,24,.16);color:#6d1515}
-.cc-allergy-alert strong{color:#921b1b;font-size:16px}
-.cc-allergy-alert>span{color:#5e1c1c;font-weight:500}
-.cc-allergy-alert summary{width:fit-content;font-size:12px;font-weight:700;cursor:pointer;color:#225442;padding:6px 0;text-decoration:underline;text-underline-offset:3px}
-.cc-allergy-alert summary:focus-visible{outline:2px solid #225442;outline-offset:3px;border-radius:3px}
-.cc-allergy-alert details p{margin:8px 0 0;line-height:1.65;max-width:80ch}
-@media(max-width:620px){.notice.cc-allergy-alert{padding:12px 14px;gap:6px}}
+.cc-allergy-alert summary{display:flex;align-items:center;gap:10px;list-style:none;min-height:48px;box-sizing:border-box;padding:12px 16px;font-size:15px;font-weight:800;line-height:1.45;cursor:pointer;color:#921b1b}
+.cc-allergy-alert summary::-webkit-details-marker{display:none}
+.cc-allergy-alert summary::after{content:'⌄';margin-left:auto;font-size:21px;line-height:1;transition:transform .15s ease}
+.cc-allergy-alert details[open] summary{border-bottom:1px solid #edc4bf}
+.cc-allergy-alert details[open] summary::after{transform:rotate(180deg)}
+.cc-allergy-alert summary:focus-visible{outline:3px solid #921b1b;outline-offset:-4px;border-radius:8px}
+.cc-allergy-details-content{display:grid;gap:8px;padding:12px 16px 16px}
+.cc-allergy-details-content p{margin:0;max-width:90ch;font-size:13px;line-height:1.6}
+@media(max-width:620px){.cc-allergy-alert summary{padding:11px 13px;font-size:14px}.cc-allergy-details-content{padding:10px 13px 14px}}
 
 /* Ficha da receita: medidas longas podem quebrar sem sobrepor o ingrediente no celular. */
 @media(max-width:620px){
