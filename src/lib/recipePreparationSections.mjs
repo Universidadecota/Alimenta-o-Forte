@@ -5,13 +5,22 @@
 export function parseRecipePreparation(instructions) {
   const sections = {steps: [], tips: [], safety: []};
   let current = "steps";
-  for (const line of (instructions ?? "").split(/(?:\\n|\r?\n)+/).map(s => s.trim()).filter(Boolean)) {
+  const lines = (instructions ?? "").split(/(?:\\n|\r?\n)+/).map(s => s.trim()).filter(Boolean);
+  // O cadastro de muitas receitas antigas contém 2–4 frases em uma só linha.
+  // Transformamos essas frases em passos numerados, sem criar instruções novas.
+  // Fichas que já usam linhas/etapas explícitas são mantidas integralmente.
+  const splitParagraphIntoSteps = lines.length === 1;
+  for (const line of lines) {
     if (/^DICAS PARA DAR CERTO:\s*$/iu.test(line)) {
       current = "tips";
     } else if (/^INFORMAÇÕES DE SEGURANÇA:\s*$/iu.test(line)) {
       current = "safety";
     } else {
-      sections[current].push(line);
+      if (current === "steps" && splitParagraphIntoSteps) {
+        sections.steps.push(...line.split(/(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])/u).filter(Boolean));
+      } else {
+        sections[current].push(line);
+      }
     }
   }
   return sections;

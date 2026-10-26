@@ -31,3 +31,28 @@ export function parsePilotIngredientDisplay(source) {
   if (items.slice(1).some(item => qualifier.test(item))) return null;
   return items;
 }
+
+/**
+ * Fichas compostas (ex.: prato + Molho: + Salada:) são exibidas por grupos.
+ * O parser não supõe rendimento nem transforma medidas da receita original.
+ * Se não for possível separar sem ambiguidade, devolve null para usar o texto.
+ */
+export function parsePilotIngredientGroups(source) {
+  if (typeof source !== "string" || !source.trim()) return null;
+  const original = source.replace(/\\n/g, "\n").trim();
+  if (!/[\n;:]|\.\s+[A-ZÀ-Ü][^.:]{2,48}:/u.test(original)) return null;
+  // Referências editoriais que ainda não são ingredientes não devem virar itens.
+  if (/\b(?:ver receita|receita abaixo)\b/iu.test(original)) return null;
+
+  const chunks = original.split(/(?<=\.)\s+(?=[A-ZÀ-Ü][\p{L}\p{M}\d ()-]{2,48}:)|\n{2,}|;\s*/u)
+    .map(chunk => chunk.trim()).filter(Boolean);
+  if (chunks.length < 2) return null;
+  const groups = [];
+  for (const chunk of chunks) {
+    const label = /^([\p{L}][\p{L}\p{M}\d ()-]{1,48}):\s+(.+)$/u.exec(chunk);
+    const title = label ? label[1] : null;
+    const text = label ? label[2] : chunk;
+    groups.push({title, text, items: parsePilotIngredientDisplay(text)});
+  }
+  return groups;
+}
