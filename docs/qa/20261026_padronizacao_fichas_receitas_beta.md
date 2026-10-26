@@ -37,18 +37,38 @@ Receitas naturalmente simples podem ter preparo curto e completo.
 
 - **Caldo de frango com legumes e chucrute**: o registro original inclui, após as três
   frases de preparo, um trecho de organização semanal com referências ao Dia 6, Dia 7,
-  fase 2 e portal. Esse trecho não faz parte das operações da receita isolada. A correção
-  do campo de exibição deve preservar integralmente o registro documental-fonte.
+  fase 2 e portal. Esse trecho não faz parte das operações da receita isolada. **Corrigido
+  no campo de exibição**: permanecem apenas as três frases culinárias, em linhas próprias;
+  o registro documental-fonte foi preservado sem edição.
+
+## Primeiro lote de conteúdo revisado no banco (26/10/2026)
+
+As cinco fichas abaixo agora incluem etapas descritas separadamente, dicas e observações
+de segurança **específicas**, sem alterar os ingredientes originais ou os registros-fonte:
+
+- Vinagrete de gengibre — informa explicitamente o gergelim;
+- Vinagrete básico de limão e ervas — separa as alternativas do tempero;
+- Kefir com morangos, chia e linhaça — não presume se a base do kefir é leite ou água;
+- Omelete de cebolinha com abacate — esclarece o ponto de cozimento e a alternativa
+  azeite/manteiga;
+- Molho de tahine e limão — identifica o gergelim presente no tahine.
+
+Todos os `UPDATE`s foram delimitados por `id`, `title` e conteúdo anterior exato; a
+consulta posterior confirmou os novos campos de dicas e segurança e o estado
+`ingredient_review_status=needs_structuring`. As novas advertências **não** constituem
+homologação clínica/alimentar, nem garantem ausência de contato cruzado.
 
 ## Fila de revisão culinária priorizada
 
-Fichas com menos de 180 caracteres (prioridade de **análise**, não defeito confirmado):
+Fichas com menos de 180 caracteres na auditoria **anterior à primeira rodada**
+(prioridade de análise, não defeito confirmado). As cinco marcadas como revisadas já
+saíram dessa fila; restam **16**:
 
-1. Vinagrete de gengibre
-2. Vinagrete básico de limão e ervas
-3. Kefir com morangos, chia e linhaça
-4. Omelete de cebolinha com abacate
-5. Molho de tahine e limão
+1. Vinagrete de gengibre — **revisada**
+2. Vinagrete básico de limão e ervas — **revisada**
+3. Kefir com morangos, chia e linhaça — **revisada**
+4. Omelete de cebolinha com abacate — **revisada**
+5. Molho de tahine e limão — **revisada**
 6. Rolinhos de peru com abacate e rúcula
 7. Rodelas de pepino com sardinha
 8. Pão de linhaça com ovo e abacate
@@ -78,4 +98,4 @@ Fichas com menos de 180 caracteres (prioridade de **análise**, não defeito con
 - Testar a receita aberta, a impressão e os fluxos existentes após lotes de alterações.
 
 **Não realizados nesta etapa:** homologação de alergênicos, dados nutricionais não verificados,
-recriação automática dos preparos de 118 receitas ou alteração das medidas-fonte.
+reescrita indiscriminada das demais receitas ou alteração das medidas-fonte.
