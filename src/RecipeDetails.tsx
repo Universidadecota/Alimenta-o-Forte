@@ -7,11 +7,13 @@ import type { Meal } from "./lib/planner";
 import { formatRecipeIngredient } from "./lib/ingredientMeasures";
 import {formatPilotRecipeTime} from "./lib/pilotRecipeTime.mjs";
 import {parseRecipePreparation} from "./lib/recipePreparationSections.mjs";
+import {parsePilotIngredientDisplay} from "./lib/pilotIngredientDisplay.mjs";
 
 type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean;backLabel?:string};
 export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas"}:Props){
  const [servings,setServings]=useState(recipe.servings);
  const {steps,tips,safety}=parseRecipePreparation(recipe.instructions);
+ const pilotIngredientItems=recipe.pilotSource?parsePilotIngredientDisplay(recipe.pilotSource.originalIngredients):null;
  const includesCompiledSauce=Boolean(recipe.pilotSource&&
   /rendimento próprio: 2 a 3 porções/iu.test(recipe.pilotSource.originalIngredients));
  const includesUncookedYolkSauce=Boolean(recipe.pilotSource&&
@@ -35,7 +37,8 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
    :<div className="portion-stepper"><span>Porções</span><button type="button" disabled={servings<=1} onClick={()=>setServings(v=>Math.max(1,v-1))} aria-label="Diminuir porções"><Minus size={16}/></button><strong>{servings}</strong><button type="button" disabled={servings>=20} onClick={()=>setServings(v=>Math.min(20,v+1))} aria-label="Aumentar porções"><Plus size={16}/></button></div>}
    {recipe.pilotSource?<div className="cc-pilot-source-ingredients">
     <p><strong>{includesCompiledSauce?"Ingredientes da salada e do molho complementar:":"Ingredientes conforme o documento original:"}</strong></p>
-    <p style={{whiteSpace:"pre-line"}}>{recipe.pilotSource.originalIngredients}</p>
+    {pilotIngredientItems?<ul className="cc-ingredient-items">{pilotIngredientItems.map((item,i)=><li key={i}>{item}</li>)}</ul>
+     :<p style={{whiteSpace:"pre-line"}}>{recipe.pilotSource.originalIngredients}</p>}
 
    </div>:<ul className="ingredients">{recipe.ingredients.map((ingredient,i)=><li key={i}><span>{ingredient.name}</span><strong>{formatRecipeIngredient(ingredient,servings/recipe.servings)}</strong></li>)}</ul>}
    {recipe.pilotSource?<details className="detail-note"><summary>Ver informações sobre medidas e segurança</summary><div><p>{includesCompiledSauce?"O molho foi transcrito de outra ficha do mesmo documento, com as quantidades do lote original. A salada e o molho não foram redimensionados automaticamente.":"O documento de origem está preservado; a apresentação pode conter ajustes editoriais de leitura e etapas de preparo. Não há redimensionamento automático das porções até a revisão das medidas."}</p><p>A lista de compras soma apenas medidas compatíveis identificadas com segurança; quantidades ambíguas são apresentadas separadamente, sem conversões inventadas.</p><p>Alérgenos, contaminação cruzada e composição nutricional ainda não foram verificados. Confira ingredientes e rótulos antes de consumir.</p>

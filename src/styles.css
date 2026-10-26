@@ -12,6 +12,16 @@
 .recipe-preparation-tips ul,.recipe-preparation-safety ul{padding-left:20px;margin:0}
 .recipe-preparation-tips li+li,.recipe-preparation-safety li+li{margin-top:7px}
 
+/* Receita detalhada: ingredientes consultáveis enquanto o preparo é lido. */
+@media(min-width:701px){
+ .detail-columns{grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);align-items:start}
+ .detail-columns>.detail-panel:first-child{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow-y:auto}
+}
+.cc-ingredient-items{list-style:none;margin:10px 0 20px;padding:0}
+.cc-ingredient-items li{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid #e9eee8;font-size:14px;line-height:1.55;color:#294536}
+.cc-ingredient-items li:before{content:"";display:block;flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#83a58a;align-self:baseline;margin-top:2px}
+.cc-ingredient-items li:last-child{border-bottom:0}
+
 
 .personal-recipe{display:grid;gap:15px;max-width:900px}.personal-recipe>.secondary{justify-self:start}.personal-recipe>p{color:#647468}.personal-form{display:grid;gap:19px;background:#fff;padding:24px;border:1px solid #e8eae5;border-radius:18px}.personal-form label{display:grid;gap:7px;font-size:13px;font-weight:650;color:#344d3a}.personal-form input,.personal-form select,.personal-form textarea{border:1px solid #d9e5d8;border-radius:9px;background:#fff;padding:12px;color:#26332d;width:100%;min-width:0}.personal-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.personal-form textarea{resize:vertical}.ingredient-edit{display:grid;grid-template-columns:minmax(0,3fr) minmax(70px,1fr) minmax(65px,0.75fr) 35px;gap:8px;align-items:center}.ingredient-edit button{border:0;background:#faefed;color:#a64c41;border-radius:8px;display:grid;place-items:center;height:40px}.personal-form>.primary,.personal-form>.secondary{justify-self:start}@media(max-width:700px){.personal-form{padding:16px}.personal-form-grid{grid-template-columns:1fr}.ingredient-edit{grid-template-columns:minmax(0,2fr) 65px 65px 34px;gap:4px}.ingredient-edit input,.ingredient-edit select{padding:8px 5px;font-size:12px}}
 
