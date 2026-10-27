@@ -188,6 +188,9 @@ export default function App(){
   }
   setSaving(true);setError("");
   setWeekSuggestionProgress(hasAllergies?"Verificando os ingredientes declarados para as alergias cadastradas...":"Preparando sugestões...");
+  // A resposta da rede pode falhar depois de o servidor gravar a semana.
+  // Guardamos a proposta submetida para conferir o resultado real em caso de erro.
+  let submittedWeek:Plan|null=null;
   try{
    const eligible=hasAllergies?await loadPreliminaryAllergyCandidates():undefined;
    const proposal=proposeWeek(recipes,preferences,days,plan,eligible);
@@ -205,6 +208,7 @@ export default function App(){
     setWeekSuggestionProgress("");return;
    }
    setWeekSuggestionProgress("Renovando as 21 refeições da semana...");
+   submittedWeek=next;
    if(supabase)await replaceWeekMainMeals(userId!,weekStart,days,next,plan);
    else localStorage.setItem("cc_demo_plan",JSON.stringify(next));
    setPlan(next);
@@ -216,11 +220,28 @@ export default function App(){
   }catch(err){
    setWeekSuggestionProgress("");
    const detail=err instanceof Error?err.message:"Falha de conexão";
-   if(supabase&&userId&&detail.toLowerCase().includes("cardápio alterado")){
-    try{setPlan(await loadWeek(userId,weekStart));}
-    catch{setError("Não foi possível confirmar o estado salvo. Atualize o cardápio antes de continuar.");return;}
+   if(supabase&&userId&&submittedWeek){
+    try{
+     const persisted=await loadWeek(userId,weekStart);
+     setPlan(persisted);
+     const confirmed=days.every(day=>slots.every(slot=>{
+      const key=dateKey(day);
+      const requested=submittedWeek?.[key]?.[slot];
+      const saved=persisted[key]?.[slot];
+      return Boolean(requested&&saved&&requested.id===saved.id&&requested.servings===saved.servings);
+     }));
+     if(confirmed){
+      setWeekSuggestionProgress("As 21 refeições foram confirmadas no servidor. A resposta inicial foi interrompida; confira também a lista de compras."
+       +(hasAllergies?" ⚠️ Pré-triagem sem certificação: verifique ingredientes, rótulos e contato cruzado.":""));
+      return;
+     }
+     setError("A atualização não foi confirmada integralmente. Recarregamos a semana salva para evitar divergências. Confira as refeições antes de tentar novamente. "+detail);
+    }catch{
+     setError("Não foi possível consultar o resultado da gravação no servidor. Atualize a página e confira o cardápio antes de tentar novamente. "+detail);
+    }
+    return;
    }
-   setError("Não foi possível gerar ou salvar a sugestão. Nenhuma nova refeição foi confirmada pela interface. "+detail);
+   setError("Não foi possível concluir a sugestão. Nenhuma alteração foi confirmada nesta tentativa. "+detail);
   }finally{setSaving(false);}
  };
  const copyMeal=async(slot:Slot,destinationDay:string)=>{
