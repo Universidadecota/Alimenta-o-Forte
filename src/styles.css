@@ -440,6 +440,11 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-recipes-filterbar label{display:grid;gap:6px;font-size:13px;font-weight:700;flex:1 1 220px}
 .cc-recipes-filterbar input,.cc-recipes-filterbar select{width:100%;min-height:43px;border:1px solid #d1ddd5;border-radius:10px;padding:8px 12px;background:#fff;color:#173b31}
 .cc-recipes-filterbar>span{padding-bottom:12px;font-size:13px;color:#58665f}
+/* O checkbox de favoritos não deve herdar o estilo de input de busca. */
+.cc-recipes-filterbar .cc-favorites-filter{display:inline-flex;align-items:center;justify-content:center;gap:9px;flex:0 0 auto;min-height:43px;padding:8px 12px;border:1px solid #d1ddd5;border-radius:10px;background:#eaf2ea;color:#173b31;cursor:pointer;white-space:nowrap}
+.cc-recipes-filterbar .cc-favorites-filter input[type="checkbox"]{width:18px;height:18px;min-height:0;margin:0;padding:0;border:0;flex:0 0 18px;accent-color:#205746;cursor:pointer}
+.cc-recipes-filterbar .cc-favorites-filter:has(input:disabled){opacity:.6;cursor:not-allowed}
+
 .cc-recipe-pages{display:flex;gap:12px;align-items:center;justify-content:center;margin:20px 0 25px}
 .cc-recipe-pages span{font-weight:650;font-size:14px}
 .cc-pilot-source-ingredients{white-space:normal;overflow-wrap:anywhere}

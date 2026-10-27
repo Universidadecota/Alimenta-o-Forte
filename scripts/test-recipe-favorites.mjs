@@ -3,6 +3,7 @@ import {readFileSync} from "node:fs";
 
 const root = new URL("../",import.meta.url);
 const app = readFileSync(new URL("src/App.tsx",root),"utf8");
+const styles = readFileSync(new URL("src/styles.css",root),"utf8");
 const details = readFileSync(new URL("src/RecipeDetails.tsx",root),"utf8");
 const sql = readFileSync(new URL("supabase/migrations/20261027145350_cc_recipe_favorites_private_beta.sql",root),"utf8");
 
@@ -29,4 +30,5 @@ assert.match(app,/onToggleFavorite=\{\(\)=>void toggleFavorite\(detailId!\)\}/);
 assert.match(details,/aria-pressed=\{isFavorite\}/);
 assert.match(details,/onClick=\{onToggleFavorite\}/);
 
+assert.match(styles,/\.cc-recipes-filterbar \.cc-favorites-filter input\[type="checkbox"\]\{width:18px;height:18px;min-height:0/);
 console.log("OK: favoritos privados, RLS por usuário, leitura/gravação e filtro na UI (verificação estática).");
