@@ -41,4 +41,16 @@ assert.match(app,/className="cc-allergy-details-content"/,
  'As instruções completas de segurança devem permanecer disponíveis ao expandir');
 assert.match(styles,/\.cc-allergy-alert summary:focus-visible/,
  'O alerta deve permitir navegação visível por teclado');
+const suggestion=app.split('const suggestWeek=async()=>')[1]?.split('const copyMeal=async(')[0]??'';
+assert.match(suggestion,/let submittedWeek:Plan\|null=null/,
+ 'A proposta submetida precisa ser registrada para reconciliação após perda de resposta');
+assert.match(suggestion,/const persisted=await loadWeek\(userId,weekStart\)/,
+ 'Falha após envio deve reler a semana real do banco');
+assert.match(suggestion,/days\.every\(day=>slots\.every\(slot=>/,
+ 'Confirmar as 21 refeições, não apenas uma requisição bem-sucedida');
+assert.match(suggestion,/requested\.id===saved\.id&&requested\.servings===saved\.servings/,
+ 'A conferência deve considerar receita e número de porções');
+assert.doesNotMatch(suggestion,/Nenhuma nova refeição foi confirmada pela interface/,
+ 'Erros de rede não podem negar uma gravação já concluída');
+
 console.log('OK: 21 refeições respeitam o conjunto de IDs pré-triados, falham fechadas e todos os grupos conhecidos constam do contrato SQL.');
