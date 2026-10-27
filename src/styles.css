@@ -462,6 +462,13 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 
 /* Piloto culinário autoral: instrução não interativa em lugar de sugestão automática. */
 .cc-manual-planning-notice{display:inline-flex;align-items:center;max-width:350px;font-size:13px;line-height:1.45;color:#30584a;background:#eaf2eb;border:1px solid #dce9df;border-radius:10px;padding:9px 12px}
+.cc-plan-favorites-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#eff5ed;border:1px solid #d8e5d9;border-radius:12px;padding:11px 15px;margin-top:12px;color:#244c3c}
+.cc-plan-favorites-bar label{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;cursor:pointer}
+.cc-plan-favorites-bar input[type="checkbox"]{width:18px;height:18px;accent-color:#205746;margin:0}
+.cc-plan-favorites-bar span{font-size:12px;color:#537463;line-height:1.4}
+.cc-meal-lock{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #d2e2d5;border-radius:8px;background:#edf5ef;color:#2b5841;font-size:12px;font-weight:700;margin:5px 0}
+.cc-meal-lock[aria-pressed="true"]{background:#dcefe2;border-color:#b4d2bd;color:#194831}
+.cc-meal-lock:disabled{opacity:.5;cursor:not-allowed}
 
 /* Avisos de escolha e componentes originais de receitas no checklist. */
 .cc-pilot-shopping-attention{color:#805325!important;font-weight:650!important}

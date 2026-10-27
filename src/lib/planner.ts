@@ -13,7 +13,7 @@ export type PilotRecipeSource = {
  ingredientsReviewed:boolean;
 };
 export type Meal = {id:string;title:string;category:RecipeCategory;ingredients:Ingredient[];minutes:number;servings:number;description:string|null;instructions:string|null;imageUrl:string|null;ownerId:string|null;imageIsAi:boolean;pilotSource?:PilotRecipeSource};
-export type PlannedMeal = {id:string;servings:number};
+export type PlannedMeal = {id:string;servings:number;locked?:boolean};
 export type Plan = Record<string,Partial<Record<Slot,PlannedMeal>>>;
 // As três refeições principais continuam sendo a referência da sugestão automática.
 export const slots:Slot[]=["Café da manhã","Almoço","Jantar"];
@@ -40,8 +40,8 @@ export function recipeFitsSlot(recipe:Meal,slot:Slot):boolean{
 }
 export const dateKey=(d:Date)=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
 export function startOfWeek(date:Date){const d=new Date(date);d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
-const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings:number}>):Plan=>rows.reduce((all,row)=>{
- const slot=toSlot[row.slot];if(slot)all[row.meal_date]={...all[row.meal_date],[slot]:{id:row.recipe_id,servings:row.servings}};return all;
+const toPlan=(rows:Array<{meal_date:string;slot:string;recipe_id:string;servings:number;is_locked:boolean}>):Plan=>rows.reduce((all,row)=>{
+ const slot=toSlot[row.slot];if(slot)all[row.meal_date]={...all[row.meal_date],[slot]:{id:row.recipe_id,servings:row.servings,locked:row.is_locked}};return all;
 },{} as Plan);
 export async function loadRecipes():Promise<Meal[]>{
  if(!supabase)return [];
@@ -108,7 +108,7 @@ export async function loadWeek(userId:string,weekStart:string):Promise<Plan>{
  const {data:plans,error:plansError}=await supabase.from("meal_plans").select("id").eq("user_id",userId).eq("week_start",weekStart).maybeSingle();
  if(plansError)throw plansError;
  if(!plans)return {};
- const {data,error}=await supabase.from("planned_meals").select("meal_date,slot,recipe_id,servings").eq("user_id",userId).eq("meal_plan_id",plans.id);
+ const {data,error}=await supabase.from("planned_meals").select("meal_date,slot,recipe_id,servings,is_locked").eq("user_id",userId).eq("meal_plan_id",plans.id);
  if(error)throw error;return toPlan(data||[]);
 }
 /** IDs pré-triados no servidor para as alergias do usuário autenticado.
@@ -128,9 +128,20 @@ export async function saveMeal(userId:string,weekStart:string,day:string,slot:Sl
  const {data:container,error:planError}=await supabase.from("meal_plans").upsert({user_id:userId,week_start:weekStart},{onConflict:"user_id,week_start"}).select("id").single();
  if(planError)throw planError;
  const {error}=await supabase.from("planned_meals").upsert({
-  user_id:userId,meal_plan_id:container.id,meal_date:day,slot:fromSlot[slot],recipe_id:recipeId,servings
+  user_id:userId,meal_plan_id:container.id,meal_date:day,slot:fromSlot[slot],recipe_id:recipeId,servings,is_locked:true
  },{onConflict:"meal_plan_id,meal_date,slot"});
  if(error)throw error;
+}
+/** Pin/unpin only the currently displayed owned meal; stale tabs cannot lock another recipe. */
+export async function setMealLocked(userId:string,weekStart:string,day:string,slot:Slot,meal:PlannedMeal,locked:boolean):Promise<void>{
+ if(!supabase)throw new Error("Supabase indisponível");
+ const {data:container,error:planError}=await supabase.from("meal_plans").select("id").eq("user_id",userId).eq("week_start",weekStart).single();
+ if(planError)throw planError;
+ const {data,error}=await supabase.from("planned_meals").update({is_locked:locked})
+  .eq("user_id",userId).eq("meal_plan_id",container.id).eq("meal_date",day)
+  .eq("slot",fromSlot[slot]).eq("recipe_id",meal.id).eq("servings",meal.servings).select("id").maybeSingle();
+ if(error)throw error;
+ if(!data)throw new Error("A refeição mudou em outra sessão. Atualize o cardápio antes de tentar novamente.");
 }
 /** Troca todas as refeições principais em uma só transação no Supabase.
  * Refeições opcionais e os dados de outros usuários não são alterados.

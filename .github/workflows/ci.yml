@@ -48,5 +48,7 @@ jobs:
         run: node scripts/test-allergen-eligibility.mjs
       - name: Validate private recipe favorites contract
         run: node scripts/test-recipe-favorites.mjs
+      - name: Validate weekly favorites and persistent manual meal pins
+        run: node scripts/test-weekly-favorites-pins.mjs
       - name: Validate planner, shopping and allergy guards
         run: npm run test:pilot-flow

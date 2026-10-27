@@ -15,6 +15,11 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],cur
  const result:Plan={};
  const used=new Map<string,number>();
  for(const slot of slots){
+  const openDays=days.filter(day=>!current[dateKey(day)]?.[slot]?.locked);
+  if(!openDays.length){
+   for(const day of days){const key=dateKey(day);result[key]={...result[key],[slot]:current[key]![slot]!};}
+   continue;
+  }
   const available=recipes.filter(r=>recipeFitsSlot(r,slot)
    &&(!prefs.allergies.length||preliminaryEligibleIds!.has(r.id))
    &&(r.ingredients.length>0||Boolean(r.pilotSource?.originalIngredients.trim()))
@@ -30,6 +35,13 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],cur
   let previousId:string|null=null;
   for(const day of days){
    const key=dateKey(day);
+   const preserved=current[key]?.[slot];
+   if(preserved?.locked){
+    result[key]={...result[key],[slot]:preserved};
+    used.set(preserved.id,(used.get(preserved.id)??0)+1);
+    previousId=preserved.id;
+    continue;
+   }
    const currentId=current[key]?.[slot]?.id;
    // Havendo alternativa, nunca repetir a receita do mesmo horário anterior.
    const alternatives=candidates.filter(r=>candidates.length===1||r.id!==currentId);
@@ -44,7 +56,7 @@ export function proposeWeek(recipes:Meal[],prefs:FoodPreferences,days:Date[],cur
    previousId=recipe.id;
    result[key]={...result[key],[slot]:{
     id:recipe.id,
-    servings:recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?recipe.servings:servings
+    servings:recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?recipe.servings:servings,locked:false
    }};
   }
  }
