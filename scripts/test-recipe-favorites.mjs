@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 const root = new URL("../",import.meta.url);
 const app = readFileSync(new URL("src/App.tsx",root),"utf8");
 const details = readFileSync(new URL("src/RecipeDetails.tsx",root),"utf8");
-const sql = readFileSync(new URL("docs/qa/20261027_favoritos_ddl_pendente.sql",root),"utf8");
+const sql = readFileSync(new URL("supabase/migrations/20261027145350_cc_recipe_favorites_private_beta.sql",root),"utf8");
 
 assert.match(sql,/create table if not exists public\.favorites/i);
 assert.match(sql,/primary key \(user_id, recipe_id\)/i);
