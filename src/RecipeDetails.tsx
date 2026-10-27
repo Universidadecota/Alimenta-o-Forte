@@ -2,15 +2,15 @@ import RecipeImage from "./RecipeImage";
 import RecipeRating from "./RecipeRating";
 import RecipeNutrition from "./RecipeNutrition";
 import { useState } from "react";
-import { ArrowLeft, Clock3, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Clock3, Heart, Minus, Plus } from "lucide-react";
 import type { Meal } from "./lib/planner";
 import { formatRecipeIngredient } from "./lib/ingredientMeasures";
 import {formatPilotRecipeTime} from "./lib/pilotRecipeTime.mjs";
 import {parseRecipePreparation} from "./lib/recipePreparationSections.mjs";
 import {parsePilotIngredientDisplay,parsePilotIngredientGroups} from "./lib/pilotIngredientDisplay.mjs";
 
-type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean;backLabel?:string};
-export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas"}:Props){
+type Props={recipe:Meal;destinationDateLabel:string;onClose:()=>void;onAdd:(servings:number)=>void;canAdd:boolean;backLabel?:string;isFavorite:boolean;favoriteBusy:boolean;onToggleFavorite:()=>void};
+export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd,canAdd,backLabel="Voltar às receitas",isFavorite,favoriteBusy,onToggleFavorite}:Props){
  const [servings,setServings]=useState(recipe.servings);
  const {steps,tips,safety}=parseRecipePreparation(recipe.instructions);
  const pilotIngredientItems=recipe.pilotSource?parsePilotIngredientDisplay(recipe.pilotSource.originalIngredients):null;
@@ -25,6 +25,7 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
  const displayedTime=formatPilotRecipeTime(recipe);
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> {backLabel}</button>
+  <button type="button" className="secondary" aria-pressed={isFavorite} disabled={favoriteBusy} onClick={onToggleFavorite}><Heart size={16} fill={isFavorite?"currentColor":"none"}/> {isFavorite?"Remover dos favoritos":"Salvar nos favoritos"}</button>
   <div className="recipe-detail-head">
    <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} isAi={recipe.imageIsAi} large/></div>
    <div><span className="eyebrow">{recipe.pilotSource?.kind==="supper"?"Ceia":recipe.pilotSource?.kind==="salad"?"Salada · almoço ou jantar":recipe.pilotSource?.kind==="snack"?"Lanche":recipe.category}</span><h2>{recipe.title}</h2>

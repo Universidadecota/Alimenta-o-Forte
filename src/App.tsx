@@ -18,7 +18,7 @@ import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
 import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, loadPreliminaryAllergyCandidates, saveMeal, replaceWeekMainMeals, removeMeal, moveMeal } from "./lib/planner";
-import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer } from "lucide-react";
+import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer, Heart } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
  const [isAdmin,setIsAdmin]=useState(false);
@@ -35,6 +35,13 @@ export default function App(){
  const [recipeSearch,setRecipeSearch]=useState("");
  const [recipeGroup,setRecipeGroup]=useState("Todos");
  const [recipePage,setRecipePage]=useState(1);
+ const [onlyFavorites,setOnlyFavorites]=useState(false);
+ const [favoriteIds,setFavoriteIds]=useState<Set<string>>(()=>{
+  if(supabase)return new Set();
+  try{const saved=JSON.parse(localStorage.getItem("cc_demo_favorites")||"[]");return new Set<string>(Array.isArray(saved)?saved.filter((id):id is string=>typeof id==="string"):[]);}catch{return new Set();}
+ });
+ const [favoritesLoadedFor,setFavoritesLoadedFor]=useState<string|null>(null);
+ const [favoriteBusyId,setFavoriteBusyId]=useState<string|null>(null);
   const [optionalOpen,setOptionalOpen]=useState(false);
  const [pendingPlacement,setPendingPlacement]=useState<{recipeId:string;servings:number}|null>(null);
  const [placementTarget,setPlacementTarget]=useState<Slot|"">("");
@@ -46,7 +53,33 @@ export default function App(){
  const recipesReady=!supabase||dataReadyForUser(recipesLoadedFor,userId);
  const preferencesReady=!supabase||dataReadyForUser(preferencesLoadedFor,userId);
  const weekReady=!supabase||weekLoadedScope===(userId+"|"+weekStart);
+ const favoritesReady=!supabase||Boolean(userId&&favoritesLoadedFor===userId);
  const reloadRecipes=async()=>{const data=await loadRecipes();setRecipes(data);setRecipeForm(false);setEditingId(null);setDetailId(null);};
+ const toggleFavorite=async(recipeId:string)=>{
+  if(!supabase){
+   const updated=new Set(favoriteIds);
+   if(updated.has(recipeId))updated.delete(recipeId);else updated.add(recipeId);
+   localStorage.setItem("cc_demo_favorites",JSON.stringify([...updated]));
+   setFavoriteIds(updated);
+   return;
+  }
+  if(!userId||!favoritesReady||favoriteBusyId)return;
+  const wasFavorite=favoriteIds.has(recipeId);
+  setFavoriteBusyId(recipeId);setError("");
+  try{
+   const result=wasFavorite
+    ?await supabase.from("favorites").delete().eq("user_id",userId).eq("recipe_id",recipeId)
+    :await supabase.from("favorites").insert({user_id:userId,recipe_id:recipeId});
+   if(result.error&&!(result.error.code==="23505"&&!wasFavorite))throw result.error;
+   setFavoriteIds(previous=>{
+    const updated=new Set(previous);
+    if(wasFavorite)updated.delete(recipeId);else updated.add(recipeId);
+    return updated;
+   });
+  }catch(err){
+   setError("Não foi possível atualizar seus favoritos. "+(err instanceof Error?err.message:"Tente novamente."));
+  }finally{setFavoriteBusyId(null);}
+ };
  const loadArchived=async()=>{
   if(!supabase)return;
   setArchivedLoading(true);setError("");
@@ -114,6 +147,17 @@ export default function App(){
    }
   })();
   return()=>{live=false;};
+ },[userId]);
+ useEffect(()=>{
+  if(!supabase||!userId)return;
+  const client=supabase;let active=true;
+  setFavoriteIds(new Set());setFavoritesLoadedFor(null);
+  void (async()=>{
+   const {data,error}=await client.from("favorites").select("recipe_id").eq("user_id",userId);
+   if(error)throw error;
+   if(active){setFavoriteIds(new Set((data??[]).map(row=>row.recipe_id)));setFavoritesLoadedFor(userId);}
+  })().catch(err=>{if(active)setError("Não foi possível carregar seus favoritos. "+(err instanceof Error?err.message:"Verifique a conexão."));});
+  return()=>{active=false;};
  },[userId]);
  useEffect(()=>{
   if(!supabase||!userId)return;
@@ -351,6 +395,7 @@ export default function App(){
   const normal=(value:string)=>value.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR");
   const query=normal(recipeSearch.trim());
   return recipes.filter(recipe=>{
+   if(onlyFavorites&&(!favoritesReady||!favoriteIds.has(recipe.id)))return false;
    const legacyOfficial=!recipe.pilotSource&&!recipe.ownerId;
    if(recipeGroup==="Legado")return isAdmin&&legacyOfficial&&(!query||normal(recipe.title).includes(query));
    if(legacyOfficial)return false;
@@ -366,7 +411,7 @@ export default function App(){
     default:return true;
    }
   });
- },[recipes,recipeGroup,recipeSearch,isAdmin]);
+ },[recipes,recipeGroup,recipeSearch,isAdmin,onlyFavorites,favoritesReady,favoriteIds]);
  const recipeTotalPages=Math.max(1,Math.ceil(visibleRecipes.length/18));
  const visibleRecipePage=visibleRecipes.slice((Math.min(recipePage,recipeTotalPages)-1)*18,Math.min(recipePage,recipeTotalPages)*18);
  const shopping=useMemo(()=>consolidateShopping(days,plan,recipes),[days.map(dateKey).join("|"),plan,recipes]);
@@ -458,7 +503,7 @@ export default function App(){
   <button className="secondary" type="button" disabled={loading||saving} onClick={()=>setPage("Cardápio")}>Escolher outra semana</button>
  </section>}
  {page==="Receitas"&&recipeForm&&<PersonalRecipeForm key={editingId??"new"} recipe={recipes.find(r=>r.id===editingId)??null} onBack={()=>{setRecipeForm(false);setEditingId(null);}} onSaved={reloadRecipes}/>}
- {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} destinationDateLabel={recipeTargetShort} backLabel={detailOrigin==="Cardápio"?"Voltar ao cardápio":detailOrigin==="Início"?"Voltar ao início":"Voltar às receitas"} onClose={()=>{setDetailId(null);if(detailOrigin!=="Receitas")setPage(detailOrigin);}} canAdd={!saving&&!loading} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;addFromRecipes(recipe,servings);}}/>:null}
+ {page==="Receitas"&&detailId&&recipes.some(r=>r.id===detailId)?<RecipeDetails key={detailId} recipe={recipes.find(r=>r.id===detailId)!} destinationDateLabel={recipeTargetShort} backLabel={detailOrigin==="Cardápio"?"Voltar ao cardápio":detailOrigin==="Início"?"Voltar ao início":"Voltar às receitas"} onClose={()=>{setDetailId(null);if(detailOrigin!=="Receitas")setPage(detailOrigin);}} canAdd={!saving&&!loading} isFavorite={favoritesReady&&favoriteIds.has(detailId!)} favoriteBusy={!favoritesReady||Boolean(favoriteBusyId)} onToggleFavorite={()=>void toggleFavorite(detailId!)} onAdd={servings=>{const recipe=recipes.find(r=>r.id===detailId)!;addFromRecipes(recipe,servings);}}/>:null}
  {page==="Receitas"&&!detailId&&!recipeForm&&<><div className="toolbar"><div><h2>Receitas para sua rotina</h2><span>Receitas autorais Costa&Costa para escolher livremente e planejar suas refeições. O catálogo piloto é privado e ainda não está à venda.</span></div><div className="toolbar-actions"><button className="secondary" disabled={archivedLoading||saving} onClick={()=>archivedOpen?setArchivedOpen(false):void loadArchived()}>{archivedLoading?"Consultando...":archivedOpen?"Ocultar arquivadas":"Minhas arquivadas"}</button><button className="primary" onClick={()=>{setEditingId(null);setRecipeForm(true);}}><Plus size={16}/> Nova receita</button></div></div>{archivedOpen&&<section className="notice" aria-label="Minhas receitas arquivadas"><div><strong>Minhas receitas arquivadas</strong><p>Somente suas receitas pessoais aparecem aqui. Restaurar devolve a receita à biblioteca, sem alterar a fotografia ou os ingredientes.</p>{archivedRecipes.length===0?<p>Nenhuma receita arquivada.</p>:archivedRecipes.map(item=><div key={item.recipe_id} className="row" style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginTop:12}}><span>{item.recipe_title}</span><button className="secondary" disabled={saving||archivedLoading} onClick={()=>void restoreArchived(item.recipe_id)}>Restaurar</button></div>)}</div></section>}<div className="cc-recipes-filterbar">
  <label>Buscar receita
   <input type="search" placeholder="Ex.: omelete, peixe, salada..." value={recipeSearch}
@@ -469,10 +514,11 @@ export default function App(){
    {["Todos","Café da manhã","Almoço","Jantar","Saladas","Lanches","Ceias","Minhas",...(isAdmin?["Legado"]:[])].map(value=><option key={value} value={value}>{value}</option>)}
   </select>
  </label>
+ <label className="cc-favorites-filter"><input type="checkbox" checked={onlyFavorites} disabled={!favoritesReady} onChange={event=>{setOnlyFavorites(event.target.checked);setRecipePage(1);}}/> Somente favoritas</label>
  <span role="status">{visibleRecipes.length} {visibleRecipes.length===1?"receita encontrada":"receitas encontradas"}</span>
 </div>
-{visibleRecipes.length===0&&<div className="notice"><p>Nenhuma receita encontrada com estes filtros.</p></div>}
-<div className="recipe-grid">{visibleRecipePage.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":r.pilotSource?"Receita autoral · "+r.pilotSource.sourceMeal:"Receita de exemplo (legado)"} · {formatPilotRecipeTime(r,true)}</small><h3>{r.title}</h3><p>{r.pilotSource?.originalIngredients??r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>{setDetailOrigin("Receitas");setDetailId(r.id);}}>Ver receita completa</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>addFromRecipes(r,r.servings)}><Plus size={16}/> {r.category==="Lanche"||r.pilotSource?.kind==="salad"?"Escolher horário · "+recipeTargetShort:"Adicionar em "+recipeTargetShort}</button></div></article>)}</div>
+{visibleRecipes.length===0&&<div className="notice"><p>{onlyFavorites?"Nenhuma receita favorita encontrada. Desmarque «Somente favoritas» para ver o catálogo.":"Nenhuma receita encontrada com estes filtros."}</p></div>}
+<div className="recipe-grid">{visibleRecipePage.map(r=><article className="recipe" key={r.id}><div className="recipe-art"><RecipeImage src={r.imageUrl} title={r.title} isAi={r.imageIsAi}/></div><div className="recipe-body"><small>{r.ownerId?"Minha receita":r.pilotSource?"Receita autoral · "+r.pilotSource.sourceMeal:"Receita de exemplo (legado)"} · {formatPilotRecipeTime(r,true)}</small><h3>{r.title}</h3><p>{r.pilotSource?.originalIngredients??r.ingredients.map(i=>i.name).join(", ")}</p><button className="secondary" onClick={()=>{setDetailOrigin("Receitas");setDetailId(r.id);}}>Ver receita completa</button><button type="button" className="secondary" aria-pressed={favoritesReady&&favoriteIds.has(r.id)} disabled={!favoritesReady||Boolean(favoriteBusyId)} onClick={()=>void toggleFavorite(r.id)}><Heart size={16} fill={favoritesReady&&favoriteIds.has(r.id)?"currentColor":"none"}/> {favoritesReady&&favoriteIds.has(r.id)?"Favorita":"Favoritar"}</button>{r.ownerId===userId&&<><button className="secondary" onClick={()=>{setEditingId(r.id);setRecipeForm(true);}}>Editar</button><button className="secondary" disabled={saving} onClick={()=>void archiveRecipe(r)}>Arquivar</button></>}<button className="secondary" disabled={loading||saving} onClick={()=>addFromRecipes(r,r.servings)}><Plus size={16}/> {r.category==="Lanche"||r.pilotSource?.kind==="salad"?"Escolher horário · "+recipeTargetShort:"Adicionar em "+recipeTargetShort}</button></div></article>)}</div>
 {recipeTotalPages>1&&<nav className="cc-recipe-pages" aria-label="Paginação de receitas">
  <button type="button" className="secondary" disabled={recipePage<=1}
   onClick={()=>setRecipePage(page=>Math.max(1,page-1))}>Anterior</button>

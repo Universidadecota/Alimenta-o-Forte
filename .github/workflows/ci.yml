@@ -46,5 +46,7 @@ jobs:
         run: node scripts/test-allergy-week-pretriage.mjs
       - name: Validate future allergy eligibility fails closed
         run: node scripts/test-allergen-eligibility.mjs
+      - name: Validate private recipe favorites contract
+        run: node scripts/test-recipe-favorites.mjs
       - name: Validate planner, shopping and allergy guards
         run: npm run test:pilot-flow
