@@ -29,6 +29,13 @@ assert.match(app,/aria-pressed=\{favoritesReady&&favoriteIds\.has\(r\.id\)\}/);
 assert.match(app,/onToggleFavorite=\{\(\)=>void toggleFavorite\(detailId!\)\}/);
 assert.match(details,/aria-pressed=\{isFavorite\}/);
 assert.match(details,/onClick=\{onToggleFavorite\}/);
+assert.match(details,/className="recipe-title-actions"/);
+assert.match(details,/className=\{"recipe-favorite-action"/);
+assert.match(details,/aria-busy=\{favoriteBusy\}/);
+assert.ok(details.indexOf("recipe-detail-head") < details.indexOf("recipe-favorite-action"));
+assert.doesNotMatch(details,/<button type="button" className="secondary" aria-pressed/);
+assert.match(styles,/\.recipe-favorite-action\.is-favorite/);
+assert.match(styles,/\.recipe-favorite-action:focus-visible/);
 
 assert.match(styles,/\.cc-recipes-filterbar \.cc-favorites-filter input\[type="checkbox"\]\{width:18px;height:18px;min-height:0/);
 console.log("OK: favoritos privados, RLS por usuário, leitura/gravação e filtro na UI (verificação estática).");
