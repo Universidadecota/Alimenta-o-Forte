@@ -25,10 +25,16 @@ export default function RecipeDetails({recipe,destinationDateLabel,onClose,onAdd
  const displayedTime=formatPilotRecipeTime(recipe);
  return <section className="recipe-details">
   <button type="button" className="secondary" onClick={onClose}><ArrowLeft size={16}/> {backLabel}</button>
-  <button type="button" className="secondary" aria-pressed={isFavorite} disabled={favoriteBusy} onClick={onToggleFavorite}><Heart size={16} fill={isFavorite?"currentColor":"none"}/> {isFavorite?"Remover dos favoritos":"Salvar nos favoritos"}</button>
   <div className="recipe-detail-head">
    <div className="detail-symbol"><RecipeImage src={recipe.imageUrl} title={recipe.title} isAi={recipe.imageIsAi} large/></div>
-   <div><span className="eyebrow">{recipe.pilotSource?.kind==="supper"?"Ceia":recipe.pilotSource?.kind==="salad"?"Salada · almoço ou jantar":recipe.pilotSource?.kind==="snack"?"Lanche":recipe.category}</span><h2>{recipe.title}</h2>
+   <div className="recipe-detail-copy"><span className="eyebrow">{recipe.pilotSource?.kind==="supper"?"Ceia":recipe.pilotSource?.kind==="salad"?"Salada · almoço ou jantar":recipe.pilotSource?.kind==="snack"?"Lanche":recipe.category}</span>
+    <div className="recipe-title-actions">
+     <h2>{recipe.title}</h2>
+     <button type="button" className={"recipe-favorite-action"+(isFavorite?" is-favorite":"")} aria-pressed={isFavorite} aria-busy={favoriteBusy} disabled={favoriteBusy} onClick={onToggleFavorite}>
+      <Heart size={18} fill={isFavorite?"currentColor":"none"} aria-hidden="true"/>
+      <span>{favoriteBusy?"Atualizando...":isFavorite?"Remover dos favoritos":"Salvar nos favoritos"}</span>
+     </button>
+    </div>
     <p>{recipe.pilotSource?(includesCompiledSauce?"Receita autoral Costa&Costa para uso pessoal. O molho foi incorporado de outra ficha do mesmo documento, preservando seu rendimento; confira rótulos e alergênicos.":"Receita autoral Costa&Costa para uso pessoal. O documento de origem é preservado; a ficha exibida pode incluir correções editoriais de clareza. Confira rótulos e alergênicos antes de consumir."):recipe.description || "Receita em organização culinária."}</p>
     <div className="recipe-meta"><span><Clock3 size={17}/> {displayedTime}</span>{!recipe.pilotSource&&<span>{recipe.servings} {recipe.servings===1?"porção de referência":"porções de referência"}</span>}</div>
    </div>
