@@ -656,3 +656,13 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-n2-assist .cc-n2-batch-actions button{flex:none;width:100%;white-space:normal;line-height:1.35}
 .cc-n2-batch-actions>p{margin:2px 0 0}
 @media(max-width:720px){.cc-n2-batch-actions{flex:1 1 100%;min-width:0}}
+
+/* Ação de favoritar integrada ao título da ficha, com alvo confortável no celular. */
+.recipe-detail-copy{flex:1;min-width:0}
+.recipe-title-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:3px 0 8px}
+.recipe-title-actions h2{flex:1 1 250px;min-width:0;overflow-wrap:anywhere}
+.recipe-favorite-action{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;max-width:100%;padding:10px 15px;border-radius:999px;border:1px solid #c8dacd;background:#eaf2e8;color:#1d4936;font-size:13px;font-weight:700;line-height:1.3;text-align:center}
+.recipe-favorite-action.is-favorite{background:#fff0e3;border-color:#d69b71;color:#8a421d}
+.recipe-favorite-action:focus-visible{outline:3px solid #295744;outline-offset:3px}
+.recipe-favorite-action:disabled{opacity:.65;cursor:wait}
+@media(max-width:700px){.recipe-title-actions{align-items:stretch;flex-direction:column}.recipe-title-actions h2{flex-basis:auto}.recipe-favorite-action{width:100%}}
