@@ -21,6 +21,7 @@ const {buildPilotSourceEvidenceReport}=await import(url(evidenceCode));
 const mappingCode=getJavaScript("../src/lib/pilotEditorialMappingHints.ts")
  .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
 const {buildEditorialMappingHints}=await import(url(mappingCode));
+const {classifyEditorialQueueRecipe,summarizeEditorialQueue,filterEditorialQueue}=await import(url(getJavaScript("../src/lib/pilotEditorialQueue.ts")));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
 assert.equal(classifyMeasure("150 g de fraldinha").group,"simple");
@@ -216,3 +217,40 @@ assert.equal(buildEditorialMappingHints(annotated).literalSplits.length,0,
  "Anotação editorial não literal requer revisão, jamais reconciliação automática");
 assert.equal(buildEditorialMappingHints(annotated).stillUnlinked.length,1);
 console.log("OK: mapa de hipóteses literais conservadoras sem vínculos 1:N persistidos nem aprovações.");
+
+
+// A fila organiza as divergências já detectadas, sem alterar relações.
+const queueRecipe=(recipe_id,changes={})=>({
+ recipe_id,title:recipe_id,originalExpressions:2,currentIngredients:2,exact:2,
+ nameMismatch:0,positionMismatch:0,bothMismatch:0,
+ missingCurrent:0,untrackedCurrent:0,pending:0,...changes
+});
+const editorialFixtures=[
+ queueRecipe("equal"),
+ queueRecipe("position",{positionMismatch:2}),
+ queueRecipe("text",{nameMismatch:1,positionMismatch:1}),
+ queueRecipe("both",{bothMismatch:1}),
+ queueRecipe("untracked",{untrackedCurrent:1,bothMismatch:1}),
+ queueRecipe("missing",{missingCurrent:1,untrackedCurrent:1,nameMismatch:1})
+];
+assert.equal(classifyEditorialQueueRecipe(editorialFixtures[0]),null);
+assert.equal(classifyEditorialQueueRecipe(editorialFixtures[1]),"position_only");
+assert.equal(classifyEditorialQueueRecipe(editorialFixtures[2]),"text_change");
+assert.equal(classifyEditorialQueueRecipe(editorialFixtures[3]),"text_change");
+assert.equal(classifyEditorialQueueRecipe(editorialFixtures[4]),"untracked_current");
+assert.equal(classifyEditorialQueueRecipe(editorialFixtures[5]),"source_gap");
+const editorialQueue=summarizeEditorialQueue(editorialFixtures);
+assert.equal(editorialQueue.entries.length,5,"Uma ocorrência por receita divergente");
+assert.deepEqual(editorialQueue.counts,{
+ source_gap:1,untracked_current:1,text_change:2,position_only:1
+});
+assert.deepEqual(filterEditorialQueue(editorialQueue.entries,"all","risk_first")
+ .map(entry=>entry.recipe.recipe_id),["missing","untracked","text","both","position"]);
+assert.deepEqual(filterEditorialQueue(editorialQueue.entries,"all","simplest_first")
+ .map(entry=>entry.recipe.recipe_id),["position","both","text","untracked","missing"]);
+assert.deepEqual(filterEditorialQueue(editorialQueue.entries,"text_change","risk_first")
+ .map(entry=>entry.recipe.recipe_id),["text","both"]);
+assert.equal(filterEditorialQueue(editorialQueue.entries,"source_gap","risk_first").length,1);
+assert.equal(filterEditorialQueue(editorialQueue.entries,"position_only","risk_first").length,1);
+assert.equal(editorialFixtures.length,6,"Inventário de entrada permanece intacto");
+console.log("OK: fila editorial priorizada, filtros e ordenação sem aprovação ou vínculo.");
