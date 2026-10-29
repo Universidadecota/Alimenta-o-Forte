@@ -84,3 +84,35 @@ export function filterEditorialQueue(
     a.recipe.recipe_id.localeCompare(b.recipe.recipe_id);
   });
 }
+
+
+/**
+ * CSV privado de conferência, gerado somente sob ação explícita do administrador.
+ * Exporta apenas a visão filtrada da fila; não inclui o texto integral das fontes.
+ * Prefixos de fórmula são neutralizados para abertura segura em planilhas.
+ */
+export function serializeEditorialQueueCsv(entries:ReadonlyArray<EditorialQueueEntry>):string{
+ const csvCell=(value:string|number):string=>{
+  const raw=String(value);
+  const safe=/^[\s\u0000-\u001f]*[=+\-@]/u.test(raw)?"'"+raw:raw;
+  return '"'+safe.replace(/"/g,'""')+'"';
+ };
+ const header=[
+  "Prioridade editorial","Receita","ID da receita",
+  "Diferença só de texto","Diferença só de posição","Diferença de texto e posição",
+  "Histórico sem ingrediente atual","Ingrediente atual sem histórico",
+  "Total de divergências","Orientação para conferência"
+ ];
+ const rows=entries.map(entry=>{
+  const group=editorialQueueGroups.find(item=>item.kind===entry.kind);
+  if(!group)throw new Error("Categoria editorial desconhecida; exportação interrompida.");
+  const recipe=entry.recipe;
+  return [
+   group.title,recipe.title,recipe.recipe_id,
+   recipe.nameMismatch,recipe.positionMismatch,recipe.bothMismatch,
+   recipe.missingCurrent,recipe.untrackedCurrent,
+   entry.discrepancyCount,group.guidance
+  ];
+ });
+ return "\uFEFF"+[header,...rows].map(row=>row.map(csvCell).join(";")).join("\r\n")+"\r\n";
+}
