@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from "react";
 import {supabase} from "./lib/supabase";
 import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
-import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
+import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
 
 type Review={
  ingredient_id:string;
@@ -14,7 +14,7 @@ type Review={
  review_status:"pending"|"draft"|"confirmed"|"needs_manual_review";
  review_notes:string;
  recipes:{title:string}|{title:string}[]|null;
- recipe_ingredients:{name:string}|{name:string}[]|null;
+ recipe_ingredients:{name:string;position:number}|{name:string;position:number}[]|null;
 };
 const statuses=[
  ["pending","Aguardando revisão"],["draft","Rascunho de medida"],
@@ -27,9 +27,6 @@ const units=[
  ["lata","lata"],["copo","copo"],["unidade","unidade"],["punhado","punhado"],
  ["ovo","ovo"],["cebola","cebola"],["tomate","tomate"],
 ] as const;
-function nestedName(v:{name:string}|{name:string}[]|null):string{
- return Array.isArray(v)?v[0]?.name??"":v?.name??"";
-}
 function nestedTitle(v:{title:string}|{title:string}[]|null):string{
  return Array.isArray(v)?v[0]?.title??"Receita do piloto":v?.title??"Receita do piloto";
 }
@@ -52,6 +49,7 @@ export default function PilotIngredientMeasureReview(){
  const [batchBusy,setBatchBusy]=useState(false);
  const [batchProgress,setBatchProgress]=useState(0);
  const [batchResult,setBatchResult]=useState<BatchResult|null>(null);
+ const [sourceMismatchCount,setSourceMismatchCount]=useState<number|null>(null);
  const [draftCandidates,setDraftCandidates]=useState<DraftCandidate[]>([]);
  const [selectedDraftIds,setSelectedDraftIds]=useState<string[]>([]);
  const [scopedSelectedDraftIds,setScopedSelectedDraftIds]=useState<string[]>([]);
@@ -63,7 +61,7 @@ export default function PilotIngredientMeasureReview(){
  // Nenhuma chamada de análise atualiza receitas, medidas ou notas.
  const analyzeAll=async()=>{
   if(!supabase||batchBusy||draftSaving)return;
-  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);
+  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);setSourceMismatchCount(null);
   setDraftCandidates([]);setSelectedDraftIds([]);setError("");setMessage("");
   try{
    const all:BatchItem[]=[];
@@ -72,7 +70,7 @@ export default function PilotIngredientMeasureReview(){
    for(let offset=0;offset<expected||offset===0;offset+=size){
     const {data,count,error:readError}=await supabase
      .from("cc_pilot_ingredient_measure_reviews")
-     .select("ingredient_id,recipe_id,source_position,source_text,review_status,recipes(title)",{count:"exact"})
+     .select("ingredient_id,recipe_id,source_position,source_text,review_status,recipes(title),recipe_ingredients(name,position)",{count:"exact"})
      .order("ingredient_id",{ascending:true})
      .range(offset,offset+size-1);
     if(readError)throw readError;
@@ -84,6 +82,7 @@ export default function PilotIngredientMeasureReview(){
    }
    if(all.length!==expected)throw new Error("A leitura foi incompleta. Nenhum resultado parcial foi aplicado; tente novamente.");
    const summary=summarizeMeasures(all);
+   setSourceMismatchCount(all.filter(row=>!isMeasureSourceAligned(row)).length);
    const candidateList=prepareDraftCandidates(all,20);
    setDraftCandidates(candidateList);
    setBatchResult(summary);
@@ -127,7 +126,7 @@ export default function PilotIngredientMeasureReview(){
   setLoading(true);setError("");
   try{
    let q=supabase.from("cc_pilot_ingredient_measure_reviews")
-    .select("ingredient_id,recipe_id,source_text,source_position,proposed_quantity,proposed_unit,proposed_ingredient,review_status,review_notes,recipes!inner(title),recipe_ingredients(name)",{count:"exact"})
+    .select("ingredient_id,recipe_id,source_text,source_position,proposed_quantity,proposed_unit,proposed_ingredient,review_status,review_notes,recipes!inner(title),recipe_ingredients(name,position)",{count:"exact"})
     .order("recipe_id",{ascending:true})
     .order("source_position",{ascending:true})
     .range(page*pageSize,(page+1)*pageSize-1);
@@ -155,8 +154,8 @@ export default function PilotIngredientMeasureReview(){
  };
  const save=async(row:Review,mode:"draft"|"needs_manual_review")=>{
   if(!supabase||busy)return;
-  if(nestedName(row.recipe_ingredients)!==row.source_text){
-   setError("O texto do ingrediente mudou desde o inventário. Não é seguro gravar esta proposta.");
+  if(!isMeasureSourceAligned(row)){
+   setError("O texto ou a posição mudou desde o inventário. É necessária conciliação editorial antes do rascunho.");
    return;
   }
   const numeric=quantity.trim()?Number(quantity.replace(",",".")):null;
@@ -194,9 +193,9 @@ export default function PilotIngredientMeasureReview(){
   finally{setBusy(false);}
  };
  const scopedSummary=recipeSearch.trim()&&!loading&&!error&&rows.length>0?summarizeMeasures(rows):null;
- const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows.filter(row=>nestedName(row.recipe_ingredients)===row.source_text),20):[];
+ const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows,20):[];
  return <section className="cc-measure-review">
-  <p>Inventário das 1.073 expressões originais. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
+  <p>Inventário editorial das expressões de origem. A contagem atual é exibida na pré-análise global. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
   <details className="cc-measure-toolbox">
    <summary><strong>Ferramentas globais</strong> · pré-análise e conferência de rascunhos (expandir)</summary>
   <section className="cc-measure-batch" aria-label="Análise em lote dos ingredientes">
@@ -212,6 +211,7 @@ export default function PilotIngredientMeasureReview(){
    {batchBusy&&<p role="status">Lidos {batchProgress} registros. Sem alterações no banco.</p>}
    {batchResult&&<div aria-live="polite">
     <p><strong>{batchResult.total} expressões analisadas.</strong> {batchResult.pending} continuam aguardando revisão. {batchResult.otherStatuses} já possuem outro status editorial.</p>
+    {sourceMismatchCount!==null&&<p><strong>{sourceMismatchCount} expressões sem correspondência exata de texto e posição no ingrediente atual.</strong> Não entram na lista de rascunhos rápidos e exigem conciliação editorial.</p>}
     <div className="cc-measure-batch-grid">
      {measureGroups.map(group=><article className="cc-measure-batch-group" key={group.key}>
       <strong>{batchResult.byGroup[group.key]}</strong>
@@ -316,12 +316,12 @@ export default function PilotIngredientMeasureReview(){
   </section>}
   <div className="cc-measure-queue">
    {rows.map(r=>{
-    const unchanged=nestedName(r.recipe_ingredients)===r.source_text;
+    const unchanged=isMeasureSourceAligned(r);
     const proposal=suggestMeasure(r.source_text);
     return <article key={r.ingredient_id} className="cc-measure-row">
      <small>{nestedTitle(r.recipes)} · {statuses.find(([value])=>value===r.review_status)?.[1]??r.review_status}</small>
      <strong>{r.source_text}</strong>
-     {!unchanged?<p className="error">Texto alterado depois do inventário: revisão bloqueada.</p>
+     {!unchanged?<p className="error">Texto ou posição diferente do inventário: revisão bloqueada até conciliação editorial.</p>
       :<small>{proposal&&classifyMeasure(r.source_text).group==="simple"?"Leitura sugerida (não aprovada): "+proposal.quantity+" · "+measureUnitLabel(proposal.unit)+" · "+proposal.ingredient:"Sem extração inequívoca: requer conferência manual."}</small>}
      {active===r.ingredient_id&&unchanged&&r.review_status!=="confirmed"?<div className="cc-measure-edit">
       <p>Confira a expressão original antes de registrar. A medida permanecerá em rascunho.</p>
