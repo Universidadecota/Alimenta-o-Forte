@@ -13,6 +13,7 @@ const batchCode=getJavaScript("../src/lib/pilotMeasureBatch.ts")
  .replace(/from ["']\.\/pilotMeasure["']/,()=> 'from "'+measurementUrl+'"')
  .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
 const {classifyMeasure,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned}=await import(url(batchCode));
+const {summarizeSourceReconciliation}=await import(url(getJavaScript("../src/lib/pilotSourceReconciliation.ts")));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
 assert.equal(classifyMeasure("150 g de fraldinha").group,"simple");
@@ -92,4 +93,47 @@ assert.equal(prepareDraftCandidates([
 assert.equal(prepareDraftCandidates([aligned]).length,1,
  "Fonte alinhada continua elegível para revisão de rascunho");
 console.log("OK: prévia de até 20 propostas com origem e posição íntegros, sem aprovar nem gravar.");
+
+const historical=[
+ {ingredient_id:"r1-a",recipe_id:"recipe-one",source_position:0,
+  source_text:"pimenta. Molho: 4 tomates maduros",review_status:"pending",recipes:{title:"Receita dividida"}},
+ {ingredient_id:"r1-b",recipe_id:"recipe-one",source_position:1,
+  source_text:"1 cebola",review_status:"draft",recipes:{title:"Receita dividida"}},
+ {ingredient_id:"r1-c",recipe_id:"recipe-one",source_position:3,
+  source_text:"1 colher (sopa) de azeite",review_status:"pending",recipes:{title:"Receita dividida"}},
+ {ingredient_id:"r1-removed",recipe_id:"recipe-one",source_position:4,
+  source_text:"sal",review_status:"pending",recipes:{title:"Receita dividida"}},
+ {ingredient_id:"r2-a",recipe_id:"recipe-two",source_position:0,
+  source_text:"2 ovos",review_status:"pending",recipes:{title:"Receita sem mudanças"}}
+];
+const currentIngredients=[
+ {id:"r1-a",recipe_id:"recipe-one",name:"pimenta",position:0}, // texto
+ {id:"r1-new",recipe_id:"recipe-one",name:"4 tomates maduros",position:1}, // desmembramento 1:N
+ {id:"r1-b",recipe_id:"recipe-one",name:"1 cebola",position:2}, // posição
+ {id:"r1-c",recipe_id:"recipe-one",name:"azeite",position:4}, // ambos
+ {id:"r2-a",recipe_id:"recipe-two",name:"2 ovos",position:0},
+ {id:"other",recipe_id:"not-in-pilot",name:"ingrediente alheio",position:0}
+];
+const reconciliation=summarizeSourceReconciliation(historical,currentIngredients);
+assert.deepEqual({
+ original:reconciliation.originalExpressions,
+ current:reconciliation.currentIngredients,
+ exact:reconciliation.exact,
+ name:reconciliation.nameMismatch,
+ position:reconciliation.positionMismatch,
+ both:reconciliation.bothMismatch,
+ missing:reconciliation.missingCurrent,
+ untracked:reconciliation.untrackedCurrent,
+ affected:reconciliation.affectedRecipes
+},{original:5,current:5,exact:1,name:1,position:1,both:1,missing:1,untracked:1,affected:1},
+ "Histórico divergente, ingredientes desmembrados e outras receitas devem ser contados separadamente");
+assert.equal(reconciliation.recipes[0].title,"Receita dividida");
+assert.equal(reconciliation.recipes[0].pending,3);
+assert.equal(reconciliation.recipes[1].title,"Receita sem mudanças");
+assert.equal(reconciliation.recipes[1].exact,1);
+assert.throws(()=>summarizeSourceReconciliation([...historical,historical[0]],currentIngredients),/duplicado/);
+assert.throws(()=>summarizeSourceReconciliation(historical,[...currentIngredients,currentIngredients[0]]),/duplicado/);
+assert.throws(()=>summarizeSourceReconciliation([{...historical[0],recipe_id:undefined}],currentIngredients),/inválidos/);
+console.log("OK: conciliação somente de leitura por receita (texto, posição, ambos, 1:N, ausências e integridade).");
+
 
