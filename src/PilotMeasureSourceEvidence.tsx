@@ -115,16 +115,18 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     <h4>{report.untrackedCurrent.length} ingredientes atuais sem ficha histórica por ID</h4>
     <p>Alguns itens podem ser componentes de molhos ou acompanhamentos já descritos na origem. A conferência abaixo procura apenas a <strong>redação literal na fonte oficial</strong>, sem criar vínculos nem aprovar ingredientes.</p>
     {sourceTrace&&<p>
-     <strong>{sourceTrace.counts.unique}</strong> com trecho único na fonte ·{" "}
+     <strong>{sourceTrace.counts.unique}</strong> com redação literal única ·{" "}
+     <strong>{sourceTrace.counts.annotated}</strong> com texto-base localizado e anotação contextual ·{" "}
      <strong>{sourceTrace.counts.ambiguous}</strong> com ocorrência repetida ·{" "}
-     <strong>{sourceTrace.counts.not_found}</strong> sem correspondência textual exata.
+     <strong>{sourceTrace.counts.not_found}</strong> sem trecho localizado.
     </p>}
-    <ul>{sourceTrace?.items.map(({ingredient:row,status,occurrences})=><li key={row.id}>
+    <ul>{sourceTrace?.items.map(({ingredient:row,status,occurrences,matchedFragment})=><li key={row.id}>
      <strong>#{row.position+1}</strong> · {row.name} <small>(ID atual: <code>{row.id}</code>)</small>
      <small style={{display:"block"}}>
-      {status==="unique"?"Trecho literal localizado uma vez na fonte; vínculo histórico ainda não comprovado.":
-       status==="ambiguous"?"Trecho localizado "+occurrences+" vezes; conferir a qual preparo pertence.":
-       "Redação exata não localizada; comparar anotações e descrição do preparo na origem."}
+      {status==="unique"?"Redação literal localizada uma vez na origem; vínculo histórico ainda não comprovado.":
+       status==="annotated"?"Texto-base da fonte localizado uma vez (“"+matchedFragment+"”), com anotação contextual diferente na ficha; exige conferência.":
+       status==="ambiguous"?"Redação localizada "+occurrences+" vezes; conferir a qual preparo pertence.":
+       "Nenhum trecho seguro localizado; comparar a descrição integral do preparo."}
      </small>
     </li>)}</ul>
     <p><small>Correspondência textual não confirma identidade por ID, rendimento, porção nem composição nutricional. Não há decisão editorial automática.</small></p>
