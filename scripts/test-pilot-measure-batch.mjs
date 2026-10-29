@@ -21,7 +21,7 @@ const {buildPilotSourceEvidenceReport}=await import(url(evidenceCode));
 const mappingCode=getJavaScript("../src/lib/pilotEditorialMappingHints.ts")
  .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
 const {buildEditorialMappingHints}=await import(url(mappingCode));
-const {classifyEditorialQueueRecipe,summarizeEditorialQueue,filterEditorialQueue}=await import(url(getJavaScript("../src/lib/pilotEditorialQueue.ts")));
+const {classifyEditorialQueueRecipe,summarizeEditorialQueue,filterEditorialQueue,serializeEditorialQueueCsv}=await import(url(getJavaScript("../src/lib/pilotEditorialQueue.ts")));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
 assert.equal(classifyMeasure("150 g de fraldinha").group,"simple");
@@ -254,3 +254,23 @@ assert.equal(filterEditorialQueue(editorialQueue.entries,"source_gap","risk_firs
 assert.equal(filterEditorialQueue(editorialQueue.entries,"position_only","risk_first").length,1);
 assert.equal(editorialFixtures.length,6,"Inventário de entrada permanece intacto");
 console.log("OK: fila editorial priorizada, filtros e ordenação sem aprovação ou vínculo.");
+
+
+// Exportação privada: filtro, ordem, UTF-8/Excel e neutralização de fórmulas.
+const csvFiltered=serializeEditorialQueueCsv(
+ filterEditorialQueue(editorialQueue.entries,"position_only","risk_first")
+);
+assert.ok(csvFiltered.startsWith("\uFEFF"),"CSV inclui BOM para leitura em UTF-8");
+assert.ok(csvFiltered.includes('"Prioridade editorial";"Receita";"ID da receita"'));
+assert.ok(csvFiltered.includes('"Somente posição";"position";"position"'));
+assert.equal(csvFiltered.trim().split("\r\n").length,2,
+ "Exportação contém cabeçalho e somente a receita do filtro escolhido");
+assert.ok(!csvFiltered.includes('"missing"'),"Outras categorias não vazam para o arquivo filtrado");
+const hostileQueue=summarizeEditorialQueue([queueRecipe("excel",{
+ title:" =2+2;\"teste\"\nlinha",nameMismatch:1
+})]);
+const hostileCsv=serializeEditorialQueueCsv(hostileQueue.entries);
+assert.ok(hostileCsv.includes('"\' =2+2;""teste""\nlinha"'),
+ "Aspas, delimitador e quebra de linha são preservados sem ativar fórmula");
+assert.equal(hostileQueue.entries.length,1,"CSV não modifica a fila original");
+console.log("OK: CSV da fila filtrada com BOM, escaping e proteção contra fórmulas.");
