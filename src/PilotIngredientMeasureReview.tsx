@@ -190,6 +190,8 @@ export default function PilotIngredientMeasureReview(){
  };
  return <section className="cc-measure-review">
   <p>Inventário das 1.073 expressões originais. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
+  <details className="cc-measure-toolbox">
+   <summary><strong>Ferramentas globais</strong> · pré-análise e conferência de rascunhos (expandir)</summary>
   <section className="cc-measure-batch" aria-label="Análise em lote dos ingredientes">
    <div className="cc-measure-batch-header">
     <div>
@@ -251,6 +253,9 @@ export default function PilotIngredientMeasureReview(){
    setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);
    void load();
   }}/>
+  </details>
+  <h3>Revisão individual por receita</h3>
+  <p>Filtre por título e situação para revisar as medidas. Nenhuma proposta é aprovada automaticamente.</p>
   <div className="cc-measure-filters">
    <label>Situação
     <select value={status} onChange={e=>{setPage(0);setStatus(e.target.value);setActive(null);}}>
