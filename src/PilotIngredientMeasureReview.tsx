@@ -37,6 +37,7 @@ export default function PilotIngredientMeasureReview(){
  const [rows,setRows]=useState<Review[]>([]);
  const [status,setStatus]=useState("pending");
  const [search,setSearch]=useState("");
+ const [recipeSearch,setRecipeSearch]=useState("");
  const [page,setPage]=useState(0);
  const [total,setTotal]=useState(0);
  const [busy,setBusy]=useState(false);
@@ -123,12 +124,13 @@ export default function PilotIngredientMeasureReview(){
   setLoading(true);setError("");
   try{
    let q=supabase.from("cc_pilot_ingredient_measure_reviews")
-    .select("ingredient_id,recipe_id,source_text,source_position,proposed_quantity,proposed_unit,proposed_ingredient,review_status,review_notes,recipes(title),recipe_ingredients(name)",{count:"exact"})
+    .select("ingredient_id,recipe_id,source_text,source_position,proposed_quantity,proposed_unit,proposed_ingredient,review_status,review_notes,recipes!inner(title),recipe_ingredients(name)",{count:"exact"})
     .order("recipe_id",{ascending:true})
     .order("source_position",{ascending:true})
     .range(page*pageSize,(page+1)*pageSize-1);
    if(status!=="all")q=q.eq("review_status",status);
    if(search.trim())q=q.ilike("source_text","%"+search.trim().replace(/[%_]/g,"")+"%");
+   if(recipeSearch.trim())q=q.ilike("recipes.title","%"+recipeSearch.trim().replace(/[%_]/g,"")+"%");
    const {data,error:dbError,count}=await q;
    if(dbError)throw dbError;
    setRows((data??[]) as unknown as Review[]);
@@ -136,7 +138,7 @@ export default function PilotIngredientMeasureReview(){
   }catch(err){setError(err instanceof Error?err.message:"Erro ao carregar ingredientes.");}
   finally{setLoading(false);}
  };
- useEffect(()=>{void load();},[page,status,search]);
+ useEffect(()=>{void load();},[page,status,search,recipeSearch]);
  const begin=(r:Review)=>{
   const proposal=suggestMeasure(r.source_text);
   setActive(r.ingredient_id);
@@ -210,7 +212,7 @@ export default function PilotIngredientMeasureReview(){
        <summary>Ver exemplos</summary>
        <ul>{batchResult.examples[group.key].map(entry=><li key={entry.id}>
         <button type="button" className="secondary" onClick={()=>{
-         setPage(0);setStatus("all");setSearch(entry.text);setActive(null);
+         setPage(0);setStatus("all");setSearch(entry.text);setRecipeSearch("");setActive(null);
         }}>{entry.text}</button>
         {entry.proposal&&<small> {entry.proposal.quantity} · {measureUnitLabel(entry.proposal.unit)} · {entry.proposal.ingredient}</small>}
        </li>)}</ul>
@@ -255,6 +257,9 @@ export default function PilotIngredientMeasureReview(){
      <option value="all">Todas</option>
      {statuses.map(([value,label])=><option key={value} value={value}>{label}</option>)}
     </select>
+   </label>
+   <label>Pesquisar receita pelo título
+    <input value={recipeSearch} onChange={e=>{setPage(0);setRecipeSearch(e.target.value);setActive(null);}} placeholder="Ex.: atum, moqueca" aria-label="Filtrar medidas pelo nome da receita"/>
    </label>
    <label>Pesquisar texto original
     <input value={search} onChange={e=>{setPage(0);setSearch(e.target.value);setActive(null);}} placeholder="Ex.: azeite, ovos, cebola"/>
