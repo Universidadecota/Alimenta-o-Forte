@@ -80,3 +80,16 @@ A UI administrativa de receitas do piloto protege título, preparo e ingrediente
 - [FoodSafety.gov: temperatura mínima de 63 °C para peixes, incluindo atum](https://www.foodsafety.gov/food-safety-charts/safe-minimum-internal-temperatures).
 
 **Limite:** orientações editoriais de segurança alimentar não equivalem a parecer médico, nutricional ou homologação completa de alérgenos. Para ampliação pública e comercial, revisão técnica independente continua necessária.
+
+
+## Complemento de coerência da descrição — mesma data
+
+A checagem posterior mostrou que `public.recipes.description` nas três fichas ainda declarava que ingredientes e preparo estavam mantidos literalmente como na fonte. Como duas instruções foram revisadas e uma já havia sido revisada antes, essa frase deixou de ser verdadeira.
+
+Atualizadas **somente as descrições dessas mesmas três receitas**, com guarda de ID, MD5 anterior `794dfe1fc85fe28f337cc3c4830377fe`, piloto privado e fonte existente. Nova descrição uniforme:
+
+> Receita do acervo Costa&Costa para uso pessoal. O material de origem foi preservado; o preparo apresentado inclui ajustes editoriais de clareza e segurança alimentar. Medidas estruturadas, dados nutricionais e análise de alergênicos ainda não foram homologados. Confira os rótulos antes de consumir.
+
+MD5 novo em todas: `ed27697677e44b2c31fba2c6207f3339`.
+
+Consulta independente confirmou as três descrições, `published=false`, **22 ingredientes sem qualquer alteração** e fontes/editoriais `pending` intactas. Este complemento não autoriza publicação, redimensionamento de porções ou cálculo de nutrientes.
