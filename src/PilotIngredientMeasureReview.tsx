@@ -54,6 +54,7 @@ export default function PilotIngredientMeasureReview(){
  const [batchResult,setBatchResult]=useState<BatchResult|null>(null);
  const [draftCandidates,setDraftCandidates]=useState<DraftCandidate[]>([]);
  const [selectedDraftIds,setSelectedDraftIds]=useState<string[]>([]);
+ const [scopedSelectedDraftIds,setScopedSelectedDraftIds]=useState<string[]>([]);
  const [draftSaving,setDraftSaving]=useState(false);
  const [editorialRefreshKey,setEditorialRefreshKey]=useState(0);
  const pageSize=25;
@@ -90,9 +91,9 @@ export default function PilotIngredientMeasureReview(){
   finally{setBatchBusy(false);}
  };
  // Cada seleção é explícita; lote transacional com limite de 20 no servidor.
- const saveDraftBatch=async()=>{
+ const saveDraftBatch=async(candidates:ReadonlyArray<DraftCandidate>,selectedIds:ReadonlyArray<string>)=>{
   if(!supabase||batchBusy||draftSaving)return;
-  const selected=draftCandidates.filter(entry=>selectedDraftIds.includes(entry.ingredient_id));
+  const selected=candidates.filter(entry=>selectedIds.includes(entry.ingredient_id));
   if(selected.length===0||selected.length>20){setError("Selecione entre 1 e 20 ingredientes.");return;}
   const selectedDescription=selected.map(entry=>
    "• "+entry.recipe_title+" · ingrediente "+(entry.source_position+1)+": "+entry.source_text+
@@ -113,8 +114,8 @@ export default function PilotIngredientMeasureReview(){
    });
    if(dbError)throw dbError;
    if(data!==selected.length)throw new Error("Número de registros salvo diferente da seleção. Recarregue antes de continuar.");
-   setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);setActive(null);
-   setMessage(data+" rascunhos salvos. Nenhuma medida foi confirmada. Faça nova análise para o próximo lote.");
+   setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);setScopedSelectedDraftIds([]);setActive(null);
+   setMessage(data+" rascunhos salvos. Nenhuma medida foi confirmada. Atualize a pré-análise para outras propostas.");
    setEditorialRefreshKey(key=>key+1);
    await load();
   }catch(err){setError(err instanceof Error?err.message:"Erro ao salvar lote. O servidor cancelou o lote se houve divergência.");}
@@ -142,6 +143,7 @@ export default function PilotIngredientMeasureReview(){
   finally{if(runId===latestLoad.current)setLoading(false);}
  };
  useEffect(()=>{void load();},[page,status,search,recipeSearch]);
+ useEffect(()=>{setScopedSelectedDraftIds([]);},[page,status,search,recipeSearch]);
  const begin=(r:Review)=>{
   const proposal=suggestMeasure(r.source_text);
   setActive(r.ingredient_id);
@@ -192,7 +194,7 @@ export default function PilotIngredientMeasureReview(){
   finally{setBusy(false);}
  };
  const scopedSummary=recipeSearch.trim()&&!loading&&!error&&rows.length>0?summarizeMeasures(rows):null;
- const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows,20):[];
+ const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows.filter(row=>nestedName(row.recipe_ingredients)===row.source_text),20):[];
  return <section className="cc-measure-review">
   <p>Inventário das 1.073 expressões originais. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
   <details className="cc-measure-toolbox">
@@ -248,7 +250,7 @@ export default function PilotIngredientMeasureReview(){
       <button className="secondary" type="button" disabled={draftSaving||selectedDraftIds.length===0}
        onClick={()=>setSelectedDraftIds([])}>Desmarcar todas</button>
       <button type="button" disabled={draftSaving||batchBusy||selectedDraftIds.length===0||selectedDraftIds.length>20}
-       onClick={()=>void saveDraftBatch()}>{draftSaving?"Salvando…":"Revisar e salvar "+selectedDraftIds.length+" como rascunho"+(selectedDraftIds.length===1?"":"s")}</button>
+       onClick={()=>void saveDraftBatch(draftCandidates,selectedDraftIds)}>{draftSaving?"Salvando…":"Revisar e salvar "+selectedDraftIds.length+" como rascunho"+(selectedDraftIds.length===1?"":"s")}</button>
      </div>
     </section>
    </div>}
@@ -280,18 +282,36 @@ export default function PilotIngredientMeasureReview(){
   {message&&<p role="status">{message}</p>}
   {scopedSummary&&<section className="cc-measure-batch" aria-label="Pré-análise dos ingredientes filtrados">
    <strong>Pré-análise da seleção · {scopedSummary.total} ingredientes nesta página</strong>
-   <p>O filtro encontrou {total} registros. As categorias abaixo consideram apenas esta página de até {pageSize} itens. <strong>Nada é salvo ou aprovado.</strong></p>
+   <p>O filtro encontrou {total} registros. As categorias abaixo consideram apenas esta página de até {pageSize} itens. <strong>A pré-análise não salva nem aprova.</strong> Somente medidas marcadas e confirmadas podem ser registradas como rascunho.</p>
    <ul>
     {measureGroups.filter(group=>scopedSummary.byGroup[group.key]>0).map(group=><li key={group.key}>
      {group.label}: <strong>{scopedSummary.byGroup[group.key]}</strong>
     </li>)}
    </ul>
    {scopedDraftCandidates.length>0&&<details>
-    <summary>Ver {scopedDraftCandidates.length} leituras sugeridas (não aprovadas)</summary>
-    <ul>{scopedDraftCandidates.map(entry=><li key={entry.ingredient_id}>
-     <strong>{entry.recipe_title}</strong> · {entry.source_text} → {entry.quantity} {measureUnitLabel(entry.unit)} de {entry.ingredient}
-    </li>)}</ul>
-   </details>}
+    <summary>Selecionar entre {scopedDraftCandidates.length} leituras sugeridas (não aprovadas)</summary>
+    <p>Marque individualmente somente as propostas conferidas. Nenhuma é pré-selecionada. Salvar rascunho não equivale a confirmação editorial.</p>
+    <div className="cc-measure-draft-list">
+     {scopedDraftCandidates.map(entry=><label key={entry.ingredient_id} className="cc-measure-draft-item">
+      <input type="checkbox" checked={scopedSelectedDraftIds.includes(entry.ingredient_id)}
+       disabled={draftSaving||batchBusy} onChange={event=>{
+        setScopedSelectedDraftIds(ids=>event.target.checked?[...ids,entry.ingredient_id]:ids.filter(id=>id!==entry.ingredient_id));
+       }}/>
+      <span><small><strong>{entry.recipe_title} · ingrediente {entry.source_position+1}</strong></small>
+       <strong>{entry.source_text}</strong>
+       <small>Proposta: {entry.quantity} · {measureUnitLabel(entry.unit)} · {entry.ingredient}</small>
+      </span>
+     </label>)}
+    </div>
+    <div className="cc-measure-actions">
+     <button type="button" disabled={draftSaving||batchBusy||scopedSelectedDraftIds.length===0||scopedSelectedDraftIds.length>20}
+      onClick={()=>void saveDraftBatch(scopedDraftCandidates,scopedSelectedDraftIds)}>
+      {draftSaving?"Salvando…":"Conferir e salvar "+scopedSelectedDraftIds.length+" como rascunho"+(scopedSelectedDraftIds.length===1?"":"s")}
+     </button>
+     <button type="button" className="secondary" disabled={draftSaving||scopedSelectedDraftIds.length===0}
+      onClick={()=>setScopedSelectedDraftIds([])}>Limpar seleção</button>
+    </div>
+   </details>
    <p><small>Leitura textual não equivale a validação de alergênicos, segurança alimentar, nutrição ou ajuste de porções. A decisão editorial continua individual.</small></p>
   </section>}
   <div className="cc-measure-queue">
