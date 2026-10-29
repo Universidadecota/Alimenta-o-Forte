@@ -104,9 +104,12 @@ export default function PilotIngredientMeasureReview(){
      if(currentExpected>0&&(data??[]).length===0)break;
     }
    }
-   if(current.length!==currentExpected)throw new Error("A leitura dos ingredientes atuais foi incompleta. Nenhum relatório parcial foi aplicado.");
+   if(current.length!==currentExpected||all.length>0&&currentExpected===0)throw new Error("A leitura dos ingredientes atuais foi incompleta. Nenhum relatório parcial foi aplicado.");
    const summary=summarizeMeasures(all);
    const reconciliationSnapshot=summarizeSourceReconciliation(all,current);
+   if(reconciliationSnapshot.exact!==all.filter(isMeasureSourceAligned).length){
+    throw new Error("As duas leituras do catálogo divergiram. Refazer a análise antes de qualquer decisão editorial.");
+   }
    setReconciliation(reconciliationSnapshot);
    setSourceMismatchCount(reconciliationSnapshot.nameMismatch+
     reconciliationSnapshot.positionMismatch+reconciliationSnapshot.bothMismatch+
