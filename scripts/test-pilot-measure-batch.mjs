@@ -23,6 +23,9 @@ assert.equal(classifyMeasure("1 ovo (opcional)").group,"optional");
 assert.equal(classifyMeasure("sal").group,"manual");
 assert.equal(classifyMeasure("½ xícara de água gelada").group,"simple");
 assert.equal(classifyMeasure("suco de ½ limão").group,"manual");
+assert.equal(classifyMeasure("1 colher (sopa) de maionese caseira").group,"manual",
+ "Maionese caseira exige conferência de preparo, mesmo com quantidade legível");
+assert.equal(classifyMeasure("1 colher (chá) de gergelim").group,"simple");
 assert.equal(classifyMeasure("1 xícara de caldo caseiro (ou água)").group,"choice");
 assert.equal(classifyMeasure("1 filé de truta (150 a 180 g)").group,"range");
 assert.equal(measureUnitLabel("colher_sopa"),"colher (sopa)");
@@ -61,5 +64,16 @@ assert.equal(prepareDraftCandidates(offered,3).length,3);
 assert.equal(prepareDraftCandidates(offered,0).length,0);
 assert.equal(prepareDraftCandidates(offered,999).length,20);
 assert.equal(prepareDraftCandidates(offered.filter(x=>x.review_status!=="pending")).length,0);
+const samplesForRecipe=[
+ "1 colher (chá) de gergelim","1 punhado de rúcula",
+ "1 colher (sopa) de azeite","1 colher (chá) de gergelim",
+ "1 colher (sopa) de cebolinha"
+].map((source_text,i)=>({ingredient_id:"sample-"+i,recipe_id:"sample-recipe",source_position:i,
+ recipes:{title:"Receitas de atum em revisão"},source_text,review_status:"pending"}));
+assert.equal(prepareDraftCandidates(samplesForRecipe).length,5,
+ "Cinco expressões objetivas continuam elegíveis apenas para rascunho");
+assert.equal(prepareDraftCandidates([{ingredient_id:"mayo",recipe_id:"sample-recipe",source_position:5,
+ recipes:{title:"Patê de atum"},source_text:"1 colher (sopa) de maionese caseira",review_status:"pending"}]).length,0,
+ "Não preparar maionese caseira para lote rápido");
 console.log("OK: prévia de até 20 propostas identificadas por receita e posição, sem aprovar nem gravar.");
 
