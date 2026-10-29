@@ -13,7 +13,11 @@ const batchCode=getJavaScript("../src/lib/pilotMeasureBatch.ts")
  .replace(/from ["']\.\/pilotMeasure["']/,()=> 'from "'+measurementUrl+'"')
  .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
 const {classifyMeasure,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned}=await import(url(batchCode));
-const {summarizeSourceReconciliation}=await import(url(getJavaScript("../src/lib/pilotSourceReconciliation.ts")));
+const reconciliationUrl=url(getJavaScript("../src/lib/pilotSourceReconciliation.ts"));
+const {summarizeSourceReconciliation}=await import(reconciliationUrl);
+const evidenceCode=getJavaScript("../src/lib/pilotSourceEvidence.ts")
+ .replace(/from ["']\.\/pilotSourceReconciliation["']/,()=> 'from "'+reconciliationUrl+'"');
+const {buildPilotSourceEvidenceReport}=await import(url(evidenceCode));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
 assert.equal(classifyMeasure("150 g de fraldinha").group,"simple");
@@ -137,3 +141,36 @@ assert.throws(()=>summarizeSourceReconciliation([{...historical[0],recipe_id:und
 console.log("OK: conciliação somente de leitura por receita (texto, posição, ambos, 1:N, ausências e integridade).");
 
 
+
+const selectedRecipe=reconciliation.recipes[0];
+const officialSource={
+ recipe_id:"recipe-one",source_document:"Fonte reservada ao piloto",entry_number:17,
+ source_page:3,original_title:"Receita dividida",use_stage:"personal_pilot",
+ reference_hash:"abcd0123",original_ingredients:"pimenta. Molho: 4 tomates maduros, 1 cebola, azeite, sal"
+};
+const selectedHistory=historical.filter(row=>row.recipe_id==="recipe-one");
+const selectedCurrent=currentIngredients.filter(row=>row.recipe_id==="recipe-one");
+const evidence=buildPilotSourceEvidenceReport(selectedRecipe,officialSource,selectedHistory,selectedCurrent);
+assert.equal(evidence.official.reference_hash,"abcd0123","O identificador oficial é preservado");
+assert.equal(evidence.official.original_ingredients,officialSource.original_ingredients,"O texto oficial é preservado integralmente");
+assert.deepEqual(evidence.historical.map(row=>row.comparison),["name","position","both","missing"],
+ "A evidência expõe diferenças pelo mesmo ID sem inferência semântica");
+assert.equal(evidence.untrackedCurrent.length,1,"O fragmento criado aparece sem vínculo presumido");
+assert.equal(evidence.untrackedCurrent[0].name,"4 tomates maduros");
+assert.throws(()=>buildPilotSourceEvidenceReport(
+ {...selectedRecipe,nameMismatch:selectedRecipe.nameMismatch+1},
+ officialSource,selectedHistory,selectedCurrent),/mudou/,
+ "Rejeitar evidência de fotografia incompatível com a contagem do painel");
+assert.throws(()=>buildPilotSourceEvidenceReport(selectedRecipe,
+ {...officialSource,use_stage:"commercial"},selectedHistory,selectedCurrent),/Fonte oficial/,
+ "Não abrir fonte fora do piloto pessoal");
+assert.throws(()=>buildPilotSourceEvidenceReport(selectedRecipe,
+ {...officialSource,recipe_id:"other-recipe"},selectedHistory,selectedCurrent),/Fonte oficial/,
+ "Não misturar fonte de outra receita");
+assert.throws(()=>buildPilotSourceEvidenceReport(selectedRecipe,
+ officialSource,selectedHistory,[...selectedCurrent,currentIngredients.at(-1)]),/outra receita/,
+ "Não misturar ingredientes atuais de outra receita");
+assert.throws(()=>buildPilotSourceEvidenceReport(selectedRecipe,
+ officialSource,selectedHistory.slice(1),selectedCurrent),/mudou/,
+ "A listagem histórica incompleta não pode ser exibida");
+console.log("OK: evidências oficiais read-only por receita, sem inferência 1:N ou exibição de fotografia parcial.");
