@@ -16,7 +16,13 @@ export const measureGroups:ReadonlyArray<{key:MeasureGroup;label:string;explanat
  {key:"manual",label:"Outras medidas para revisão",explanation:"Não foi possível identificar com segurança uma medida única."},
 ];
 export type MeasureProposal={quantity:number;unit:string;ingredient:string};
-export type BatchItem={ingredient_id:string;source_text:string;review_status:string;recipe_id?:string;source_position?:number;recipes?:{title:string}|{title:string}[]|null};
+export type BatchItem={ingredient_id:string;source_text:string;review_status:string;recipe_id?:string;source_position?:number;recipes?:{title:string}|{title:string}[]|null;recipe_ingredients?:{name:string;position:number}|{name:string;position:number}[]|null};
+/** Somente a fonte que ainda corresponde exatamente ao ingrediente atual entra no lote rápido. */
+export function isMeasureSourceAligned(row:BatchItem):boolean{
+ const current=Array.isArray(row.recipe_ingredients)?row.recipe_ingredients[0]:row.recipe_ingredients;
+ return Boolean(current&&row.source_text===current.name&&
+  Number.isInteger(row.source_position)&&row.source_position===current.position);
+}
 export type BatchGroupSample={id:string;text:string;proposal:MeasureProposal|null};
 export type DraftCandidate={ingredient_id:string;source_text:string;quantity:number;unit:string;ingredient:string;recipe_id:string;recipe_title:string;source_position:number};
 function batchRecipeTitle(recipes:BatchItem["recipes"]):string{
@@ -26,7 +32,7 @@ function batchRecipeTitle(recipes:BatchItem["recipes"]):string{
 /** Apenas gera proposta local de até 20 itens pendentes; nunca grava rascunhos. */
 export function prepareDraftCandidates(items:ReadonlyArray<BatchItem>,limit=20):DraftCandidate[]{
  const cap=Math.max(0,Math.min(20,Math.floor(limit)));
- return items.filter(row=>row.review_status==="pending"&&Boolean(row.recipe_id)&&
+ return items.filter(row=>row.review_status==="pending"&&isMeasureSourceAligned(row)&&Boolean(row.recipe_id)&&
   Number.isInteger(row.source_position)&&row.source_position!>=0&&Boolean(batchRecipeTitle(row.recipes)))
   .map(row=>({row,result:classifyMeasure(row.source_text)}))
   .filter(({row,result})=>{
