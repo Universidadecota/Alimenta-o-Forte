@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from "react";
 import {supabase} from "./lib/supabase";
 import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
 import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
+import {summarizeSourceReconciliation,type CurrentPilotIngredient,type PilotSourceReconciliation} from "./lib/pilotSourceReconciliation";
 
 type Review={
  ingredient_id:string;
@@ -50,6 +51,8 @@ export default function PilotIngredientMeasureReview(){
  const [batchProgress,setBatchProgress]=useState(0);
  const [batchResult,setBatchResult]=useState<BatchResult|null>(null);
  const [sourceMismatchCount,setSourceMismatchCount]=useState<number|null>(null);
+ const [reconciliation,setReconciliation]=useState<PilotSourceReconciliation|null>(null);
+ const globalToolsRef=useRef<HTMLDetailsElement>(null);
  const [draftCandidates,setDraftCandidates]=useState<DraftCandidate[]>([]);
  const [selectedDraftIds,setSelectedDraftIds]=useState<string[]>([]);
  const [scopedSelectedDraftIds,setScopedSelectedDraftIds]=useState<string[]>([]);
@@ -61,7 +64,7 @@ export default function PilotIngredientMeasureReview(){
  // Nenhuma chamada de análise atualiza receitas, medidas ou notas.
  const analyzeAll=async()=>{
   if(!supabase||batchBusy||draftSaving)return;
-  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);setSourceMismatchCount(null);
+  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);setSourceMismatchCount(null);setReconciliation(null);
   setDraftCandidates([]);setSelectedDraftIds([]);setError("");setMessage("");
   try{
    const all:BatchItem[]=[];
@@ -81,8 +84,33 @@ export default function PilotIngredientMeasureReview(){
     if(expected>0&&(data??[]).length===0)break;
    }
    if(all.length!==expected)throw new Error("A leitura foi incompleta. Nenhum resultado parcial foi aplicado; tente novamente.");
+   // A conciliação considera somente as receitas realmente presentes no inventário.
+   // A contagem exata por página bloqueia publicação de resultados incompletos.
+   const recipeIds=[...new Set(all.map(row=>row.recipe_id).filter((id):id is string=>Boolean(id)))];
+   const current:CurrentPilotIngredient[]=[];
+   let currentExpected=0;
+   if(recipeIds.length>0){
+    for(let offset=0;offset<currentExpected||offset===0;offset+=size){
+     const {data,count,error:readError}=await supabase
+      .from("recipe_ingredients")
+      .select("id,recipe_id,name,position",{count:"exact"})
+      .in("recipe_id",recipeIds)
+      .order("id",{ascending:true})
+      .range(offset,offset+size-1);
+     if(readError)throw readError;
+     if(offset===0)currentExpected=count??0;
+     if(currentExpected>10000)throw new Error("Catálogo atual maior que o limite de conciliação.");
+     current.push(...((data??[]) as CurrentPilotIngredient[]));
+     if(currentExpected>0&&(data??[]).length===0)break;
+    }
+   }
+   if(current.length!==currentExpected)throw new Error("A leitura dos ingredientes atuais foi incompleta. Nenhum relatório parcial foi aplicado.");
    const summary=summarizeMeasures(all);
-   setSourceMismatchCount(all.filter(row=>!isMeasureSourceAligned(row)).length);
+   const reconciliationSnapshot=summarizeSourceReconciliation(all,current);
+   setReconciliation(reconciliationSnapshot);
+   setSourceMismatchCount(reconciliationSnapshot.nameMismatch+
+    reconciliationSnapshot.positionMismatch+reconciliationSnapshot.bothMismatch+
+    reconciliationSnapshot.missingCurrent);
    const candidateList=prepareDraftCandidates(all,20);
    setDraftCandidates(candidateList);
    setBatchResult(summary);
@@ -113,7 +141,7 @@ export default function PilotIngredientMeasureReview(){
    });
    if(dbError)throw dbError;
    if(data!==selected.length)throw new Error("Número de registros salvo diferente da seleção. Recarregue antes de continuar.");
-   setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);setScopedSelectedDraftIds([]);setActive(null);
+   setBatchResult(null);setReconciliation(null);setDraftCandidates([]);setSelectedDraftIds([]);setScopedSelectedDraftIds([]);setActive(null);
    setMessage(data+" rascunhos salvos. Nenhuma medida foi confirmada. Atualize a pré-análise para outras propostas.");
    setEditorialRefreshKey(key=>key+1);
    await load();
@@ -196,7 +224,7 @@ export default function PilotIngredientMeasureReview(){
  const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows,20):[];
  return <section className="cc-measure-review">
   <p>Inventário editorial das expressões de origem. A contagem atual é exibida na pré-análise global. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
-  <details className="cc-measure-toolbox">
+  <details className="cc-measure-toolbox" ref={globalToolsRef}>
    <summary><strong>Ferramentas globais</strong> · pré-análise e conferência de rascunhos (expandir)</summary>
   <section className="cc-measure-batch" aria-label="Análise em lote dos ingredientes">
    <div className="cc-measure-batch-header">
@@ -228,6 +256,43 @@ export default function PilotIngredientMeasureReview(){
       </details>}
      </article>)}
     </div>
+    {reconciliation&&<section className="cc-measure-draft-preview" aria-label="Conciliação técnica das medidas por receita">
+     <h4>Conciliação técnica por receita · somente leitura</h4>
+     <p>Comparação pontual entre as fichas históricas e os ingredientes atuais. <strong>Não decide equivalências, não aprova medidas e não altera o banco.</strong> Um desmembramento pode explicar várias diferenças; requer verificação editorial.</p>
+     <div className="cc-measure-batch-grid">
+      <article className="cc-measure-batch-group"><strong>{reconciliation.originalExpressions}</strong><span>Expressões no inventário histórico</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.currentIngredients}</strong><span>Ingredientes atuais do mesmo piloto</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.exact}</strong><span>Vínculos exatamente alinhados</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.nameMismatch}</strong><span>Diferença apenas de texto</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.positionMismatch}</strong><span>Diferença apenas de posição</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.bothMismatch}</strong><span>Diferença de texto e posição</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.missingCurrent}</strong><span>Históricos sem ingrediente atual correspondente</span></article>
+      <article className="cc-measure-batch-group"><strong>{reconciliation.untrackedCurrent}</strong><span>Ingredientes atuais sem ficha histórica correspondente</span></article>
+     </div>
+     <details>
+      <summary><strong>Examinar {reconciliation.affectedRecipes} receitas com diferenças</strong> ({reconciliation.recipes.length} receitas do piloto)</summary>
+      <p>Clique em “Ver histórico” para filtrar a revisão individual. Ingredientes atuais sem ficha histórica não podem ser aprovados por essa fila.</p>
+      <div style={{overflowX:"auto"}}>
+       <table>
+        <thead><tr><th>Receita</th><th>Texto</th><th>Posição</th><th>Ambos</th><th>Sem atual</th><th>Sem histórico</th><th>Ação</th></tr></thead>
+        <tbody>{reconciliation.recipes.filter(recipe=>
+         recipe.nameMismatch+recipe.positionMismatch+recipe.bothMismatch+
+         recipe.missingCurrent+recipe.untrackedCurrent>0
+        ).map(recipe=><tr key={recipe.recipe_id}>
+         <td>{recipe.title}</td>
+         <td>{recipe.nameMismatch}</td><td>{recipe.positionMismatch}</td>
+         <td>{recipe.bothMismatch}</td><td>{recipe.missingCurrent}</td>
+         <td>{recipe.untrackedCurrent}</td>
+         <td><button type="button" className="secondary" onClick={()=>{
+          setPage(0);setStatus("all");setSearch("");setRecipeSearch(recipe.title);setActive(null);
+          globalToolsRef.current?.removeAttribute("open");
+         }}>Ver histórico</button></td>
+        </tr>)}</tbody>
+       </table>
+      </div>
+     </details>
+     <p><small>As diferenças são classificações técnicas por ID, texto e posição; não são uma proposta automática de migração 1:N. Decisões de conciliação exigirão registro de origem e aprovação específica.</small></p>
+    </section>}
     <section className="cc-measure-draft-preview" aria-label="Prévia para salvar rascunhos em lote">
      <h4>Preparar até 20 rascunhos de medidas simples</h4>
      <p>Estas são as próximas expressões classificadas como medidas simples que continuam pendentes. <strong>Nenhuma está selecionada por padrão.</strong> Confira cada item. Salvar rascunho não significa aprovar a medida.</p>
@@ -257,7 +322,7 @@ export default function PilotIngredientMeasureReview(){
   </section>
   <PilotMeasureEditorialReview refreshKey={editorialRefreshKey} onDecisionSaved={()=>{
    // Após confirmar/devolver, atualize contagem e fila; não reaproveite prévia anterior.
-   setBatchResult(null);setDraftCandidates([]);setSelectedDraftIds([]);
+   setBatchResult(null);setReconciliation(null);setDraftCandidates([]);setSelectedDraftIds([]);
    void load();
   }}/>
   </details>
