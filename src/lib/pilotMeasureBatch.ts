@@ -88,6 +88,9 @@ export function classifyMeasure(text:string):{group:MeasureGroup;proposal:Measur
  if(/\bou\b/iu.test(s))return {group:"choice",proposal:null};
  if(/\b(?:opcional|a gosto|quanto bastar|se preferir|se desejar|se precisar)\b/iu.test(s))
   return {group:"optional",proposal:null};
+ // "Maionese caseira" não informa o processo nem o uso de ovos pasteurizados.
+ // Mesmo com quantidade explícita, esta expressão exige conferência individual.
+ if(/\bmaionese\s+caseira\b/iu.test(s))return {group:"manual",proposal:null};
  const proposal=suggestMeasure(s);
  return proposal?{group:"simple",proposal}:{group:"manual",proposal:null};
 }
