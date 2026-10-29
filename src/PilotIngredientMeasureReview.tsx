@@ -311,7 +311,7 @@ export default function PilotIngredientMeasureReview(){
      <button type="button" className="secondary" disabled={draftSaving||scopedSelectedDraftIds.length===0}
       onClick={()=>setScopedSelectedDraftIds([])}>Limpar seleção</button>
     </div>
-   </details>
+   </details>}
    <p><small>Leitura textual não equivale a validação de alergênicos, segurança alimentar, nutrição ou ajuste de porções. A decisão editorial continua individual.</small></p>
   </section>}
   <div className="cc-measure-queue">
