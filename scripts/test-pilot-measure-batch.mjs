@@ -18,6 +18,9 @@ const {summarizeSourceReconciliation}=await import(reconciliationUrl);
 const evidenceCode=getJavaScript("../src/lib/pilotSourceEvidence.ts")
  .replace(/from ["']\.\/pilotSourceReconciliation["']/,()=> 'from "'+reconciliationUrl+'"');
 const {buildPilotSourceEvidenceReport}=await import(url(evidenceCode));
+const mappingCode=getJavaScript("../src/lib/pilotEditorialMappingHints.ts")
+ .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
+const {buildEditorialMappingHints}=await import(url(mappingCode));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
 assert.equal(classifyMeasure("150 g de fraldinha").group,"simple");
@@ -174,3 +177,42 @@ assert.throws(()=>buildPilotSourceEvidenceReport(selectedRecipe,
  officialSource,selectedHistory.slice(1),selectedCurrent),/mudou/,
  "A listagem histórica incompleta não pode ser exibida");
 console.log("OK: evidências oficiais read-only por receita, sem inferência 1:N ou exibição de fotografia parcial.");
+
+const mapping=buildEditorialMappingHints(evidence);
+assert.equal(mapping.literalSplits.length,1,"Somente o desmembramento literal inequívoco gera hipótese");
+assert.equal(mapping.literalSplits[0].historical_source,"pimenta. Molho: 4 tomates maduros");
+assert.deepEqual(mapping.literalSplits[0].current_parts.map(part=>part.kind),["same_id","new_id"]);
+assert.deepEqual(mapping.literalSplits[0].current_parts.map(part=>part.name),["pimenta","4 tomates maduros"]);
+assert.equal(mapping.relocated.length,1,"Reordenação com texto preservado é listada separadamente");
+assert.equal(mapping.relocated[0].source_text,"1 cebola");
+assert.equal(mapping.unresolvedText.length,2,"Alterações não literais e ausências continuam pendentes");
+assert.equal(mapping.stillUnlinked.length,0,"Novo ID contemplado permanece apenas como hipótese técnica");
+
+assert.equal(buildEditorialMappingHints({
+ ...evidence,official:{...evidence.official,original_ingredients:"1 cebola, azeite, sal"}
+}).literalSplits.length,0,"Sem expressão na fonte oficial não há hipótese");
+
+assert.equal(buildEditorialMappingHints({
+ ...evidence,official:{...evidence.official,original_ingredients:
+ "pimenta. Molho: 4 tomates maduros, pimenta. Molho: 4 tomates maduros"}
+}).literalSplits.length,0,"Expressão duplicada na fonte impede hipótese");
+
+assert.equal(buildEditorialMappingHints({
+ ...evidence,untrackedCurrent:[...evidence.untrackedCurrent,
+ {...evidence.untrackedCurrent[0],id:"duplicate-new",position:7}]
+}).literalSplits.length,0,"Novo ingrediente com múltiplos IDs textualmente iguais é ambíguo");
+
+assert.equal(buildEditorialMappingHints({
+ ...evidence,untrackedCurrent:evidence.untrackedCurrent.map(row=>({...row,position:12}))
+}).literalSplits.length,0,"Fragmentos não contíguos não são vinculados");
+
+const annotated={
+ official:{...officialSource,original_ingredients:"pimenta chili a gosto. Salada: 2 tomates"},
+ historical:[{ingredient_id:"historic-annotated",source_text:"pimenta chili a gosto. Salada: 2 tomates",
+  source_position:0,current_name:"pimenta chili a gosto",current_position:0,comparison:"name",review_status:"pending"}],
+ untrackedCurrent:[{id:"new-annotated",recipe_id:"recipe-one",position:1,name:"2 tomates (salada)"}]
+};
+assert.equal(buildEditorialMappingHints(annotated).literalSplits.length,0,
+ "Anotação editorial não literal requer revisão, jamais reconciliação automática");
+assert.equal(buildEditorialMappingHints(annotated).stillUnlinked.length,1);
+console.log("OK: mapa de hipóteses literais conservadoras sem vínculos 1:N persistidos nem aprovações.");
