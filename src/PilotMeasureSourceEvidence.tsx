@@ -2,6 +2,7 @@ import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
 import {buildPilotSourceEvidenceReport,type HistoricalIngredientEvidence,type OfficialPilotSource,type PilotSourceEvidenceReport,type HistoricalComparison} from "./lib/pilotSourceEvidence";
 import type {CurrentPilotIngredient,RecipeReconciliation} from "./lib/pilotSourceReconciliation";
+import {buildEditorialMappingHints} from "./lib/pilotEditorialMappingHints";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -56,6 +57,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
   void run();
   return ()=>{cancelled=true;};
  },[recipe.recipe_id]);
+ const mapping=report?buildEditorialMappingHints(report):null;
  return <article className="cc-measure-draft-preview" aria-label={"Evidência histórica da receita "+recipe.title}>
   <div className="cc-measure-batch-header">
    <div>
@@ -75,6 +77,24 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     <p><small>Título de origem: {report.official.original_title}. O hash é exibido como identificador armazenado; não foi recalculado nesta consulta.</small></p>
     <p style={{whiteSpace:"pre-wrap"}}><strong>Ingredientes no documento de origem:</strong>{"\n"}{report.official.original_ingredients}</p>
    </section>
+   {mapping&&<section aria-label="Mapa editorial preliminar de correspondências">
+    <h4>Mapa editorial preliminar · hipóteses não aprovadas</h4>
+    <p>O sistema compara somente trechos literais da fonte, com IDs únicos e posições contíguas. <strong>Uma hipótese não equivale a vínculo confirmado nem modifica ingrediente algum.</strong></p>
+    {mapping.literalSplits.length>0?<ul>{mapping.literalSplits.map(hint=><li key={hint.historical_id}>
+     <strong>Possível desmembramento da expressão #{hint.historical_position+1}:</strong> {hint.historical_source}
+     <ul>{hint.current_parts.map(part=><li key={part.id}>
+      #{part.position+1} · {part.name} <small>({part.kind==="same_id"?"ID histórico preservado":"Novo ID sem ficha histórica"})</small>
+     </li>)}</ul>
+     <small>Correspondência textual preliminar. Confirmar manualmente na fonte antes de qualquer decisão editorial.</small>
+    </li>)}</ul>:<p>Nenhum desmembramento atende aos critérios literais estritos desta receita. Isso não elimina a necessidade de revisão editorial.</p>}
+    <p><small>{mapping.unresolvedText.length} expressões históricas sem hipótese literal segura; {mapping.stillUnlinked.length} ingredientes atuais sem associação literal sugerida.</small></p>
+    {mapping.relocated.length>0&&<details>
+     <summary>Ver {mapping.relocated.length} ingredientes com texto preservado e posição diferente</summary>
+     <ul>{mapping.relocated.map(line=><li key={line.ingredient_id}>
+      {line.source_text}: posição histórica #{line.source_position+1} → atual #{(line.current_position??-1)+1}. <small>Mesma identidade; nenhuma aprovação de medida.</small>
+     </li>)}</ul>
+    </details>}
+   </section>}
    <section>
     <h4>Expressões históricas e ingrediente atual pelo mesmo ID</h4>
     <p>Somente a identidade do registro é usada na correspondência abaixo. Alterações de texto e posição ficam explícitas.</p>
