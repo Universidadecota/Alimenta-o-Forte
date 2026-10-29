@@ -3,6 +3,7 @@ import {supabase} from "./lib/supabase";
 import {buildPilotSourceEvidenceReport,type HistoricalIngredientEvidence,type OfficialPilotSource,type PilotSourceEvidenceReport,type HistoricalComparison} from "./lib/pilotSourceEvidence";
 import type {CurrentPilotIngredient,RecipeReconciliation} from "./lib/pilotSourceReconciliation";
 import {buildEditorialMappingHints} from "./lib/pilotEditorialMappingHints";
+import {traceUntrackedIngredientsToSource} from "./lib/pilotSourceLiteralTrace";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -58,6 +59,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
   return ()=>{cancelled=true;};
  },[recipe.recipe_id]);
  const mapping=report?buildEditorialMappingHints(report):null;
+ const sourceTrace=report?traceUntrackedIngredientsToSource(report):null;
  return <article className="cc-measure-draft-preview" aria-label={"Evidência histórica da receita "+recipe.title}>
   <div className="cc-measure-batch-header">
    <div>
@@ -111,10 +113,21 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
    </section>
    {report.untrackedCurrent.length>0&&<section>
     <h4>{report.untrackedCurrent.length} ingredientes atuais sem ficha histórica por ID</h4>
-    <p>Esses itens podem resultar de desmembramentos editoriais, mas <strong>nenhuma relação foi presumida</strong>. Verifique a fonte integral antes de propor um vínculo.</p>
-    <ul>{report.untrackedCurrent.map(row=><li key={row.id}>
+    <p>Alguns itens podem ser componentes de molhos ou acompanhamentos já descritos na origem. A conferência abaixo procura apenas a <strong>redação literal na fonte oficial</strong>, sem criar vínculos nem aprovar ingredientes.</p>
+    {sourceTrace&&<p>
+     <strong>{sourceTrace.counts.unique}</strong> com trecho único na fonte ·{" "}
+     <strong>{sourceTrace.counts.ambiguous}</strong> com ocorrência repetida ·{" "}
+     <strong>{sourceTrace.counts.not_found}</strong> sem correspondência textual exata.
+    </p>}
+    <ul>{sourceTrace?.items.map(({ingredient:row,status,occurrences})=><li key={row.id}>
      <strong>#{row.position+1}</strong> · {row.name} <small>(ID atual: <code>{row.id}</code>)</small>
+     <small style={{display:"block"}}>
+      {status==="unique"?"Trecho literal localizado uma vez na fonte; vínculo histórico ainda não comprovado.":
+       status==="ambiguous"?"Trecho localizado "+occurrences+" vezes; conferir a qual preparo pertence.":
+       "Redação exata não localizada; comparar anotações e descrição do preparo na origem."}
+     </small>
     </li>)}</ul>
+    <p><small>Correspondência textual não confirma identidade por ID, rendimento, porção nem composição nutricional. Não há decisão editorial automática.</small></p>
    </section>}
    <p><small>Esta é apenas a evidência de origem. Não grava sugestões, não altera aprovação, alergênicos, porções, lista de compras ou nutrição. Para corrigir vínculo ou desmembramento será necessária decisão editorial específica e auditável.</small></p>
   </>}
