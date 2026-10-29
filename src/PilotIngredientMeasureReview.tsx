@@ -1,4 +1,4 @@
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {supabase} from "./lib/supabase";
 import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
 import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
@@ -57,6 +57,7 @@ export default function PilotIngredientMeasureReview(){
  const [draftSaving,setDraftSaving]=useState(false);
  const [editorialRefreshKey,setEditorialRefreshKey]=useState(0);
  const pageSize=25;
+ const latestLoad=useRef(0);
  // Lê todo o inventário em páginas menores que o limite padrão do PostgREST.
  // Nenhuma chamada de análise atualiza receitas, medidas ou notas.
  const analyzeAll=async()=>{
@@ -121,6 +122,7 @@ export default function PilotIngredientMeasureReview(){
  };
  const load=async()=>{
   if(!supabase)return;
+  const runId=++latestLoad.current;
   setLoading(true);setError("");
   try{
    let q=supabase.from("cc_pilot_ingredient_measure_reviews")
@@ -132,11 +134,12 @@ export default function PilotIngredientMeasureReview(){
    if(search.trim())q=q.ilike("source_text","%"+search.trim().replace(/[%_]/g,"")+"%");
    if(recipeSearch.trim())q=q.ilike("recipes.title","%"+recipeSearch.trim().replace(/[%_]/g,"")+"%");
    const {data,error:dbError,count}=await q;
+   if(runId!==latestLoad.current)return;
    if(dbError)throw dbError;
    setRows((data??[]) as unknown as Review[]);
    setTotal(count??0);
-  }catch(err){setError(err instanceof Error?err.message:"Erro ao carregar ingredientes.");}
-  finally{setLoading(false);}
+  }catch(err){if(runId===latestLoad.current)setError(err instanceof Error?err.message:"Erro ao carregar ingredientes.");}
+  finally{if(runId===latestLoad.current)setLoading(false);}
  };
  useEffect(()=>{void load();},[page,status,search,recipeSearch]);
  const begin=(r:Review)=>{
@@ -188,6 +191,8 @@ export default function PilotIngredientMeasureReview(){
   }catch(err){setError(err instanceof Error?err.message:"Falha ao salvar a revisão.");}
   finally{setBusy(false);}
  };
+ const scopedSummary=recipeSearch.trim()&&!loading&&!error&&rows.length>0?summarizeMeasures(rows):null;
+ const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows,20):[];
  return <section className="cc-measure-review">
   <p>Inventário das 1.073 expressões originais. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
   <details className="cc-measure-toolbox">
@@ -273,6 +278,22 @@ export default function PilotIngredientMeasureReview(){
   <p aria-live="polite">{loading?"Carregando…":total+" registros na seleção · página "+(page+1)+" de "+Math.max(1,Math.ceil(total/pageSize))}</p>
   {error&&<p role="alert" className="error">{error}</p>}
   {message&&<p role="status">{message}</p>}
+  {scopedSummary&&<section className="cc-measure-batch" aria-label="Pré-análise dos ingredientes filtrados">
+   <strong>Pré-análise da seleção · {scopedSummary.total} ingredientes nesta página</strong>
+   <p>O filtro encontrou {total} registros. As categorias abaixo consideram apenas esta página de até {pageSize} itens. <strong>Nada é salvo ou aprovado.</strong></p>
+   <ul>
+    {measureGroups.filter(group=>scopedSummary.byGroup[group.key]>0).map(group=><li key={group.key}>
+     {group.label}: <strong>{scopedSummary.byGroup[group.key]}</strong>
+    </li>)}
+   </ul>
+   {scopedDraftCandidates.length>0&&<details>
+    <summary>Ver {scopedDraftCandidates.length} leituras sugeridas (não aprovadas)</summary>
+    <ul>{scopedDraftCandidates.map(entry=><li key={entry.ingredient_id}>
+     <strong>{entry.recipe_title}</strong> · {entry.source_text} → {entry.quantity} {measureUnitLabel(entry.unit)} de {entry.ingredient}
+    </li>)}</ul>
+   </details>}
+   <p><small>Leitura textual não equivale a validação de alergênicos, segurança alimentar, nutrição ou ajuste de porções. A decisão editorial continua individual.</small></p>
+  </section>}
   <div className="cc-measure-queue">
    {rows.map(r=>{
     const unchanged=nestedName(r.recipe_ingredients)===r.source_text;
