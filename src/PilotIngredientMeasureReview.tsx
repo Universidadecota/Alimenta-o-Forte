@@ -1,8 +1,9 @@
 import {useEffect,useRef,useState} from "react";
 import {supabase} from "./lib/supabase";
 import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
+import PilotMeasureSourceEvidence from "./PilotMeasureSourceEvidence";
 import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
-import {summarizeSourceReconciliation,type CurrentPilotIngredient,type PilotSourceReconciliation} from "./lib/pilotSourceReconciliation";
+import {summarizeSourceReconciliation,type CurrentPilotIngredient,type PilotSourceReconciliation,type RecipeReconciliation} from "./lib/pilotSourceReconciliation";
 
 type Review={
  ingredient_id:string;
@@ -52,6 +53,8 @@ export default function PilotIngredientMeasureReview(){
  const [batchResult,setBatchResult]=useState<BatchResult|null>(null);
  const [sourceMismatchCount,setSourceMismatchCount]=useState<number|null>(null);
  const [reconciliation,setReconciliation]=useState<PilotSourceReconciliation|null>(null);
+ const [evidenceRecipe,setEvidenceRecipe]=useState<RecipeReconciliation|null>(null);
+ const evidenceAnchorRef=useRef<HTMLDivElement>(null);
  const globalToolsRef=useRef<HTMLDetailsElement>(null);
  const [draftCandidates,setDraftCandidates]=useState<DraftCandidate[]>([]);
  const [selectedDraftIds,setSelectedDraftIds]=useState<string[]>([]);
@@ -64,7 +67,7 @@ export default function PilotIngredientMeasureReview(){
  // Nenhuma chamada de análise atualiza receitas, medidas ou notas.
  const analyzeAll=async()=>{
   if(!supabase||batchBusy||draftSaving)return;
-  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);setSourceMismatchCount(null);setReconciliation(null);
+  setBatchBusy(true);setBatchProgress(0);setBatchResult(null);setSourceMismatchCount(null);setReconciliation(null);setEvidenceRecipe(null);
   setDraftCandidates([]);setSelectedDraftIds([]);setError("");setMessage("");
   try{
    const all:BatchItem[]=[];
@@ -144,7 +147,7 @@ export default function PilotIngredientMeasureReview(){
    });
    if(dbError)throw dbError;
    if(data!==selected.length)throw new Error("Número de registros salvo diferente da seleção. Recarregue antes de continuar.");
-   setBatchResult(null);setReconciliation(null);setDraftCandidates([]);setSelectedDraftIds([]);setScopedSelectedDraftIds([]);setActive(null);
+   setBatchResult(null);setReconciliation(null);setEvidenceRecipe(null);setDraftCandidates([]);setSelectedDraftIds([]);setScopedSelectedDraftIds([]);setActive(null);
    setMessage(data+" rascunhos salvos. Nenhuma medida foi confirmada. Atualize a pré-análise para outras propostas.");
    setEditorialRefreshKey(key=>key+1);
    await load();
@@ -174,6 +177,7 @@ export default function PilotIngredientMeasureReview(){
  };
  useEffect(()=>{void load();},[page,status,search,recipeSearch]);
  useEffect(()=>{setScopedSelectedDraftIds([]);},[page,status,search,recipeSearch]);
+ useEffect(()=>{if(evidenceRecipe)evidenceAnchorRef.current?.scrollIntoView({behavior:"smooth",block:"start"});},[evidenceRecipe]);
  const begin=(r:Review)=>{
   const proposal=suggestMeasure(r.source_text);
   setActive(r.ingredient_id);
@@ -274,7 +278,8 @@ export default function PilotIngredientMeasureReview(){
      </div>
      <details>
       <summary><strong>Examinar {reconciliation.affectedRecipes} receitas com diferenças</strong> ({reconciliation.recipes.length} receitas do piloto)</summary>
-      <p>Clique em “Ver histórico” para filtrar a revisão individual. Ingredientes atuais sem ficha histórica não podem ser aprovados por essa fila.</p>
+      <p>Use “Examinar fonte” para abrir a evidência oficial, histórica e atual. “Ver histórico” filtra a revisão individual. Nenhuma dessas ações altera dados.</p>
+      <div ref={evidenceAnchorRef}>{evidenceRecipe&&<PilotMeasureSourceEvidence key={evidenceRecipe.recipe_id} recipe={evidenceRecipe} onClose={()=>setEvidenceRecipe(null)}/>}</div>
       <div style={{overflowX:"auto"}}>
        <table>
         <thead><tr><th>Receita</th><th>Texto</th><th>Posição</th><th>Ambos</th><th>Sem atual</th><th>Sem histórico</th><th>Ação</th></tr></thead>
@@ -286,10 +291,13 @@ export default function PilotIngredientMeasureReview(){
          <td>{recipe.nameMismatch}</td><td>{recipe.positionMismatch}</td>
          <td>{recipe.bothMismatch}</td><td>{recipe.missingCurrent}</td>
          <td>{recipe.untrackedCurrent}</td>
-         <td><button type="button" className="secondary" onClick={()=>{
-          setPage(0);setStatus("all");setSearch("");setRecipeSearch(recipe.title);setActive(null);
-          globalToolsRef.current?.removeAttribute("open");
-         }}>Ver histórico</button></td>
+         <td><div className="cc-measure-actions">
+          <button type="button" className="secondary" onClick={()=>setEvidenceRecipe(recipe)}>Examinar fonte</button>
+          <button type="button" className="secondary" onClick={()=>{
+           setPage(0);setStatus("all");setSearch("");setRecipeSearch(recipe.title);setActive(null);setEvidenceRecipe(null);
+           globalToolsRef.current?.removeAttribute("open");
+          }}>Ver histórico</button>
+         </div></td>
         </tr>)}</tbody>
        </table>
       </div>
@@ -325,7 +333,7 @@ export default function PilotIngredientMeasureReview(){
   </section>
   <PilotMeasureEditorialReview refreshKey={editorialRefreshKey} onDecisionSaved={()=>{
    // Após confirmar/devolver, atualize contagem e fila; não reaproveite prévia anterior.
-   setBatchResult(null);setReconciliation(null);setDraftCandidates([]);setSelectedDraftIds([]);
+   setBatchResult(null);setReconciliation(null);setEvidenceRecipe(null);setDraftCandidates([]);setSelectedDraftIds([]);
    void load();
   }}/>
   </details>
