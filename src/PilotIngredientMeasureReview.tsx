@@ -4,7 +4,7 @@ import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
 import PilotMeasureSourceEvidence from "./PilotMeasureSourceEvidence";
 import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
 import {summarizeSourceReconciliation,type CurrentPilotIngredient,type PilotSourceReconciliation,type RecipeReconciliation} from "./lib/pilotSourceReconciliation";
-import {editorialQueueGroups,filterEditorialQueue,summarizeEditorialQueue,type EditorialQueueFilter,type EditorialQueueOrder} from "./lib/pilotEditorialQueue";
+import {editorialQueueGroups,filterEditorialQueue,serializeEditorialQueueCsv,summarizeEditorialQueue,type EditorialQueueFilter,type EditorialQueueOrder} from "./lib/pilotEditorialQueue";
 
 type Review={
  ingredient_id:string;
@@ -233,6 +233,7 @@ export default function PilotIngredientMeasureReview(){
  const scopedSummary=recipeSearch.trim()&&!loading&&!error&&rows.length>0?summarizeMeasures(rows):null;
  const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows,20):[];
  const editorialQueue=reconciliation?summarizeEditorialQueue(reconciliation.recipes):null;
+ const visibleEditorialEntries=editorialQueue?filterEditorialQueue(editorialQueue.entries,queueFilter,queueOrder):[];
  return <section className="cc-measure-review">
   <p>Inventário editorial das expressões de origem. A contagem atual é exibida na pré-análise global. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
   <details className="cc-measure-toolbox" ref={globalToolsRef}>
@@ -301,13 +302,26 @@ export default function PilotIngredientMeasureReview(){
          <option value="simplest_first">Revisões simples primeiro</option>
         </select>
        </label>
+       <button type="button" className="secondary" disabled={visibleEditorialEntries.length===0}
+        onClick={()=>{
+         const csv=serializeEditorialQueueCsv(visibleEditorialEntries);
+         const downloadUrl=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
+         const link=document.createElement("a");
+         link.href=downloadUrl;
+         link.download="costa-costa-fila-editorial-"+queueFilter+".csv";
+         document.body.appendChild(link);
+         link.click();
+         link.remove();
+         window.setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
+        }}>Baixar CSV da fila ({visibleEditorialEntries.length})</button>
       </div>
+      <p><small>O CSV contém apenas identificação da receita, prioridade, contagens e orientação de conferência. A exportação respeita o filtro e a ordem atuais e não altera o banco.</small></p>
       <p>“Examinar fonte” abre a evidência oficial, histórica e atual; “Ver histórico” filtra a revisão individual. A navegação não altera dados.</p>
       <div ref={evidenceAnchorRef}>{evidenceRecipe&&<PilotMeasureSourceEvidence key={evidenceRecipe.recipe_id} recipe={evidenceRecipe} onClose={()=>setEvidenceRecipe(null)}/>}</div>
       <div style={{overflowX:"auto"}}>
        <table>
         <thead><tr><th>Receita e prioridade</th><th>Texto</th><th>Posição</th><th>Ambos</th><th>Sem atual</th><th>Sem histórico</th><th>Ação</th></tr></thead>
-        <tbody>{editorialQueue&&filterEditorialQueue(editorialQueue.entries,queueFilter,queueOrder).map(entry=>{
+        <tbody>{editorialQueue&&visibleEditorialEntries.map(entry=>{
          const recipe=entry.recipe;
          const group=editorialQueueGroups.find(item=>item.kind===entry.kind)!;
          return <tr key={recipe.recipe_id}>
@@ -324,7 +338,7 @@ export default function PilotIngredientMeasureReview(){
          </tr>;
         })}</tbody>
        </table>
-       {editorialQueue&&filterEditorialQueue(editorialQueue.entries,queueFilter,queueOrder).length===0&&
+       {editorialQueue&&visibleEditorialEntries.length===0&&
         <p>Nenhuma receita nesta categoria. Altere o filtro para examinar outras pendências.</p>}
       </div>
      </details>
