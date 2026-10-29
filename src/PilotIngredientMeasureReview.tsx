@@ -4,6 +4,7 @@ import PilotMeasureEditorialReview from "./PilotMeasureEditorialReview";
 import PilotMeasureSourceEvidence from "./PilotMeasureSourceEvidence";
 import {classifyMeasure,measureGroups,measureUnitLabel,suggestMeasure,summarizeMeasures,prepareDraftCandidates,isMeasureSourceAligned,type DraftCandidate,type BatchItem,type BatchResult} from "./lib/pilotMeasureBatch";
 import {summarizeSourceReconciliation,type CurrentPilotIngredient,type PilotSourceReconciliation,type RecipeReconciliation} from "./lib/pilotSourceReconciliation";
+import {editorialQueueGroups,filterEditorialQueue,summarizeEditorialQueue,type EditorialQueueFilter,type EditorialQueueOrder} from "./lib/pilotEditorialQueue";
 
 type Review={
  ingredient_id:string;
@@ -54,6 +55,8 @@ export default function PilotIngredientMeasureReview(){
  const [sourceMismatchCount,setSourceMismatchCount]=useState<number|null>(null);
  const [reconciliation,setReconciliation]=useState<PilotSourceReconciliation|null>(null);
  const [evidenceRecipe,setEvidenceRecipe]=useState<RecipeReconciliation|null>(null);
+ const [queueFilter,setQueueFilter]=useState<EditorialQueueFilter>("all");
+ const [queueOrder,setQueueOrder]=useState<EditorialQueueOrder>("risk_first");
  const evidenceAnchorRef=useRef<HTMLDivElement>(null);
  const globalToolsRef=useRef<HTMLDetailsElement>(null);
  const [draftCandidates,setDraftCandidates]=useState<DraftCandidate[]>([]);
@@ -229,6 +232,7 @@ export default function PilotIngredientMeasureReview(){
  };
  const scopedSummary=recipeSearch.trim()&&!loading&&!error&&rows.length>0?summarizeMeasures(rows):null;
  const scopedDraftCandidates=scopedSummary?prepareDraftCandidates(rows,20):[];
+ const editorialQueue=reconciliation?summarizeEditorialQueue(reconciliation.recipes):null;
  return <section className="cc-measure-review">
   <p>Inventário editorial das expressões de origem. A contagem atual é exibida na pré-análise global. Uma proposta registrada aqui <strong>não modifica a receita</strong> e não libera ajustes de porções, somas de compras nem valores nutricionais. Apenas a administração pode consultar e revisar.</p>
   <details className="cc-measure-toolbox" ref={globalToolsRef}>
@@ -277,29 +281,51 @@ export default function PilotIngredientMeasureReview(){
       <article className="cc-measure-batch-group"><strong>{reconciliation.untrackedCurrent}</strong><span>Ingredientes atuais sem ficha histórica correspondente</span></article>
      </div>
      <details>
-      <summary><strong>Examinar {reconciliation.affectedRecipes} receitas com diferenças</strong> ({reconciliation.recipes.length} receitas do piloto)</summary>
-      <p>Use “Examinar fonte” para abrir a evidência oficial, histórica e atual. “Ver histórico” filtra a revisão individual. Nenhuma dessas ações altera dados.</p>
+      <summary><strong>Fila editorial priorizada: {reconciliation.affectedRecipes} receitas com diferenças</strong> ({reconciliation.recipes.length} receitas do piloto)</summary>
+      <p>As prioridades organizam apenas a conferência editorial: cada receita aparece uma vez, conforme sua pendência mais relevante. <strong>Não altera ingredientes, não cria vínculos e não aprova medidas.</strong></p>
+      {editorialQueue&&<div className="cc-measure-batch-grid" aria-label="Contagem de receitas por prioridade">
+       {editorialQueueGroups.map(group=><article className="cc-measure-batch-group" key={group.kind}>
+        <strong>{editorialQueue.counts[group.kind]}</strong><span>{group.title}</span><small>{group.guidance}</small>
+       </article>)}
+      </div>}
+      <div className="cc-measure-actions" style={{display:"flex",flexWrap:"wrap",gap:"1rem",alignItems:"end"}}>
+       <label>Tipo de pendência
+        <select value={queueFilter} onChange={event=>setQueueFilter(event.target.value as EditorialQueueFilter)}>
+         <option value="all">Todas as pendências</option>
+         {editorialQueueGroups.map(group=><option key={group.kind} value={group.kind}>{group.title}</option>)}
+        </select>
+       </label>
+       <label>Ordem da fila
+        <select value={queueOrder} onChange={event=>setQueueOrder(event.target.value as EditorialQueueOrder)}>
+         <option value="risk_first">Lacunas primeiro</option>
+         <option value="simplest_first">Revisões simples primeiro</option>
+        </select>
+       </label>
+      </div>
+      <p>“Examinar fonte” abre a evidência oficial, histórica e atual; “Ver histórico” filtra a revisão individual. A navegação não altera dados.</p>
       <div ref={evidenceAnchorRef}>{evidenceRecipe&&<PilotMeasureSourceEvidence key={evidenceRecipe.recipe_id} recipe={evidenceRecipe} onClose={()=>setEvidenceRecipe(null)}/>}</div>
       <div style={{overflowX:"auto"}}>
        <table>
-        <thead><tr><th>Receita</th><th>Texto</th><th>Posição</th><th>Ambos</th><th>Sem atual</th><th>Sem histórico</th><th>Ação</th></tr></thead>
-        <tbody>{reconciliation.recipes.filter(recipe=>
-         recipe.nameMismatch+recipe.positionMismatch+recipe.bothMismatch+
-         recipe.missingCurrent+recipe.untrackedCurrent>0
-        ).map(recipe=><tr key={recipe.recipe_id}>
-         <td>{recipe.title}</td>
-         <td>{recipe.nameMismatch}</td><td>{recipe.positionMismatch}</td>
-         <td>{recipe.bothMismatch}</td><td>{recipe.missingCurrent}</td>
-         <td>{recipe.untrackedCurrent}</td>
-         <td><div className="cc-measure-actions">
-          <button type="button" className="secondary" onClick={()=>setEvidenceRecipe(recipe)}>Examinar fonte</button>
-          <button type="button" className="secondary" onClick={()=>{
-           setPage(0);setStatus("all");setSearch("");setRecipeSearch(recipe.title);setActive(null);setEvidenceRecipe(null);
-           globalToolsRef.current?.removeAttribute("open");
-          }}>Ver histórico</button>
-         </div></td>
-        </tr>)}</tbody>
+        <thead><tr><th>Receita e prioridade</th><th>Texto</th><th>Posição</th><th>Ambos</th><th>Sem atual</th><th>Sem histórico</th><th>Ação</th></tr></thead>
+        <tbody>{editorialQueue&&filterEditorialQueue(editorialQueue.entries,queueFilter,queueOrder).map(entry=>{
+         const recipe=entry.recipe;
+         const group=editorialQueueGroups.find(item=>item.kind===entry.kind)!;
+         return <tr key={recipe.recipe_id}>
+          <td><strong>{recipe.title}</strong><small style={{display:"block"}}>{group.title}</small><small style={{display:"block"}}>{group.guidance}</small></td>
+          <td>{recipe.nameMismatch}</td><td>{recipe.positionMismatch}</td><td>{recipe.bothMismatch}</td>
+          <td>{recipe.missingCurrent}</td><td>{recipe.untrackedCurrent}</td>
+          <td><div className="cc-measure-actions">
+           <button type="button" className="secondary" onClick={()=>setEvidenceRecipe(recipe)}>Examinar fonte</button>
+           <button type="button" className="secondary" onClick={()=>{
+            setPage(0);setStatus("all");setSearch("");setRecipeSearch(recipe.title);setActive(null);setEvidenceRecipe(null);
+            globalToolsRef.current?.removeAttribute("open");
+           }}>Ver histórico</button>
+          </div></td>
+         </tr>;
+        })}</tbody>
        </table>
+       {editorialQueue&&filterEditorialQueue(editorialQueue.entries,queueFilter,queueOrder).length===0&&
+        <p>Nenhuma receita nesta categoria. Altere o filtro para examinar outras pendências.</p>}
       </div>
      </details>
      <p><small>As diferenças são classificações técnicas por ID, texto e posição; não são uma proposta automática de migração 1:N. Decisões de conciliação exigirão registro de origem e aprovação específica.</small></p>
