@@ -8,7 +8,8 @@ Dois exemplos revisados na fonte oficial — “Asiática de repolho, alga e fra
 A comparação literal estrita aplicada a esses 48 novos IDs no retrato de 29/10/2026 encontrou:
 - 40 nomes com uma ocorrência literal isolada na fonte oficial;
 - 2 nomes com múltiplas ocorrências, sem indicação inequívoca de preparo;
-- 6 nomes sem a mesma redação exata (por exemplo, anotações editoriais “salada” ou “molho”).
+- 6 nomes sem redação literal idêntica, mas cujo texto-base sem uma anotação contextual terminal (por exemplo, “salada” ou “molho”) aparece uma vez na fonte;
+- 0 nomes sem trecho localizado após essa busca contextual conservadora.
 
 Os números são um diagnóstico pontual, não uma migração e não constituem validação de correspondência histórica.
 
@@ -16,11 +17,11 @@ Os números são um diagnóstico pontual, não uma migração e não constituem 
 Administração → Medidas das receitas autorais → Ferramentas globais → Conciliação técnica → Fila editorial → Examinar fonte.
 
 A lista **“Ingredientes atuais sem ficha histórica por ID”** agora exibe:
-- contagem de trechos únicos, repetidos e não localizados;
+- contagem separada de trechos literais únicos, textos-base com anotação contextual, repetidos e não localizados;
 - o indicador literal de cada ingrediente adicional;
 - orientação para conferir seu contexto no preparo original.
 
-O rastreio é sensível a maiúsculas, acentos e pontuação, com limites de palavra para evitar correspondência por substring interna. A ocorrência textual não prova identidade de ID, rendimento, segurança alimentar nem equivalência 1:N.
+O rastreio é sensível a maiúsculas, acentos e pontuação, com limites de palavra para evitar correspondência por substring interna. O segundo nível de busca remove somente um sufixo entre parênteses reconhecido como anotação editorial de preparo, jamais medidas ou alternativas. A ocorrência textual — direta ou contextual — não prova identidade de ID, rendimento, segurança alimentar nem equivalência 1:N.
 
 ## Garantias
 - Não altera receitas, ingredientes, fonte oficial, estado de revisão, aprovações, RLS, porções, compras ou nutrição.
