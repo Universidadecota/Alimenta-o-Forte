@@ -3,7 +3,7 @@ import type {SauceSafetyProposal} from "./pilotSauceSafetyProposals";
 /** Retrato auditado das três receitas no piloto privado.
  * Não constitui homologação de rendimentos, medidas nem alergênicos. */
 export type SauceAuditIngredient={
- recipe_id:string;name:string;position:number;
+ id:string;recipe_id:string;name:string;position:number;
  quantity:number|null;unit:string|null;measure_mode:string|null;
 };
 export type SauceAuditRecipe={id:string;published:boolean;servings:number|null;};
