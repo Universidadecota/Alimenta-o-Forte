@@ -7,6 +7,7 @@ import {traceUntrackedIngredientsToSource} from "./lib/pilotSourceLiteralTrace";
 import {buildSourceEditorialFocus} from "./lib/pilotSourceEditorialFocus";
 import {SAUCE_SAFETY_PROPOSALS,getVerifiedSauceProposal,type SauceSafetyProposal,type CurrentSauceRecipeSnapshot} from "./lib/pilotSauceSafetyProposals";
 import {getVerifiedSauceAudit,type SauceAuditIngredient,type SauceAuditReport} from "./lib/pilotSauceEditorialAudit";
+import {getVerifiedPreparationPartition,type PreparationPartition,type PreparationKind} from "./lib/pilotRecipePreparationPartition";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -16,13 +17,14 @@ const comparisonLabels:Record<HistoricalComparison,string>={
  missing:"Sem ingrediente atual com este ID",
 };
 type Props={recipe:RecipeReconciliation;onClose:()=>void};
+const blockLabels:Record<PreparationKind,string>={main:"Prato principal",sauce:"Preparo auxiliar · molho",side:"Acompanhamento"};
 
 /** Leitura administrativa e sob demanda. Não há qualquer ação de escrita. */
 export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [report,setReport]=useState<PilotSourceEvidenceReport|null>(null);
- const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string;audit:SauceAuditReport|null}|null>(null);
+ const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string;audit:SauceAuditReport|null;partition:PreparationPartition|null}|null>(null);
  const [sauceWarning,setSauceWarning]=useState("");
  useEffect(()=>{
   let cancelled=false;
@@ -71,7 +73,8 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
       if(!proposal||!current?.instructions)throw new Error("A fonte, a versão do preparo ou o estado de publicação não coincidem com a auditoria.");
       const audit=getVerifiedSauceAudit(proposal,evidence.official,current,
        currentRowsForAudit);
-      setSauceComparison({proposal,currentInstructions:current.instructions,audit});
+      const partition=getVerifiedPreparationPartition(proposal,evidence.official,current,currentRowsForAudit);
+      setSauceComparison({proposal,currentInstructions:current.instructions,audit,partition});
      }catch{
       if(!cancelled)setSauceWarning("A proposta de preparo foi ocultada: não foi possível confirmar a versão exata da fonte, das instruções atuais e o estado não publicado. Refaça a revisão antes de propor mudanças.");
      }
@@ -142,6 +145,24 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
       <ul>{sauceComparison.audit.ingredientsForAllergyReview.map(item=><li key={item}>{item}</li>)}</ul>
       <p><small>Esta lista é uma triagem do texto, não um cadastro validado de alergênicos nem garantia de ausência de risco.</small></p>
      </div>:<p role="alert">A fotografia de ingredientes, quantidades ou rendimento diverge da auditoria; os detalhes de consistência foram ocultados para evitar conclusões desatualizadas. Refaça a revisão.</p>}
+     <h5>Mapa do prato e dos preparos auxiliares · somente leitura</h5>
+     {sauceComparison.audit&&sauceComparison.partition?<div>
+      <p>Refeição cadastrada para <strong>{sauceComparison.partition.mealServings} pessoa</strong>. A divisão abaixo preserva os ingredientes atuais sem criar novas receitas ou relações no banco.</p>
+      {sauceComparison.partition.blocks.map(block=><section key={block.key} aria-label={blockLabels[block.kind]+" — "+block.title}>
+       <h5>{blockLabels[block.kind]} — {block.title}</h5>
+       <p><small>{block.ingredients.length} expressões originais neste bloco.
+        {block.declaredYield?" Rendimento descrito na fonte: "+block.declaredYield+".":""}
+        {block.usedInMeal?" Quantidade indicada para uso no prato: "+block.usedInMeal+".":""}
+       </small></p>
+       <ol start={block.ingredients[0].position+1}>{block.ingredients.map(item=><li key={item.id}>
+        {item.name}
+        {block.referencedAtPosition===item.position&&<small style={{display:"block"}}>Referência à maionese preparada no bloco auxiliar; não duplicar este item e seus ingredientes na lista de compras.</small>}
+       </li>)}</ol>
+      </section>)}
+      <h5>Uso, sobras e consolidação pendentes</h5>
+      <ul>{sauceComparison.partition.warnings.map(item=><li key={item}>{item}</li>)}</ul>
+      <p><small><strong>Sem cálculo automático:</strong> nem as quantidades consumidas nem as sobras, conversões de unidades, valores nutricionais ou somas de compras estão homologados nesta visualização.</small></p>
+     </div>:<p role="alert">A divisão entre prato e molho foi ocultada porque a fotografia do inventário não passou pela verificação de integridade.</p>}
      <h5>Pontos que exigem revisão e decisão editorial</h5>
      <ul>{sauceComparison.proposal.reviewChecklist.map(item=><li key={item}>{item}</li>)}</ul>
      <p><small>Sem botão de aprovação nesta fase. Esta prévia não atualiza ingredientes, medidas, alergênicos, rendimento, lista de compras ou a publicação da receita.</small></p>
