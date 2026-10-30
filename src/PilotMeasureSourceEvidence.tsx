@@ -8,6 +8,7 @@ import {buildSourceEditorialFocus} from "./lib/pilotSourceEditorialFocus";
 import {SAUCE_SAFETY_PROPOSALS,getVerifiedSauceProposal,type SauceSafetyProposal,type CurrentSauceRecipeSnapshot} from "./lib/pilotSauceSafetyProposals";
 import {getVerifiedSauceAudit,type SauceAuditIngredient,type SauceAuditReport} from "./lib/pilotSauceEditorialAudit";
 import {getVerifiedPreparationPartition,type PreparationPartition,type PreparationKind} from "./lib/pilotRecipePreparationPartition";
+import {buildProposedAuxiliaryLink,type AuxiliaryConsumptionLink} from "./lib/pilotAuxiliaryConsumptionModel";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -24,7 +25,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [report,setReport]=useState<PilotSourceEvidenceReport|null>(null);
- const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string;audit:SauceAuditReport|null;partition:PreparationPartition|null}|null>(null);
+ const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string;audit:SauceAuditReport|null;partition:PreparationPartition|null;link:AuxiliaryConsumptionLink|null}|null>(null);
  const [sauceWarning,setSauceWarning]=useState("");
  useEffect(()=>{
   let cancelled=false;
@@ -74,7 +75,8 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
       const audit=getVerifiedSauceAudit(proposal,evidence.official,current,
        currentRowsForAudit);
       const partition=getVerifiedPreparationPartition(proposal,evidence.official,current,currentRowsForAudit);
-      setSauceComparison({proposal,currentInstructions:current.instructions,audit,partition});
+      const link=partition?buildProposedAuxiliaryLink(recipe.recipe_id,partition):null;
+      setSauceComparison({proposal,currentInstructions:current.instructions,audit,partition,link});
      }catch{
       if(!cancelled)setSauceWarning("A proposta de preparo foi ocultada: não foi possível confirmar a versão exata da fonte, das instruções atuais e o estado não publicado. Refaça a revisão antes de propor mudanças.");
      }
@@ -159,6 +161,20 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
         {block.referencedAtPosition===item.position&&<small style={{display:"block"}}>Referência à maionese preparada no bloco auxiliar; não duplicar este item e seus ingredientes na lista de compras.</small>}
        </li>)}</ol>
       </section>)}
+      <h5>Modelo de relação prato → preparo auxiliar · ainda não homologado</h5>
+      {sauceComparison.link?<div>
+       <p><strong>Prato:</strong> {sauceComparison.link.mainBlockKey} · <strong>Molho:</strong> {sauceComparison.link.auxiliaryBlockKey}</p>
+       <p><small>Rendimento descrito: {sauceComparison.link.sourceDeclaredYield??"não informado em unidade quantificável"}.
+        {" "}Uso descrito na refeição: {sauceComparison.link.sourceDeclaredUse??"quantidade não informada"}.
+        {" "}Referência ao molho pronto: {sauceComparison.link.referenceIngredientText??"não consta como item próprio no prato"}.</small></p>
+       <p><strong>Quantidade produzida, quantidade usada e sobra:</strong> pendentes de medição validada.
+        Não há conversão automática entre xícara, colher, massa ou volume.</p>
+       {sauceComparison.link.duplicatePurchaseRisk&&<p role="note">
+        <strong>Dupla contagem possível:</strong> o prato menciona o molho pronto e o bloco auxiliar descreve seus componentes.
+        A lista de compras não deve contar os dois conjuntos como compras independentes.
+       </p>}
+       <p><small>Nenhum cálculo para compras ou nutrição foi habilitado. As simulações matemáticas são exercitadas apenas nos testes automatizados, com dados fictícios.</small></p>
+      </div>:<p role="alert">A relação prato–molho não passou pela verificação editorial. Nenhum cálculo foi habilitado.</p>}
       <h5>Uso, sobras e consolidação pendentes</h5>
       <ul>{sauceComparison.partition.warnings.map(item=><li key={item}>{item}</li>)}</ul>
       <p><small><strong>Sem cálculo automático:</strong> nem as quantidades consumidas nem as sobras, conversões de unidades, valores nutricionais ou somas de compras estão homologados nesta visualização.</small></p>
