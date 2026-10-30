@@ -8,7 +8,7 @@ export type SauceAuditIngredient={
 };
 export type SauceAuditRecipe={id:string;published:boolean;servings:number|null;};
 export type SauceAuditSource={recipe_id:string;reference_hash:string;
- original_yield:string|null;original_ingredients:string;use_stage:string;};
+ original_yield?:string|null;original_ingredients:string;use_stage:string;};
 export type SauceAuditBaseline={
  recipeId:string;sourceHash:string;sourceIngredients:string;
  originalYield:string|null;servings:number;ingredientNames:readonly string[];
