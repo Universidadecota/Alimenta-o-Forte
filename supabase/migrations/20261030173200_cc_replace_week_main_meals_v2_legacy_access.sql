@@ -126,7 +126,7 @@ begin
      )
     then false else public.planned_meals.is_locked
    end;
- -- is_locked nunca é zerado pelo gerador; novas entradas usam default false.
+ -- A fixação só pode ser liberada quando era inacessível e o usuário consentiu.
 end
 $function$
 ;
