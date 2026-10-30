@@ -42,7 +42,10 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
  };
  useEffect(()=>{if(section==="mine")void loadMine();},[section]);
  const choose=(r:Row)=>{setPreviewOpen(false);setPhotoConfirm(null);setFile(null);setRemovePhoto(false);setEditing(r.id);setForm({...r,url:r.url??"",description:r.description??"",instructions:r.instructions??"",recipe_ingredients:r.recipe_ingredients.length?r.recipe_ingredients.map(i=>({id:i.id,name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:(i.measure_mode||"measured") as Ingredient["measureMode"],optional:Boolean(i.is_optional)})):initial.recipe_ingredients});setError("");};
- const save=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;setBusy(true);setError("");try{let uploadedKey:string|null=null;let nextUrl=removePhoto?"":form.url;
+ const save=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;setBusy(true);setError("");try{
+ const writes=editing&&pilotRecipeIds.includes(editing)?null:
+   buildOfficialIngredientWrites(form.recipe_ingredients,editing?(rows.find(row=>row.id===editing)?.recipe_ingredients??null):null);
+ let uploadedKey:string|null=null;let nextUrl=removePhoto?"":form.url;
  if(file){
   if(!file.type.startsWith("image/")||file.size>12*1024*1024)throw new Error("Selecione uma imagem de até 12 MB.");
   const bitmap=await createImageBitmap(file);const factor=Math.min(1,1200/Math.max(bitmap.width,bitmap.height));const canvas=document.createElement("canvas");canvas.width=Math.round(bitmap.width*factor);canvas.height=Math.round(bitmap.height*factor);const context=canvas.getContext("2d");if(!context)throw new Error("Não foi possível processar a imagem.");context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();
@@ -74,7 +77,7 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
    });
    if(error)saveError=error;
   }else{
-    const {error}=await supabase.rpc("cc_save_official_recipe",{p_id:editing,p_title:form.title,p_category:form.category,p_description:form.description,p_instructions:form.instructions,p_minutes:form.prep_minutes,p_servings:form.servings,p_ingredients:buildOfficialIngredientWrites(form.recipe_ingredients,editing?(rows.find(row=>row.id===editing)?.recipe_ingredients??null):null),p_published:form.published,p_url:nextUrl.trim()||null,p_image_is_ai:form.image_is_ai});
+    const {error}=await supabase.rpc("cc_save_official_recipe",{p_id:editing,p_title:form.title,p_category:form.category,p_description:form.description,p_instructions:form.instructions,p_minutes:form.prep_minutes,p_servings:form.servings,p_ingredients:writes,p_published:form.published,p_url:nextUrl.trim()||null,p_image_is_ai:form.image_is_ai});
     if(error)saveError=error;
   }if(saveError){if(uploadedKey)await supabase.storage.from("recipe-illustrations").remove([uploadedKey]);throw saveError;}await load();await onRefresh();setFile(null);setRemovePhoto(false);setEditing(null);setForm({...initial,recipe_ingredients:[{name:"",quantity:1,unit:"g"}]});}catch(e){setError(e&&typeof e==="object"&&"message" in e?String(e.message):"Erro ao salvar receita oficial.");}finally{setBusy(false);}};
  const togglePublication=async(target:boolean)=>{
