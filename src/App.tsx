@@ -1,6 +1,5 @@
 import AdminRecipes from "./AdminRecipes";
 import AdminRecipeRatings from "./AdminRecipeRatings";
-import AdminBetaAccess from "./AdminBetaAccess";
 import AdminAllergenReviewQueue from "./AdminAllergenReviewQueue";
 import AdminNutritionN2 from "./AdminNutritionN2";
 import HomeDashboard from "./HomeDashboard";
@@ -545,7 +544,7 @@ export default function App(){
  })}</div>
  <button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
  {page==="Alimentos"&&<FoodLibrary/>}
- {page==="Administração"&&isAdmin&&<><AdminNutritionN2/><AdminRecipes onRefresh={reloadRecipes}/><AdminRecipeRatings/><AdminBetaAccess/><AdminAllergenReviewQueue/></> }
+ {page==="Administração"&&isAdmin&&<><AdminNutritionN2/><AdminRecipes onRefresh={reloadRecipes}/><AdminRecipeRatings/><AdminAllergenReviewQueue/></> }
  {page==="Receitas"&&!recipeForm&&<section className="cc-recipe-target-date" aria-label="Dia escolhido para adicionar receitas">
   <div className="cc-recipe-target-summary">
    <strong>Dia escolhido para o cardápio</strong>
