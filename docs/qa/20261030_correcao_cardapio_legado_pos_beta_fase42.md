@@ -29,7 +29,7 @@ A correção não reabre a leitura das receitas privadas e não remove registros
 - A UI apresenta a mensagem correta do servidor quando há erro PostgreSQL; não converte qualquer `PostgrestError` em “Falha de conexão”.
 
 ### Banco (migração aditiva)
-`supabase/migrations/20261030173200_cc_replace_week_main_meals_v2_legacy_access.sql`
+`supabase/migrations/20261030171742_cc_replace_week_main_meals_v2_legacy_access.sql`
 
 Nova RPC autenticada de quatro parâmetros; mantém a RPC anterior e as políticas RLS existentes. A função:
 
