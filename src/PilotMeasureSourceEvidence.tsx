@@ -1,11 +1,12 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
 import {buildPilotSourceEvidenceReport,type HistoricalIngredientEvidence,type OfficialPilotSource,type PilotSourceEvidenceReport,type HistoricalComparison} from "./lib/pilotSourceEvidence";
-import type {CurrentPilotIngredient,RecipeReconciliation} from "./lib/pilotSourceReconciliation";
+import type {RecipeReconciliation} from "./lib/pilotSourceReconciliation";
 import {buildEditorialMappingHints} from "./lib/pilotEditorialMappingHints";
 import {traceUntrackedIngredientsToSource} from "./lib/pilotSourceLiteralTrace";
 import {buildSourceEditorialFocus} from "./lib/pilotSourceEditorialFocus";
 import {SAUCE_SAFETY_PROPOSALS,getVerifiedSauceProposal,type SauceSafetyProposal,type CurrentSauceRecipeSnapshot} from "./lib/pilotSauceSafetyProposals";
+import {getVerifiedSauceAudit,type SauceAuditIngredient,type SauceAuditReport} from "./lib/pilotSauceEditorialAudit";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -21,7 +22,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [report,setReport]=useState<PilotSourceEvidenceReport|null>(null);
- const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string}|null>(null);
+ const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string;audit:SauceAuditReport|null}|null>(null);
  const [sauceWarning,setSauceWarning]=useState("");
  useEffect(()=>{
   let cancelled=false;
@@ -32,14 +33,14 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
    try{
     const [officialResult,historicalResult,currentResult]=await Promise.all([
      supabase.from("cc_official_recipe_source_records")
-      .select("recipe_id,source_document,entry_number,source_page,original_title,original_ingredients,reference_hash,use_stage")
+      .select("recipe_id,source_document,entry_number,source_page,original_title,original_ingredients,original_yield,reference_hash,use_stage")
       .eq("recipe_id",recipe.recipe_id).maybeSingle(),
      supabase.from("cc_pilot_ingredient_measure_reviews")
       .select("ingredient_id,recipe_id,source_text,source_position,review_status",{count:"exact"})
       .eq("recipe_id",recipe.recipe_id)
       .order("source_position",{ascending:true}).order("ingredient_id",{ascending:true}).range(0,249),
      supabase.from("recipe_ingredients")
-      .select("id,recipe_id,name,position",{count:"exact"})
+      .select("id,recipe_id,name,position,quantity,unit,measure_mode",{count:"exact"})
       .eq("recipe_id",recipe.recipe_id)
       .order("position",{ascending:true}).order("id",{ascending:true}).range(0,249)
     ]);
@@ -48,7 +49,8 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     if(historicalResult.error)throw historicalResult.error;
     if(currentResult.error)throw currentResult.error;
     const historic=(historicalResult.data??[]) as HistoricalIngredientEvidence[];
-    const current=(currentResult.data??[]) as CurrentPilotIngredient[];
+    const current=(currentResult.data??[]) as SauceAuditIngredient[];
+    const currentRowsForAudit=current;
     if(historicalResult.count!==historic.length||currentResult.count!==current.length||
      historic.length>250||current.length>250){
      throw new Error("A leitura da receita foi incompleta. Nenhuma evidência parcial foi exibida.");
@@ -61,13 +63,15 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     if(SAUCE_SAFETY_PROPOSALS.some(item=>item.recipeId===recipe.recipe_id)){
      try{
       const snapshotResult=await supabase.from("recipes")
-       .select("id,instructions,published").eq("id",recipe.recipe_id).maybeSingle();
+       .select("id,instructions,published,servings").eq("id",recipe.recipe_id).maybeSingle();
       if(cancelled)return;
       if(snapshotResult.error)throw snapshotResult.error;
-      const current=(snapshotResult.data??null) as CurrentSauceRecipeSnapshot|null;
+      const current=(snapshotResult.data??null) as (CurrentSauceRecipeSnapshot&{servings:number|null})|null;
       const proposal=getVerifiedSauceProposal(evidence.official,current);
       if(!proposal||!current?.instructions)throw new Error("A fonte, a versão do preparo ou o estado de publicação não coincidem com a auditoria.");
-      setSauceComparison({proposal,currentInstructions:current.instructions});
+      const audit=getVerifiedSauceAudit(proposal,evidence.official,current,
+       currentRowsForAudit);
+      setSauceComparison({proposal,currentInstructions:current.instructions,audit});
      }catch{
       if(!cancelled)setSauceWarning("A proposta de preparo foi ocultada: não foi possível confirmar a versão exata da fonte, das instruções atuais e o estado não publicado. Refaça a revisão antes de propor mudanças.");
      }
@@ -127,6 +131,17 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
      <p>{sauceComparison.proposal.proposedIngredientNote}</p>
      <h5>Preparo alternativo proposto — ainda não aplicado</h5>
      <p style={{whiteSpace:"pre-wrap"}}>{sauceComparison.proposal.proposedPreparation}</p>
+     <h5>Conferência de consistência, rendimentos e quantidades</h5>
+     {sauceComparison.audit?<div>
+      <p><strong>{sauceComparison.audit.sourceIngredientCount} ingredientes</strong> na receita;
+       <strong> {sauceComparison.audit.structurallyUnmeasuredCount}</strong> ainda sem quantidade numérica estruturada.
+       <strong> {sauceComparison.audit.servings} porção</strong> cadastrada para a refeição.
+       A expressão textual original pode conter medidas, mas elas não foram homologadas para cálculos automáticos.</p>
+      <ul>{sauceComparison.audit.issues.map(issue=><li key={issue}>{issue}</li>)}</ul>
+      <h5>Ingredientes que exigem verificação dos alertas de alergia</h5>
+      <ul>{sauceComparison.audit.ingredientsForAllergyReview.map(item=><li key={item}>{item}</li>)}</ul>
+      <p><small>Esta lista é uma triagem do texto, não um cadastro validado de alergênicos nem garantia de ausência de risco.</small></p>
+     </div>:<p role="alert">A fotografia de ingredientes, quantidades ou rendimento diverge da auditoria; os detalhes de consistência foram ocultados para evitar conclusões desatualizadas. Refaça a revisão.</p>}
      <h5>Pontos que exigem revisão e decisão editorial</h5>
      <ul>{sauceComparison.proposal.reviewChecklist.map(item=><li key={item}>{item}</li>)}</ul>
      <p><small>Sem botão de aprovação nesta fase. Esta prévia não atualiza ingredientes, medidas, alergênicos, rendimento, lista de compras ou a publicação da receita.</small></p>
