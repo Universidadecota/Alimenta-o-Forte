@@ -1,4 +1,4 @@
-import type {PreparationPartition,PreparationBlock} from "./pilotRecipePreparationPartition";
+import type {PreparationPartition} from "./pilotRecipePreparationPartition";
 
 /**
  * Modelo de hipótese — não é um cálculo de compras, nutrição, conservação,
