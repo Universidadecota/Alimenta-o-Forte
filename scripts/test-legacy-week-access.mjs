@@ -37,7 +37,7 @@ assert.equal(draft[day]["Almoço"],undefined);
 assert.deepEqual(draft[day]["Jantar"],current[day]["Jantar"]);
 assert.deepEqual(draft[day]["Lanche da tarde"],current[day]["Lanche da tarde"]);
 assert.equal(JSON.stringify(current),old,"O plano original não pode ser mutado antes da confirmação.");
-assert.deepEqual(unavailableMainMeals(current,[recipe,dinner,{...recipe,id:"old-private"},{...dinner,id:"old-private-2"}],dates),[]);
+assert.deepEqual(unavailableMainMeals(current,[recipe,dinner,{...recipe,id:"old-private"},{...dinner,id:"old-private-2",category:"Almoço"}],dates),[]);
 assert.match(readableWeekError({code:"P0001",message:"Receita indisponível para este usuário"}),/não está mais disponível/);
 assert.match(readableWeekError({message:"Cardápio alterado em outra sessão."}),/outra sessão/);
 assert.match(readableWeekError({message:"Uma escolha fixada mudou."}),/fixada/);
