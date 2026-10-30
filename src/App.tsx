@@ -271,7 +271,7 @@ export default function App(){
     ?"\n\n⚠️ ALERTA DE ALERGIA — "+preferences.allergies.join(", ")+"\nCardápio preliminar, sem garantia contra alergênicos ocultos ou contato cruzado. Confira ingredientes e rótulos antes de consumir.\n\nDeseja salvar mesmo assim?"
     :"";
    const legacyNotice=missing.length
-    ?"\\n\\nATENÇÃO: "+missing.length+" refeições do cardápio antigo não estão mais disponíveis para este usuário, incluindo "+missingLocked+" fixada(s). Para gerar a semana, essas referências precisam ser SUBSTITUÍDAS por receitas atualmente autorizadas. Você autoriza também a liberação dessas "+missingLocked+" fixação(ões) antigas? Nenhum registro será alterado se cancelar."
+    ?"\n\nATENÇÃO: "+missing.length+" refeições do cardápio antigo não estão mais disponíveis para este usuário, incluindo "+missingLocked+" fixada(s). Para gerar a semana, essas referências precisam ser SUBSTITUÍDAS por receitas atualmente autorizadas. Você autoriza também a liberação dessas "+missingLocked+" fixação(ões) antigas? Nenhum registro será alterado se cancelar."
     :"";
    if(!confirm("Gerar sugestões para as "+(21-lockedCount)+" refeições não fixadas? "+lockedCount+" escolha(s) fixada(s) ainda acessível(is) serão preservadas, assim como lanches e ceia; a lista de compras será recalculada."+legacyNotice+caution)){
     setWeekSuggestionProgress("");return;
