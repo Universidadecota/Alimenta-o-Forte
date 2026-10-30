@@ -43,7 +43,7 @@ assert.match(readableWeekError({message:"Cardápio alterado em outra sessão."})
 assert.match(readableWeekError({message:"Uma escolha fixada mudou."}),/fixada/);
 assert.match(readableWeekError({code:"42501",message:"Acesso negado"}),/Acesso negado/);
 assert.doesNotMatch(readableWeekError({code:"P0001",message:"Receita indisponível para este usuário"}),/Falha de conexão/);
-const sql=readFileSync(new URL("../supabase/migrations/20261030173200_cc_replace_week_main_meals_v2_legacy_access.sql",import.meta.url),"utf8");
+const sql=readFileSync(new URL("../supabase/migrations/20261030171742_cc_replace_week_main_meals_v2_legacy_access.sql",import.meta.url),"utf8");
 assert.match(sql,/CREATE OR REPLACE FUNCTION public\.cc_replace_week_main_meals_v2\(/);
 assert.match(sql,/p_release_unavailable_locks boolean/);
 assert.match(sql,/coalesce\(p_release_unavailable_locks,false\)/);
