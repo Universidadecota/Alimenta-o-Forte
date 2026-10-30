@@ -2,7 +2,7 @@ import {useState} from "react";
 import {supabase} from "./lib/supabase";
 import {
  CHECK_LABELS,JWT_AUDIT_KEYS,classifyJwtAuditRole,evaluateJwtAudit,
- type AuditKey,type AuditObservation,type AuditAssessment,type JwtAuditRole
+ type AuditObservation,type AuditAssessment,type JwtAuditRole
 } from "./lib/betaJwtReadOnlyAudit";
 
 /** Executa somente SELECTs (head/count) e RPCs STABLE de leitura sob a
@@ -35,12 +35,13 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
  const [error,setError]=useState("");
  const [copied,setCopied]=useState(false);
  const run=async()=>{
-  if(!supabase||busy)return;
+  const client=supabase;
+  if(!client||busy)return;
   setBusy(true);setError("");setReport(null);setCopied(false);
   try{
    let userId:string|null=null;
    if(authenticated){
-    const {data,error}=await supabase.auth.getUser();
+    const {data,error}=await client.auth.getUser();
     if(error||!data.user)throw new Error("Não foi possível confirmar a identidade da sessão. Entre novamente.");
     userId=data.user.id;
    }
@@ -48,8 +49,8 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
    let betaAccess:boolean|null=false;
    if(userId){
     const [a,b]=await Promise.all([
-     supabase.rpc("cc_is_admin"),
-     supabase.rpc("cc_beta_can_view_recipe",{p_recipe_id:ACTIVE_BETA_REFERENCE})
+     client.rpc("cc_is_admin"),
+     client.rpc("cc_beta_can_view_recipe",{p_recipe_id:ACTIVE_BETA_REFERENCE})
     ]);
     admin=a.error||typeof a.data!=="boolean"?null:a.data;
     betaAccess=b.error||typeof b.data!=="boolean"?null:b.data;
@@ -61,26 +62,26 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
     }
     try{
      if(key==="admin_beta_catalog"){
-      const {data,error}=await supabase.rpc("cc_admin_beta_catalog_overview");
+      const {data,error}=await client.rpc("cc_admin_beta_catalog_overview");
       return {key,count:error?null:(Array.isArray(data)?data.length:null),error:Boolean(error)&&!denied(error),accessDenied:denied(error)};
      }
      if(key==="private_official"){
-      const {count,error}=await supabase.from("recipes").select("id",{count:"exact",head:true})
+      const {count,error}=await client.from("recipes").select("id",{count:"exact",head:true})
        .is("owner_user_id",null).eq("published",false);
       return {key,count:count??null,error:Boolean(error)&&!denied(error),accessDenied:denied(error)};
      }
      if(key==="source_records"){
-      const {count,error}=await supabase.from("cc_official_recipe_source_records")
+      const {count,error}=await client.from("cc_official_recipe_source_records")
        .select("recipe_id",{count:"exact",head:true});
       return {key,count:count??null,error:Boolean(error)&&!denied(error),accessDenied:denied(error)};
      }
      if(key==="measure_reviews"){
-      const {count,error}=await supabase.from("cc_pilot_ingredient_measure_reviews")
+      const {count,error}=await client.from("cc_pilot_ingredient_measure_reviews")
        .select("ingredient_id",{count:"exact",head:true});
       return {key,count:count??null,error:Boolean(error)&&!denied(error),accessDenied:denied(error)};
      }
      const table=key==="other_plans"?"planned_meals":key==="other_favorites"?"favorites":"user_preferences";
-     const {count,error}=await supabase.from(table).select("user_id",{count:"exact",head:true})
+     const {count,error}=await client.from(table).select("user_id",{count:"exact",head:true})
       .neq("user_id",userId!);
      return {key,count:count??null,error:Boolean(error)&&!denied(error),accessDenied:denied(error)};
     }catch{
