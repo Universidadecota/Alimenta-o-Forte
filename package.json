@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run test:sauce-safety && tsc -b && vite build",
     "preview": "vite preview",
     "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
     "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
     "test:editorial-batch": "node scripts/test-pilot-editorial-batch.mjs",
-    "test:pilot-flow": "node scripts/test-planner-shopping.mjs"
+    "test:pilot-flow": "node scripts/test-planner-shopping.mjs",
+    "test:sauce-safety": "node scripts/test-pilot-sauce-safety-proposals.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

@@ -5,6 +5,7 @@ import type {CurrentPilotIngredient,RecipeReconciliation} from "./lib/pilotSourc
 import {buildEditorialMappingHints} from "./lib/pilotEditorialMappingHints";
 import {traceUntrackedIngredientsToSource} from "./lib/pilotSourceLiteralTrace";
 import {buildSourceEditorialFocus} from "./lib/pilotSourceEditorialFocus";
+import {SAUCE_SAFETY_PROPOSALS,getVerifiedSauceProposal,type SauceSafetyProposal,type CurrentSauceRecipeSnapshot} from "./lib/pilotSauceSafetyProposals";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -20,10 +21,13 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState("");
  const [report,setReport]=useState<PilotSourceEvidenceReport|null>(null);
+ const [sauceComparison,setSauceComparison]=useState<{proposal:SauceSafetyProposal;currentInstructions:string}|null>(null);
+ const [sauceWarning,setSauceWarning]=useState("");
  useEffect(()=>{
   let cancelled=false;
   const run=async()=>{
    setLoading(true);setError("");setReport(null);
+   setSauceComparison(null);setSauceWarning("");
    if(!supabase){setError("Conexão com o catálogo indisponível.");setLoading(false);return;}
    try{
     const [officialResult,historicalResult,currentResult]=await Promise.all([
@@ -52,6 +56,22 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     const evidence=buildPilotSourceEvidenceReport(recipe,
      (officialResult.data??null) as OfficialPilotSource|null,historic,current);
     setReport(evidence);
+    // A proposta é carregada apenas nas três receitas auditadas. Falhas não
+    // interferem na leitura da fonte e nunca habilitam aprovação.
+    if(SAUCE_SAFETY_PROPOSALS.some(item=>item.recipeId===recipe.recipe_id)){
+     try{
+      const snapshotResult=await supabase.from("recipes")
+       .select("id,instructions,published").eq("id",recipe.recipe_id).maybeSingle();
+      if(cancelled)return;
+      if(snapshotResult.error)throw snapshotResult.error;
+      const current=(snapshotResult.data??null) as CurrentSauceRecipeSnapshot|null;
+      const proposal=getVerifiedSauceProposal(evidence.official,current);
+      if(!proposal||!current?.instructions)throw new Error("A fonte, a versão do preparo ou o estado de publicação não coincidem com a auditoria.");
+      setSauceComparison({proposal,currentInstructions:current.instructions});
+     }catch{
+      if(!cancelled)setSauceWarning("A proposta de preparo foi ocultada: não foi possível confirmar a versão exata da fonte, das instruções atuais e o estado não publicado. Refaça a revisão antes de propor mudanças.");
+     }
+    }
    }catch(err){
     if(!cancelled)setError(err instanceof Error?err.message:"Não foi possível ler a evidência da receita.");
    }finally{if(!cancelled)setLoading(false);}
@@ -94,6 +114,23 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
      <small style={{display:"block"}}>{item.explanation}</small>
      <small style={{display:"block"}}>Identificador do ingrediente: <code>{item.ingredient.id}</code></small>
     </li>)}</ol>:<p>Nenhum ingrediente adicional com ambiguidade textual nesta receita.</p>}
+   </section>}
+   {(sauceWarning||sauceComparison)&&<section aria-label="Propostas de preparo mais seguro ainda não aprovadas">
+    <h4>Proposta editorial de preparo mais seguro · não homologada</h4>
+    <p>Esta seção é apenas uma alternativa proposta com base na fotografia auditada. <strong>A receita atual e seu documento de origem não foram alterados.</strong></p>
+    {sauceWarning&&<p role="alert">{sauceWarning}</p>}
+    {sauceComparison&&<details>
+     <summary>Examinar preparo atual e proposta para {sauceComparison.proposal.title}</summary>
+     <h5>Preparo registrado atualmente — preservado</h5>
+     <p style={{whiteSpace:"pre-wrap"}}>{sauceComparison.currentInstructions}</p>
+     <h5>Mudança sugerida nos ingredientes — ainda não aplicada</h5>
+     <p>{sauceComparison.proposal.proposedIngredientNote}</p>
+     <h5>Preparo alternativo proposto — ainda não aplicado</h5>
+     <p style={{whiteSpace:"pre-wrap"}}>{sauceComparison.proposal.proposedPreparation}</p>
+     <h5>Pontos que exigem revisão e decisão editorial</h5>
+     <ul>{sauceComparison.proposal.reviewChecklist.map(item=><li key={item}>{item}</li>)}</ul>
+     <p><small>Sem botão de aprovação nesta fase. Esta prévia não atualiza ingredientes, medidas, alergênicos, rendimento, lista de compras ou a publicação da receita.</small></p>
+    </details>}
    </section>}
    {mapping&&<section aria-label="Mapa editorial preliminar de correspondências">
     <h4>Mapa editorial preliminar · hipóteses não aprovadas</h4>
