@@ -92,10 +92,10 @@ export function buildAuxiliaryEditorialWorkflowPreview(
   draft.providedMeasurement.usedAmount!==null;
  const measurementStatus:EditorialGateStatus=hasMeasureEvidence
   ?"apto_para_conferencia_humana":"conferencia_necessaria";
- const rightsPending=draft.sourceRightsStatus!=="approved";
- const ingredientsPending=draft.ingredientReviewStatus!=="reviewed";
- // Os valores de status acima NÃO são aceitos como prova de homologação.
- // Mesmo quando coincidem com essas palavras, etapas continuam pendentes.
+ const rightsPending=true;
+ const ingredientsPending=true;
+ // Nenhuma string recebida do cliente é autorização para destravar direitos
+ // ou ingredientes; somente um futuro procedimento no servidor poderá fazê-lo.
  const gates:EditorialGate[]=[
   {
    id:"source_and_version",
