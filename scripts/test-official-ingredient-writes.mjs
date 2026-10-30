@@ -36,7 +36,7 @@ assert.throws(()=>buildOfficialIngredientWrites(current,[original[0],original[0]
 const reordered=buildOfficialIngredientWrites([current[1],current[0]],original);
 assert.equal(reordered[0].expected_position,1);
 assert.equal(reordered[1].expected_position,0);
-const sql=readFileSync(new URL("../docs/qa/20261030_sql_reconciliacao_edicao_oficial_fase40.sql",import.meta.url),"utf8");
+const sql=readFileSync(new URL("../supabase/migrations/20261030133408_cc_official_recipe_inplace_ingredient_reconciliation_fase40.sql",import.meta.url),"utf8");
 assert.match(sql,/FOR UPDATE/i);
 assert.match(sql,/expected_position/);
 assert.match(sql,/expected_quantity/);
