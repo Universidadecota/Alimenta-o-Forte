@@ -4,7 +4,7 @@ import {supabase} from "./lib/supabase";
 const goals=[["eat_better","Comer melhor"],["plan_meals","Organizar refeições"],["balanced_weight","Cuidar do peso com equilíbrio"],["build_habits","Cultivar hábitos"],["maintain_balance","Manter equilíbrio"]] as const;
 const likes=["Verduras","Frutas","Massas","Carnes","Peixes","Vegetariano","Vegano","Sem lactose","Sem glúten"];
 const avoids=["Berinjela","Pimentão","Fígado","Quiabo","Peixe","Cebola"];
-const allergens=["Leite","Glúten","Amendoim","Castanhas","Ovo","Peixes","Crustáceos","Soja","Outros"];
+const allergens=["Leite","Glúten","Amendoim","Castanhas","Ovo","Peixes","Crustáceos","Soja","Gergelim","Outros"];
 type Values={goal:string;liked_foods:string[];disliked_foods:string[];allergies:string[];household_size:number;cooking_minutes:number};
 const initial:Values={goal:"eat_better",liked_foods:[],disliked_foods:[],allergies:[],household_size:2,cooking_minutes:40};
 export default function Onboarding({userId,onDone}:{userId:string;onDone:()=>void}){

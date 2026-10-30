@@ -1,0 +1,76 @@
+# Costa&Costa — Fase 3E: posicionamento culinário autoral e piloto pessoal
+
+**Data:** 17/10/2026  
+**Branch:** `feat/revisao-alergenos-fase1-12out2026` · **PR #16:** manter draft e sem merge.
+
+## Decisão do responsável
+O responsável declarou que **todas as 119 receitas cadastradas foram criadas por ele, com adaptações apoiadas pelo Claude IA**. Decidiu seguir o posicionamento de **biblioteca culinária autoral**, com cardápio montado livremente pelo usuário e lista de compras. O aplicativo será utilizado inicialmente **por aproximadamente três meses para testes pessoais**, antes de se avaliar uma futura assinatura paga.
+
+**Não oferecer como serviço clínico:** prescrição dietética individualizada, tratamentos, diagnóstico, alegações de que receitas curam doenças, garantias de emagrecimento ou de segurança para alergênicos. O piloto pessoal não comprova eficácia ou segurança clínica. A declaração de autoria é relato do responsável, não auditoria jurídica de direitos.
+
+## Adaptações no código
+- `src/App.tsx`: mensagem de piloto culinário e receitas autorais; excluído o acesso à **Coleção EDV** da navegação, sem apagar seus registros. A página de receitas autorais deixa de exibir, por padrão, receitas oficiais legadas que não pertencem às 119 autorais. Administradores podem localizá-las pelo filtro **Legado** para consultar histórico.
+- Os seletores do cardápio continuam apresentando receitas autorais e particulares; uma receita legada **já presente no dia selecionado** continua aparecendo para que o planejamento histórico não desapareça. O histórico de planejamento é preservado.
+- Retirado o gerador automático de semana da interface/código nesta etapa. O cardápio segue montado manualmente pelo usuário; as regras de horário e o alerta de alergia já existentes permanecem.
+- `src/HomeDashboard.tsx`: retira do painel inicial a exposição da meta pessoal ligada a saúde/peso e apresenta a compra como ingredientes das receitas escolhidas. Dados de `user_preferences` **não foram apagados**, e a proteção de alergias permanece.
+- `src/AdminRecipes.tsx`: remove do painel culinário o componente visual de **credenciamento médico**; nenhum cadastro médico foi apagado ou ativado. Distingue `Piloto pessoal · privado` de receitas comuns e oculta a ação de publicação para os 119 itens do piloto.
+- `src/RecipeDetails.tsx`: sinaliza finalidade culinária e autoria reportada, sem modificar ingredientes, rendimentos ou preparos. `index.html`: descrição do produto alinhada a receitas e compras. `src/styles.css`: aviso discreto de escolha manual.
+- A estrutura de revisão médica existente permanece restrita e **inativa**; a negociação pendente com a Dra. Juliana não condiciona o desenvolvimento culinário.
+
+## Segurança e procedência no Supabase
+**Migração aplicada** `supabase/migrations/20261017120000_cc_culinary_authorial_pilot_publish_guard_phase3e.sql`, nome remoto `cc_culinary_authorial_pilot_publish_guard_phase3e_cloud`.
+- Dois triggers bloqueiam receita do `personal_pilot` que tente mudar para `published=true` ou ser associada retroativamente como piloto a receita pública. A publicação futura requer transição editorial explícita.
+- O bloqueio de publicação foi testado em SQL transacional (`BEGIN` / `ROLLBACK`): a tentativa recebeu a exceção esperada e não persistiu alterações.
+
+**Migração aplicada** `supabase/migrations/20261017121000_cc_pilot_authorship_declaration_phase3e1.sql`, nome remoto `cc_pilot_authorship_declaration_phase3e1_cloud`.
+- As 119 fontes recebem `authorship_reported=true`, `ai_assistance_reported=true`, declaração textual de criação pelo responsável com adaptações via Claude e a data do relato, **17/10/2026**.
+- Todos os registros mantêm `commercial_rights_status='pending_review'`. Isso não declara exclusividade legal, regularidade de publicidade nem validação clínica.
+
+## Integridade verificada (antes de build novo)
+| Indicador | Confirmado |
+|---|---:|
+| Receitas do piloto pessoal | **119** |
+| Receitas planejáveis | **114** |
+| Registros com autoria e apoio de IA declarados | **119** |
+| Registros ainda pendentes de revisão para venda | **119** |
+| Receitas autorais do piloto publicadas | **0** |
+| Refeições históricas planejadas preservadas | **26** |
+| Fragmentos de ingredientes vinculados ao piloto | **1.073** |
+| Alimentos previamente públicos | **34** |
+| Profissionais médicos com acesso ativo | **0** |
+
+**Ponto de atenção antes da venda:** existem ainda **sete receitas oficiais legadas publicadas** (seis rotuladas `[Exemplo]` e `Chá Cremoso De Cúrcuma`). Elas não fazem parte das 119 autorais. Estão ocultas da galeria principal do piloto e continuam em registros históricos de planejamento. **Não foram excluídas nem despublicadas nesta fase**, para não comprometer os 25 vínculos antigos. É necessário planejar a retirada segura desses conteúdos antes do lançamento comercial; ocultação visual **não equivale** a despublicação no banco/API.
+
+## Não feito / próximos passos
+1. **Compilação do frontend:** executar `git pull --ff-only` e `npm run build` no Windows; nenhuma homologação de build foi recebida para esses commits ainda. Os pontos-chave de imports, props e proteções foram conferidos estaticamente no GitHub.
+2. Homologação direcionada: tela inicial (sem metas médicas), **Receitas** (autorais no filtro `Todos`, receitas legadas no filtro administrativo), **Administração** (sem credenciamento médico e sem opção de publicar receita do piloto). Não repetir os testes de compras, ceias ou médico já validados.
+3. Próxima fase funcional: **consolidação conservadora das medidas de compras**. Somar quantidades de um mesmo ingrediente apenas quando unidade, identificação, preparo e produto forem inequivocamente compatíveis; preservação de `a gosto`, opcionais, alternativas `ou` e quantidade não informada, sem conversões ou escolhas inventadas. Testes com casos reais dos 1.073 fragmentos.
+4. Antes da comercialização: confirmar autoria/documentação de direitos, revisar termos de uso, LGPD, publicidade, condições de assinatura/cancelamento e integridade dos cadastros. Revisão de nutricionista pode ser contratada pontualmente se houver conteúdo nutricional técnico; não tornar parceria médica obrigatória para uma biblioteca culinária.
+5. Manter PR #16 rascunho, sem merge. Conciliar migrações locais/remotas antes de deploy.
+
+
+## Homologação do build Windows — Fase 3E
+
+O responsável forneceu a saída do PowerShell após sincronizar a branch `feat/revisao-alergenos-fase1-12out2026` até o commit `2ee0761`:
+
+- `git pull --ff-only`: fast-forward de `8ba45e0` a `2ee0761`, sem conflitos.
+- `npm run build` (`tsc -b && vite build`): **aprovado**, nenhum erro TypeScript, Vite **6.4.4**, **1.644 módulos transformados**, conclusão em **39,21 segundos**.
+- Artefatos: `dist/assets/index-C94dBnbL.css` — **52,94 kB** (gzip **11,40 kB**); `dist/assets/index-DYC2Y4i2.js` — **500,28 kB** (gzip **141,37 kB**).
+- Aviso não bloqueante: chunk minimizado maior que **500 kB**. Registrado como otimização futura de divisão de bundle, sem alterar conteúdo das receitas.
+
+**Resultado:** build de produção da Fase 3E **APROVADO**. Os 119 registros do piloto continuam não publicados e os planos anteriores foram preservados conforme a auditoria de banco feita antes do build. **Ainda não homologadas visualmente:** exclusão de receitas legadas do filtro `Todos`, filtro administrativo `Legado`, início sem objetivos clínicos e ausência do painel médico na interface.
+
+**Próximo teste sem recompilar:** `localhost:5173` → **Receitas** → filtro **Todos**; verificar que aparecem as autorais e não os cartões `[Exemplo]`. Depois, selecionar **Legado** e confirmar que os exemplos continuam acessíveis ao administrador. Enviar uma captura com o resultado. Não repetir testes anteriores de receitas, ceia, compras ou RLS. PR #16 continua aberto, em rascunho e sem merge.
+
+
+## Homologação visual do catálogo autoral e do filtro Legado — 17/10/2026
+
+**Evidências:** quatro capturas da página **Receitas**, `localhost:5173`, no computador, fornecidas pelo responsável em 17/10/2026.
+
+1. Filtro **Todos**: indicador `115 receitas encontradas`; exibição de cartões identificados como **Receita autoral** em lugar dos cartões com prefixo `[Exemplo]`, com ações `Ver receita completa` e inclusão no cardápio. Visualizada a página 1 de 7, paginação compatível com 18 itens por página.
+2. Filtro administrativo **Legado**: indicador `7 receitas encontradas`, incluindo exemplos de frango, iogurte, omelete, peixe, salada e sopa; essa consulta está separada do filtro padrão.
+3. **Reconciliado no Supabase** (SQL somente leitura): 114 receitas do piloto com `is_plannable=true` + 1 receita particular não arquivada = **115** em `Todos`; outros 5 registros do acervo são molhos complementares, não considerados refeições diárias. Existem 7 receitas oficiais legadas publicadas, contabilizadas separadamente. **26 refeições planejadas** permanecem registradas.
+
+**Resultado homologado:** separação e contagem visual do acervo autoral, filtro Legado e paginação no desktop, combinadas com confirmação quantitativa no banco. A tela inicial e a retirada do módulo médico da Administração **não foram observadas nessas capturas**. O filtro Legado preserva visualização administrativa; **não** equivale a despublicar os sete registros via API, pendência explícita antes da venda.
+
+**Próxima fase funcional:** consolidar medidas de ingredientes das receitas planejadas de forma conservadora (somente mesmo item, mesma unidade e estado/preparo compatíveis). Preservar alternativas, `a gosto` e expressões ambíguas intactas; não inventar quantidades ou conversões entre medidas. Não repetir os quatro testes visuais aprovados, build anterior, nem homologações de compras/ceias/médico. PR #16 continua aberto em rascunho e sem merge.

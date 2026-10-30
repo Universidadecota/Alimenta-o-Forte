@@ -5,8 +5,26 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && npm run test:pilot-history-delete-guard && npm run test:official-ingredient-writes && npm run test:jwt-rls-diagnostics && tsc -b && vite build",
+    "preview": "vite preview",
+    "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
+    "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
+    "test:editorial-batch": "node scripts/test-pilot-editorial-batch.mjs",
+    "test:pilot-flow": "node scripts/test-planner-shopping.mjs",
+    "test:sauce-safety": "node scripts/test-pilot-sauce-safety-proposals.mjs",
+    "test:sauce-audit": "node scripts/test-pilot-sauce-editorial-audit.mjs",
+    "test:preparation-partition": "node scripts/test-pilot-preparation-partition.mjs",
+    "test:auxiliary-consumption": "node scripts/test-pilot-auxiliary-consumption-model.mjs",
+    "test:auxiliary-review-draft": "node scripts/test-pilot-auxiliary-review-draft.mjs",
+    "test:auxiliary-editorial-workflow": "node scripts/test-pilot-auxiliary-editorial-workflow.mjs",
+    "test:auxiliary-authorization-blueprint": "node scripts/test-pilot-auxiliary-authorization-blueprint.mjs",
+    "test:auxiliary-migration-runbook": "node scripts/test-pilot-auxiliary-migration-runbook.mjs",
+    "test:isolated-preflight": "node scripts/test-pilot-isolated-preflight.mjs",
+    "pilot:isolated-preflight": "node scripts/pilot-isolated-preflight.mjs",
+    "test:beta-membership-guard": "node scripts/test-beta-recipe-membership-guard.mjs",
+    "test:pilot-history-delete-guard": "node scripts/test-pilot-history-delete-guard.mjs",
+    "test:official-ingredient-writes": "node scripts/test-official-ingredient-writes.mjs",
+    "test:jwt-rls-diagnostics": "node scripts/test-jwt-rls-diagnostics.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
