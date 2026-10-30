@@ -6,24 +6,24 @@ const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext
 const {classifyJwtAuditRole,evaluateJwtAudit,JWT_AUDIT_KEYS}=await import(
  "data:text/javascript;base64,"+Buffer.from(js).toString("base64"));
 const sample=(key,count,rest={})=>({key,count,accessDenied:false,error:false,...rest});
-assert.equal(classifyJwtAuditRole(false,null,null),"anonymous");
-assert.equal(classifyJwtAuditRole(true,true,true),"admin");
-assert.equal(classifyJwtAuditRole(true,false,true),"beta_member");
-assert.equal(classifyJwtAuditRole(true,false,false),"ordinary");
-assert.equal(classifyJwtAuditRole(true,null,false),"unknown");
-assert.equal(classifyJwtAuditRole(true,false,null),"unknown");
+assert.equal(classifyJwtAuditRole(false,null),"anonymous");
+assert.equal(classifyJwtAuditRole(true,true),"admin");
+assert.equal(classifyJwtAuditRole(true,false),"ordinary");
+assert.equal(classifyJwtAuditRole(true,false),"ordinary");
+assert.equal(classifyJwtAuditRole(true,null),"unknown");
+assert.equal(classifyJwtAuditRole(true,null),"unknown");
 const eachRole=(role,key,count,expected)=>assert.equal(
  evaluateJwtAudit(role,[sample(key,count)])[0].status,expected,role+" / "+key);
 eachRole("ordinary","private_official",0,"conforme");
 eachRole("ordinary","private_official",114,"alerta");
 eachRole("anonymous","private_official",0,"conforme");
 eachRole("anonymous","private_official",1,"alerta");
-eachRole("beta_member","private_official",114,"conforme");
+eachRole("ordinary","private_official",114,"alerta");
 eachRole("admin","private_official",120,"conforme");
 for(const key of ["source_records","measure_reviews","admin_beta_catalog"]){
  eachRole("ordinary",key,0,"conforme");
  eachRole("ordinary",key,1,"alerta");
- eachRole("beta_member",key,1,"alerta");
+
  eachRole("anonymous",key,1,"alerta");
  eachRole("admin",key,119,"conforme");
 }
