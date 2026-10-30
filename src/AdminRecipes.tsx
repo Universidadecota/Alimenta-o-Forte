@@ -6,8 +6,9 @@ import FoodNutritionAdmin from "./FoodNutritionAdmin";
 import PilotIngredientMeasureReview from "./PilotIngredientMeasureReview";
 import type {Ingredient} from "./lib/planner";
 import {formatRecipeIngredient} from "./lib/ingredientMeasures";
-type Row={id:string;title:string;category:string;description:string|null;instructions:string|null;prep_minutes:number;servings:number;published:boolean;url:string|null;image_is_ai:boolean;recipe_ingredients:Array<{name:string;quantity:number|null;unit:string;measure_mode:string;is_optional:boolean}>};
-const initial:{title:string;category:string;description:string;instructions:string;prep_minutes:number;servings:number;published:boolean;url:string;image_is_ai:boolean;recipe_ingredients:Ingredient[]}={title:"",category:"lunch",description:"",instructions:"",prep_minutes:25,servings:1,published:false,url:"",image_is_ai:false,recipe_ingredients:[{name:"",quantity:1,unit:"g",measureMode:"measured",optional:false}]};
+import {buildOfficialIngredientWrites,type EditableOfficialIngredient} from "./lib/officialIngredientWrites";
+type Row={id:string;title:string;category:string;description:string|null;instructions:string|null;prep_minutes:number;servings:number;published:boolean;url:string|null;image_is_ai:boolean;recipe_ingredients:Array<{id:string;position:number;name:string;quantity:number|null;unit:string;measure_mode:string;is_optional:boolean}>};
+const initial:{title:string;category:string;description:string;instructions:string;prep_minutes:number;servings:number;published:boolean;url:string;image_is_ai:boolean;recipe_ingredients:EditableOfficialIngredient[]}={title:"",category:"lunch",description:"",instructions:"",prep_minutes:25,servings:1,published:false,url:"",image_is_ai:false,recipe_ingredients:[{name:"",quantity:1,unit:"g",measureMode:"measured",optional:false}]};
 export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
  const [previewOpen,setPreviewOpen]=useState(false),[photoConfirm,setPhotoConfirm]=useState<"remove"|"replace"|null>(null),[publishConfirm,setPublishConfirm]=useState<boolean|null>(null);const [file,setFile]=useState<File|null>(null),[preview,setPreview]=useState<string|null>(null),[removePhoto,setRemovePhoto]=useState(false);
  useEffect(()=>{if(!file){setPreview(null);return;}const objectUrl=URL.createObjectURL(file);setPreview(objectUrl);return()=>URL.revokeObjectURL(objectUrl);},[file]);
@@ -17,12 +18,12 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
  const [rows,setRows]=useState<Row[]>([]),[editing,setEditing]=useState<string|null>(null),[form,setForm]=useState({...initial}),[error,setError]=useState(""),[busy,setBusy]=useState(false),[search,setSearch]=useState("");
  const load=async()=>{if(!supabase)return;
   const [recipeResult,pilotResult]=await Promise.all([
-   supabase.from("recipes").select("id,title,category,description,instructions,prep_minutes,servings,published,url,image_is_ai,recipe_ingredients(name,quantity,unit,measure_mode,is_optional)").is("owner_user_id",null).is("archived_at",null).order("title"),
+   supabase.from("recipes").select("id,title,category,description,instructions,prep_minutes,servings,published,url,image_is_ai,recipe_ingredients(id,position,name,quantity,unit,measure_mode,is_optional)").is("owner_user_id",null).is("archived_at",null).order("title"),
    supabase.from("cc_official_recipe_source_records").select("recipe_id").eq("use_stage","personal_pilot")
   ]);
   if(recipeResult.error)throw recipeResult.error;
   if(pilotResult.error)throw pilotResult.error;
-  setRows(recipeResult.data??[]);
+  setRows((recipeResult.data??[]).map(row=>({...row,recipe_ingredients:[...row.recipe_ingredients].sort((a,b)=>a.position-b.position)})));
   setPilotRecipeIds((pilotResult.data??[]).map(row=>row.recipe_id));
  };
  useEffect(()=>{void load().catch(e=>setError(e instanceof Error?e.message:"Erro ao carregar catálogo"));},[]);
@@ -40,7 +41,7 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
   finally{setMineLoading(false);}
  };
  useEffect(()=>{if(section==="mine")void loadMine();},[section]);
- const choose=(r:Row)=>{setPreviewOpen(false);setPhotoConfirm(null);setFile(null);setRemovePhoto(false);setEditing(r.id);setForm({...r,url:r.url??"",description:r.description??"",instructions:r.instructions??"",recipe_ingredients:r.recipe_ingredients.length?r.recipe_ingredients.map(i=>({name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:(i.measure_mode||"measured") as Ingredient["measureMode"],optional:Boolean(i.is_optional)})):initial.recipe_ingredients});setError("");};
+ const choose=(r:Row)=>{setPreviewOpen(false);setPhotoConfirm(null);setFile(null);setRemovePhoto(false);setEditing(r.id);setForm({...r,url:r.url??"",description:r.description??"",instructions:r.instructions??"",recipe_ingredients:r.recipe_ingredients.length?r.recipe_ingredients.map(i=>({id:i.id,name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:(i.measure_mode||"measured") as Ingredient["measureMode"],optional:Boolean(i.is_optional)})):initial.recipe_ingredients});setError("");};
  const save=async(e:FormEvent)=>{e.preventDefault();if(!supabase)return;setBusy(true);setError("");try{let uploadedKey:string|null=null;let nextUrl=removePhoto?"":form.url;
  if(file){
   if(!file.type.startsWith("image/")||file.size>12*1024*1024)throw new Error("Selecione uma imagem de até 12 MB.");
@@ -73,7 +74,7 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
    });
    if(error)saveError=error;
   }else{
-    const {error}=await supabase.rpc("cc_save_official_recipe",{p_id:editing,p_title:form.title,p_category:form.category,p_description:form.description,p_instructions:form.instructions,p_minutes:form.prep_minutes,p_servings:form.servings,p_ingredients:form.recipe_ingredients.map(i=>({name:i.name,quantity:i.measureMode&&i.measureMode!=="measured"?null:i.quantity,unit:i.unit,measure_mode:i.measureMode??"measured",is_optional:Boolean(i.optional)})),p_published:form.published,p_url:nextUrl.trim()||null,p_image_is_ai:form.image_is_ai});
+    const {error}=await supabase.rpc("cc_save_official_recipe",{p_id:editing,p_title:form.title,p_category:form.category,p_description:form.description,p_instructions:form.instructions,p_minutes:form.prep_minutes,p_servings:form.servings,p_ingredients:buildOfficialIngredientWrites(form.recipe_ingredients,editing?(rows.find(row=>row.id===editing)?.recipe_ingredients??null):null),p_published:form.published,p_url:nextUrl.trim()||null,p_image_is_ai:form.image_is_ai});
     if(error)saveError=error;
   }if(saveError){if(uploadedKey)await supabase.storage.from("recipe-illustrations").remove([uploadedKey]);throw saveError;}await load();await onRefresh();setFile(null);setRemovePhoto(false);setEditing(null);setForm({...initial,recipe_ingredients:[{name:"",quantity:1,unit:"g"}]});}catch(e){setError(e&&typeof e==="object"&&"message" in e?String(e.message):"Erro ao salvar receita oficial.");}finally{setBusy(false);}};
  const togglePublication=async(target:boolean)=>{
@@ -88,7 +89,7 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
   if(file||removePhoto||normalize(savedValues)!==normalize(currentValues)){setError("Existem alterações não salvas. Salve a receita antes de publicar ou despublicar.");return;}
   setBusy(true);
   try{
-   const {error}=await supabase.rpc("cc_save_official_recipe",{p_id:saved.id,p_title:saved.title,p_category:saved.category,p_description:saved.description??"",p_instructions:saved.instructions??"",p_minutes:saved.prep_minutes,p_servings:saved.servings,p_ingredients:saved.recipe_ingredients,p_published:target,p_url:saved.url,p_image_is_ai:saved.image_is_ai});
+   const {error}=await supabase.rpc("cc_save_official_recipe",{p_id:saved.id,p_title:saved.title,p_category:saved.category,p_description:saved.description??"",p_instructions:saved.instructions??"",p_minutes:saved.prep_minutes,p_servings:saved.servings,p_ingredients:buildOfficialIngredientWrites(saved.recipe_ingredients.map(i=>({id:i.id,name:i.name,quantity:i.quantity==null?null:Number(i.quantity),unit:i.unit,measureMode:i.measure_mode as EditableOfficialIngredient["measureMode"],optional:Boolean(i.is_optional)})),saved.recipe_ingredients),p_published:target,p_url:saved.url,p_image_is_ai:saved.image_is_ai});
    if(error)throw error;
    await load();await onRefresh();setForm(v=>({...v,published:target}));
   }catch(e){setError(e&&typeof e==="object"&&"message" in e?String(e.message):"Erro ao alterar publicação");}
