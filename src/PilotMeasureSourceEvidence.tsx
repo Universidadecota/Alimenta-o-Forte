@@ -4,6 +4,7 @@ import {buildPilotSourceEvidenceReport,type HistoricalIngredientEvidence,type Of
 import type {CurrentPilotIngredient,RecipeReconciliation} from "./lib/pilotSourceReconciliation";
 import {buildEditorialMappingHints} from "./lib/pilotEditorialMappingHints";
 import {traceUntrackedIngredientsToSource} from "./lib/pilotSourceLiteralTrace";
+import {buildSourceEditorialFocus} from "./lib/pilotSourceEditorialFocus";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -60,6 +61,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
  },[recipe.recipe_id]);
  const mapping=report?buildEditorialMappingHints(report):null;
  const sourceTrace=report?traceUntrackedIngredientsToSource(report):null;
+ const editorialFocus=report?buildSourceEditorialFocus(report):null;
  return <article className="cc-measure-draft-preview" aria-label={"Evidência histórica da receita "+recipe.title}>
   <div className="cc-measure-batch-header">
    <div>
@@ -79,6 +81,20 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     <p><small>Título de origem: {report.official.original_title}. O hash é exibido como identificador armazenado; não foi recalculado nesta consulta.</small></p>
     <p style={{whiteSpace:"pre-wrap"}}><strong>Ingredientes no documento de origem:</strong>{"\n"}{report.official.original_ingredients}</p>
    </section>
+   {editorialFocus&&(editorialFocus.cases.length>0||editorialFocus.recipeRequiresEggSauceReview)&&<section aria-label="Conferência editorial prioritária da receita">
+    <h4>Conferência prioritária · evidências que exigem interpretação</h4>
+    <p>Estes pontos precisam ser examinados na fonte antes de qualquer conciliação. A classificação não aprova medidas, não estabelece vínculos por ID e não altera o catálogo.</p>
+    {editorialFocus.recipeRequiresEggSauceReview&&<p role="note">
+     <strong>Atenção à segurança alimentar:</strong> a fonte inclui gema em molho ou maionese.
+     Conferir o preparo atual, a eventual utilização de ovo sem cozimento, o emprego de ingredientes pasteurizados, as orientações de conservação e os alergênicos antes de qualquer publicação.
+     Este aviso é uma pendência editorial, não uma validação de segurança.
+    </p>}
+    {editorialFocus.cases.length>0?<ol>{editorialFocus.cases.map(item=><li key={item.ingredient.id}>
+     <strong>#{item.ingredient.position+1} · {item.ingredient.name}</strong>
+     <small style={{display:"block"}}>{item.explanation}</small>
+     <small style={{display:"block"}}>Identificador do ingrediente: <code>{item.ingredient.id}</code></small>
+    </li>)}</ol>:<p>Nenhum ingrediente adicional com ambiguidade textual nesta receita.</p>}
+   </section>}
    {mapping&&<section aria-label="Mapa editorial preliminar de correspondências">
     <h4>Mapa editorial preliminar · hipóteses não aprovadas</h4>
     <p>O sistema compara somente trechos literais da fonte, com IDs únicos e posições contíguas. <strong>Uma hipótese não equivale a vínculo confirmado nem modifica ingrediente algum.</strong></p>
