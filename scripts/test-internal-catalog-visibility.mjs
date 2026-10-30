@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const sql=readFileSync(new URL("../supabase/migrations/20261030190000_cc_internal_catalog_two_roles.sql",import.meta.url),"utf8");
+const sql=readFileSync(new URL("../supabase/migrations/20261030174656_cc_internal_catalog_two_roles.sql",import.meta.url),"utf8");
 const planner=readFileSync(new URL("../src/lib/planner.ts",import.meta.url),"utf8");
 const admin=readFileSync(new URL("../src/AdminRecipes.tsx",import.meta.url),"utf8");
 assert.match(sql,/CREATE SCHEMA IF NOT EXISTS cc_internal_catalog/);
