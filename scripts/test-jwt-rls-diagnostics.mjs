@@ -42,7 +42,7 @@ assert.equal(JWT_AUDIT_KEYS.length,7);
 assert.equal(new Set(JWT_AUDIT_KEYS).size,7);
 const ui=readFileSync(new URL("../src/AccessSecurityDiagnostics.tsx",import.meta.url),"utf8");
 assert.match(ui,/auth\.getUser\(\)/);
-assert.match(ui,/cc_beta_can_view_recipe/);
+assert.doesNotMatch(ui,/cc_beta_can_view_recipe/);
 assert.match(ui,/cc_is_admin/);
 assert.match(ui,/head:true/);
 assert.match(ui,/role,date:new Date/);
