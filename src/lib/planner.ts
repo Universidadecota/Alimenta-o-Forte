@@ -132,7 +132,8 @@ export async function setMealLocked(userId:string,weekStart:string,day:string,sl
  * Refeições opcionais e os dados de outros usuários não são alterados.
  */
 export async function replaceWeekMainMeals(
- userId:string,weekStart:string,days:Date[],next:Plan,current:Plan
+ userId:string,weekStart:string,days:Date[],next:Plan,current:Plan,
+ allowReleaseUnavailableLocks=false
 ):Promise<void>{
  if(!supabase)throw new Error("Supabase indisponível");
  if(days.length!==7||dateKey(startOfWeek(days[0]))!==weekStart)
@@ -154,8 +155,9 @@ export async function replaceWeekMainMeals(
  }
  const {data,error:authError}=await supabase.auth.getUser();
  if(authError||data.user?.id!==userId)throw new Error("Sessão alterada. Entre novamente.");
- const {error}=await supabase.rpc("cc_replace_week_main_meals",{
-  p_week_start:weekStart,p_meals:meals,p_expected:expected
+ const {error}=await supabase.rpc("cc_replace_week_main_meals_v2",{
+  p_week_start:weekStart,p_meals:meals,p_expected:expected,
+  p_release_unavailable_locks:allowReleaseUnavailableLocks
  });
  if(error)throw error;
 }
