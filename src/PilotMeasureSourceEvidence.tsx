@@ -9,6 +9,7 @@ import {SAUCE_SAFETY_PROPOSALS,getVerifiedSauceProposal,type SauceSafetyProposal
 import {getVerifiedSauceAudit,type SauceAuditIngredient,type SauceAuditReport} from "./lib/pilotSauceEditorialAudit";
 import {getVerifiedPreparationPartition,type PreparationPartition,type PreparationKind} from "./lib/pilotRecipePreparationPartition";
 import {buildProposedAuxiliaryLink,type AuxiliaryConsumptionLink} from "./lib/pilotAuxiliaryConsumptionModel";
+import PilotAuxiliaryReviewWorksheet from "./PilotAuxiliaryReviewWorksheet";
 
 const comparisonLabels:Record<HistoricalComparison,string>={
  exact:"Texto e posição iguais",
@@ -36,7 +37,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
    try{
     const [officialResult,historicalResult,currentResult]=await Promise.all([
      supabase.from("cc_official_recipe_source_records")
-      .select("recipe_id,source_document,entry_number,source_page,original_title,original_ingredients,original_yield,reference_hash,use_stage")
+      .select("recipe_id,source_document,entry_number,source_page,original_title,original_ingredients,original_yield,reference_hash,use_stage,commercial_rights_status,ingredient_review_status")
       .eq("recipe_id",recipe.recipe_id).maybeSingle(),
      supabase.from("cc_pilot_ingredient_measure_reviews")
       .select("ingredient_id,recipe_id,source_text,source_position,review_status",{count:"exact"})
@@ -175,6 +176,13 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
        </p>}
        <p><small>Nenhum cálculo para compras ou nutrição foi habilitado. As simulações matemáticas são exercitadas apenas nos testes automatizados, com dados fictícios.</small></p>
       </div>:<p role="alert">A relação prato–molho não passou pela verificação editorial. Nenhum cálculo foi habilitado.</p>}
+      {sauceComparison.link&&<section aria-label="Ficha de decisão editorial ainda não homologada">
+       <h5>Ficha de conferência do uso do molho</h5>
+       <PilotAuxiliaryReviewWorksheet key={recipe.recipe_id} link={sauceComparison.link}
+        sourceHash={report.official.reference_hash}
+        rightsStatus={report.official.commercial_rights_status??"não informado"}
+        ingredientReviewStatus={report.official.ingredient_review_status??"não informado"}/>
+      </section>}
       <h5>Uso, sobras e consolidação pendentes</h5>
       <ul>{sauceComparison.partition.warnings.map(item=><li key={item}>{item}</li>)}</ul>
       <p><small><strong>Sem cálculo automático:</strong> nem as quantidades consumidas nem as sobras, conversões de unidades, valores nutricionais ou somas de compras estão homologados nesta visualização.</small></p>
