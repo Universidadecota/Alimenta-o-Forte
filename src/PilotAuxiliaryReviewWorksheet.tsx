@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {buildAuxiliaryEditorialWorkflowPreview} from "./lib/pilotAuxiliaryEditorialWorkflowPreview";
 import type {AuxiliaryConsumptionLink,AuxiliaryMeasureUnit} from "./lib/pilotAuxiliaryConsumptionModel";
 import {
  buildAuxiliaryReviewDraft,
@@ -43,6 +44,7 @@ export default function PilotAuxiliaryReviewWorksheet({
   }));
   setCopied("");
  };
+ const workflow=draft?buildAuxiliaryEditorialWorkflowPreview(draft):null;
  const copyDraft=async()=>{
   if(!draft)return;
   try{
@@ -100,6 +102,25 @@ export default function PilotAuxiliaryReviewWorksheet({
      ?" Diferença física hipotética: "+draft.providedMeasurement.differenceHypothetical.amount+" "+draft.providedMeasurement.differenceHypothetical.unit+"."
      :" Não há diferença numérica calculável."}</p>
    <p><small>Mesmo com números coerentes, esta ficha não aprova segurança, direitos, ingredientes, compras, nutrição nem publicação. A diferença não indica sobra segura para armazenar.</small></p>
+   <section aria-label="Fluxo editorial proposto sem aprovação">
+    <h5>Etapas e responsabilidades para uma futura homologação</h5>
+    <p>Trata-se de um <strong>projeto de fluxo</strong>, não de avaliações concluídas. Os responsáveis abaixo são funções a definir, não papéis já autorizados no sistema. Nenhum parecer foi registrado.</p>
+    {workflow?<div>
+     <ol>{workflow.gates.map(gate=><li key={gate.id}>
+      <strong>{gate.title}</strong>
+      <small style={{display:"block"}}>Responsabilidade proposta: {gate.suggestedResponsibility}</small>
+      <small style={{display:"block"}}>Situação: {gate.status==="apto_para_conferencia_humana"?
+       "Informações organizadas para revisão humana (não aprovado)":gate.status==="bloqueado_por_pendencia"?
+       "Etapa bloqueada":"Conferência ainda necessária"}</small>
+      <small style={{display:"block"}}>{gate.evidence}</small>
+     </li>)}</ol>
+     <p><small><strong>Auditoria futura:</strong> identificação do responsável, evidência, versão da receita, versão anterior, versão esperada e horário definido pelo servidor. Não há histórico de decisões persistido nesta etapa.</small></p>
+     <details><summary>Ver estrutura prevista do evento ainda não registrado</summary>
+      <pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{JSON.stringify(workflow.proposedEventEnvelope,null,2)}</pre>
+     </details>
+     <p><small>Publicação, aprovação, alterações em ingredientes e liberação de cálculos continuam bloqueadas. A revisão final deverá ser feita por pessoa diferente da autora e com permissão verificada no servidor.</small></p>
+    </div>:<p role="alert">Não foi possível criar a prévia do fluxo. O rascunho continua sem homologação e sem autorização de alteração.</p>}
+   </section>
    <button type="button" className="secondary" onClick={()=>{void copyDraft();}}>Copiar rascunho JSON</button>
    {copied&&<p role="status">{copied}</p>}
    <details><summary>Ver conteúdo completo da ficha não homologada</summary>
