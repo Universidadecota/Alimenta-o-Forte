@@ -1,7 +1,7 @@
 import {useEffect,useState} from "react";
 import {supabase} from "./lib/supabase";
 import {buildPilotSourceEvidenceReport,type HistoricalIngredientEvidence,type OfficialPilotSource,type PilotSourceEvidenceReport,type HistoricalComparison} from "./lib/pilotSourceEvidence";
-import type {CurrentPilotIngredient,RecipeReconciliation} from "./lib/pilotSourceReconciliation";
+import type {RecipeReconciliation} from "./lib/pilotSourceReconciliation";
 import {buildEditorialMappingHints} from "./lib/pilotEditorialMappingHints";
 import {traceUntrackedIngredientsToSource} from "./lib/pilotSourceLiteralTrace";
 import {buildSourceEditorialFocus} from "./lib/pilotSourceEditorialFocus";
@@ -49,7 +49,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
     if(historicalResult.error)throw historicalResult.error;
     if(currentResult.error)throw currentResult.error;
     const historic=(historicalResult.data??[]) as HistoricalIngredientEvidence[];
-    const current=(currentResult.data??[]) as CurrentPilotIngredient[];
+    const current=(currentResult.data??[]) as SauceAuditIngredient[];
     const currentRowsForAudit=current;
     if(historicalResult.count!==historic.length||currentResult.count!==current.length||
      historic.length>250||current.length>250){
@@ -70,7 +70,7 @@ export default function PilotMeasureSourceEvidence({recipe,onClose}:Props){
       const proposal=getVerifiedSauceProposal(evidence.official,current);
       if(!proposal||!current?.instructions)throw new Error("A fonte, a versão do preparo ou o estado de publicação não coincidem com a auditoria.");
       const audit=getVerifiedSauceAudit(proposal,evidence.official,current,
-       (currentRowsForAudit as SauceAuditIngredient[]));
+       currentRowsForAudit);
       setSauceComparison({proposal,currentInstructions:current.instructions,audit});
      }catch{
       if(!cancelled)setSauceWarning("A proposta de preparo foi ocultada: não foi possível confirmar a versão exata da fonte, das instruções atuais e o estado não publicado. Refaça a revisão antes de propor mudanças.");
