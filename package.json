@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && npm run test:pilot-history-delete-guard && npm run test:official-ingredient-writes && npm run test:jwt-rls-diagnostics && npm run test:two-role-transition && npm run test:pilot-flow && tsc -b && vite build",
+    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && npm run test:pilot-history-delete-guard && npm run test:official-ingredient-writes && npm run test:jwt-rls-diagnostics && npm run test:two-role-transition && npm run test:pilot-flow && npm run test:legacy-week-access && tsc -b && vite build",
     "preview": "vite preview",
     "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
     "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
@@ -25,7 +25,8 @@
     "test:pilot-history-delete-guard": "node scripts/test-pilot-history-delete-guard.mjs",
     "test:official-ingredient-writes": "node scripts/test-official-ingredient-writes.mjs",
     "test:jwt-rls-diagnostics": "node scripts/test-jwt-rls-diagnostics.mjs",
-    "test:two-role-transition": "node scripts/test-two-role-transition.mjs"
+    "test:two-role-transition": "node scripts/test-two-role-transition.mjs",
+    "test:legacy-week-access": "node scripts/test-legacy-week-access.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

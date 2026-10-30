@@ -10,6 +10,7 @@ import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientA
 import {purchaseKey,loadPurchasedKeys,savePurchasedItem,changedPurchasedItems} from "./lib/shoppingProgress";
 import {openWeeklyPrint,type PrintKind} from "./lib/weeklyPrint";
 import {dataReadyForUser,sessionReadyForMealPlanning} from "./lib/flowReadiness";
+import {unavailableMainMeals,editableWeekDraft,readableWeekError} from "./lib/legacyWeekAccess";
 import {defaultPreferences,proposeWeek,type FoodPreferences} from "./lib/suggestions";
 import {formatPilotRecipeTime} from "./lib/pilotRecipeTime.mjs";
 import PersonalRecipeForm from "./PersonalRecipeForm";
@@ -240,7 +241,10 @@ export default function App(){
    setError("Aguarde o carregamento de receitas, cardápio, preferências e alergias antes de gerar sugestões.");return;
   }
   if(loading||saving)return;
-  const lockedCount=days.reduce((total,day)=>total+slots.filter(slot=>plan[dateKey(day)]?.[slot]?.locked).length,0);
+  const missing=unavailableMainMeals(plan,recipes,days);
+  const missingLocked=missing.filter(m=>m.locked).length;
+  const draft=editableWeekDraft(plan,missing);
+  const lockedCount=days.reduce((total,day)=>total+slots.filter(slot=>draft[dateKey(day)]?.[slot]?.locked).length,0);
   if(lockedCount===21){
    setWeekSuggestionProgress("As 21 refeições principais estão fixadas. Libere ao menos uma para receber novas sugestões.");return;
   }
@@ -255,23 +259,26 @@ export default function App(){
   let submittedWeek:Plan|null=null;
   try{
    const eligible=hasAllergies?await loadPreliminaryAllergyCandidates():undefined;
-   const proposal=proposeWeek(recipes,preferences,days,plan,eligible);
+   const proposal=proposeWeek(recipes,preferences,days,draft,eligible);
    const next:Plan={...plan};
    let changed=0;
    for(const day of days){
     const key=dateKey(day);
     next[key]={...plan[key],...proposal[key]};
-    for(const slot of slots)if(!plan[key]?.[slot]?.locked&&plan[key]?.[slot]?.id!==proposal[key]?.[slot]?.id)changed++;
+    for(const slot of slots)if(!draft[key]?.[slot]?.locked&&plan[key]?.[slot]?.id!==proposal[key]?.[slot]?.id)changed++;
    }
    const caution=hasAllergies
     ?"\n\n⚠️ ALERTA DE ALERGIA — "+preferences.allergies.join(", ")+"\nCardápio preliminar, sem garantia contra alergênicos ocultos ou contato cruzado. Confira ingredientes e rótulos antes de consumir.\n\nDeseja salvar mesmo assim?"
     :"";
-   if(!confirm("Gerar sugestões para as "+(21-lockedCount)+" refeições NÃO FIXADAS? "+lockedCount+" escolha(s) fixada(s), além de lanches e ceia, serão preservadas; a lista de compras será recalculada."+caution)){
+   const legacyNotice=missing.length
+    ?"\n\nATENÇÃO: "+missing.length+" refeições do cardápio antigo não estão mais disponíveis para este usuário, incluindo "+missingLocked+" fixada(s). Para gerar a semana, essas referências precisam ser SUBSTITUÍDAS por receitas atualmente autorizadas. Você autoriza também a liberação dessas "+missingLocked+" fixação(ões) antigas? Nenhum registro será alterado se cancelar."
+    :"";
+   if(!confirm("Gerar sugestões para as "+(21-lockedCount)+" refeições não fixadas? "+lockedCount+" escolha(s) fixada(s) ainda acessível(is) serão preservadas, assim como lanches e ceia; a lista de compras será recalculada."+legacyNotice+caution)){
     setWeekSuggestionProgress("");return;
    }
    setWeekSuggestionProgress("Renovando "+(21-lockedCount)+" refeições não fixadas...");
    submittedWeek=next;
-   if(supabase)await replaceWeekMainMeals(userId!,weekStart,days,next,plan);
+   if(supabase)await replaceWeekMainMeals(userId!,weekStart,days,next,plan,missingLocked>0);
    else localStorage.setItem("cc_demo_plan",JSON.stringify(next));
    setPlan(next);
    await syncChangedPurchases(plan,next);
@@ -281,7 +288,7 @@ export default function App(){
     +(hasAllergies?" ATENÇÃO: PRÉ-TRIAGEM SEM CERTIFICAÇÃO. Confira ingredientes, rótulos e contato cruzado antes de consumir.":""));
   }catch(err){
    setWeekSuggestionProgress("");
-   const detail=err instanceof Error?err.message:"Falha de conexão";
+   const detail=readableWeekError(err);
    if(supabase&&userId&&submittedWeek){
     try{
      const persisted=await loadWeek(userId,weekStart);
