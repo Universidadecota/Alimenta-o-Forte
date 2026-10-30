@@ -68,7 +68,7 @@ export const VERIFIED_REVIEW_PATTERNS:readonly ExistingReviewPattern[]=[
  },
  {
   system:"Permissões atuais",
-  verifiedBehavior:"cc_is_admin() consulta cc_admin_members por auth.uid(). Funções de revisão nutricional usam SECURITY DEFINER com search_path vazio e EXECUTE para authenticated/service_role; trigger functions críticas não têm EXECUTE direto para authenticated na amostra auditada.",
+  verifiedBehavior:"cc_is_admin() consulta cc_admin_members por auth.uid(). Funções de revisão nutricional usam SECURITY DEFINER com search_path vazio e EXECUTE para authenticated/service_role. Algumas funções de trigger também possuem EXECUTE herdado por PUBLIC, o que deve ser inventariado; trigger function não é automaticamente uma RPC funcional.",
   caveat:"Administração não equivale a habilitação profissional. SECURITY DEFINER exige auditoria de GRANT EXECUTE, schema, search_path e identidade a cada função nova."
  }
 ];
