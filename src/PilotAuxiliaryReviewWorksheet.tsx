@@ -95,7 +95,7 @@ export default function PilotAuxiliaryReviewWorksheet({
   <button type="button" className="secondary" onClick={generate}>Gerar rascunho não homologado</button>
   {draft&&<section aria-label="Prévia da ficha editorial sem homologação">
    <h5>Prévia local · {draft.editorialStage==="apto_para_analise_humana"?"dados numéricos coerentes para análise humana":"informações insuficientes ou incompatíveis"}</h5>
-   <p>Status permanente: <strong>{draft.status.replaceAll("_"," ")}</strong>. Resultado da comparação: {draft.providedMeasurement.comparisonStatus}.
+   <p>Status permanente: <strong>{draft.status.split("_").join(" ")}</strong>. Resultado da comparação: {draft.providedMeasurement.comparisonStatus}.
     {draft.providedMeasurement.differenceHypothetical
      ?" Diferença física hipotética: "+draft.providedMeasurement.differenceHypothetical.amount+" "+draft.providedMeasurement.differenceHypothetical.unit+"."
      :" Não há diferença numérica calculável."}</p>
