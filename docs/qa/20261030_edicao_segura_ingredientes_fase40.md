@@ -3,7 +3,7 @@
 ## Problema confirmado
 `cc_save_official_recipe` excluía todos os ingredientes antigos ao editar receitas oficiais e criava outros com novos UUIDs. Cinco tabelas de evidência/links utilizam chaves estrangeiras `ON DELETE CASCADE` para `recipe_ingredients.id`. A Fase 3Z instalou um trigger para impedir a perda dos 1.072 registros de revisão de 119 receitas, mas o editor continuava com o fluxo antigo de exclusão total.
 
-## Correção proposta e implantada
+## Correção aplicada no Supabase real\nMigração registrada: `20261030133408_cc_official_recipe_inplace_ingredient_reconciliation_fase40`. Verificação pós-migração confirmou a função ativa com `SECURITY DEFINER`, `search_path=''`, `EXECUTE` negado a `anon` e concedido a `authenticated` (com verificação interna de administrador). As três receitas com molhos permanecem não publicadas.\n\n## Correção proposta e implantada
 - O formulário administrativo lê agora `id` e `position`, ordena os ingredientes e preserva o ID no estado durante alterações.
 - Ao salvar ou alternar a publicação de receita oficial, envia cada ID existente acompanhado de um snapshot original: nome, posição, quantidade, unidade, modo de medição e opcionalidade. Ingredientes novos enviam `id=null`.
 - A rotina `cc_save_official_recipe` foi modificada **preservando sua assinatura e suas validações prévias**. Para receitas existentes, usa bloqueio `FOR UPDATE` na receita e nas linhas de ingrediente; confere ID e snapshot, rejeita versões alteradas, atualiza no lugar, insere apenas novidades e exclui apenas ingredientes removidos sem qualquer dos cinco tipos de evidência ligados.
