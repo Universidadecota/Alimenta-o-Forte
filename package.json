@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && tsc -b && vite build",
+    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && npm run test:pilot-history-delete-guard && tsc -b && vite build",
     "preview": "vite preview",
     "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
     "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
@@ -21,7 +21,8 @@
     "test:auxiliary-migration-runbook": "node scripts/test-pilot-auxiliary-migration-runbook.mjs",
     "test:isolated-preflight": "node scripts/test-pilot-isolated-preflight.mjs",
     "pilot:isolated-preflight": "node scripts/pilot-isolated-preflight.mjs",
-    "test:beta-membership-guard": "node scripts/test-beta-recipe-membership-guard.mjs"
+    "test:beta-membership-guard": "node scripts/test-beta-recipe-membership-guard.mjs",
+    "test:pilot-history-delete-guard": "node scripts/test-pilot-history-delete-guard.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
