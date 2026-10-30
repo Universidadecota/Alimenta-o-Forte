@@ -1,7 +1,7 @@
 /** Auditoria superficial, somente de leitura, executada com a sessão do browser.
  * Não simula JWT, não concede papéis nem substitui testes de penetração.
  */
-export type JwtAuditRole="anonymous"|"admin"|"beta_member"|"ordinary"|"unknown";
+export type JwtAuditRole="anonymous"|"admin"|"ordinary"|"unknown";
 export type AuditKey=
  "private_official"|"source_records"|"measure_reviews"|
  "admin_beta_catalog"|"other_plans"|"other_favorites"|"other_preferences";
@@ -13,20 +13,18 @@ export const CHECK_LABELS:Record<AuditKey,string>={
  private_official:"Receitas oficiais privadas acessíveis",
  source_records:"Fontes administrativas",
  measure_reviews:"Revisões editoriais históricas",
- admin_beta_catalog:"Consulta administrativa do catálogo Beta",
+ admin_beta_catalog:"Consulta administrativa do catálogo privado",
  other_plans:"Cardápios pertencentes a outras contas",
  other_favorites:"Favoritos pertencentes a outras contas",
  other_preferences:"Preferências pertencentes a outras contas"
 };
 export function classifyJwtAuditRole(
  authenticated:boolean,
- admin:boolean|null,
- betaAccess:boolean|null
+ admin:boolean|null
 ):JwtAuditRole{
  if(!authenticated)return "anonymous";
- if(admin===null||betaAccess===null)return "unknown";
- if(admin)return "admin";
- return betaAccess?"beta_member":"ordinary";
+ if(admin===null)return "unknown";
+ return admin?"admin":"ordinary";
 }
 export function evaluateJwtAudit(
  role:JwtAuditRole,
@@ -53,10 +51,8 @@ export function evaluateJwtAudit(
   if(obs.key==="private_official"){
    if(obs.accessDenied)return result("conforme","A leitura privada foi bloqueada.");
    if(obs.count===null)return result("inconclusivo","Sem contagem verificável.");
-   if(role==="beta_member")return result("conforme",
-    "Sessão elegível para Beta; esta contagem não aprova cada receita individualmente.");
    return obs.count===0?result("conforme","Nenhuma receita oficial privada acessível."):
-    result("alerta","Conta não habilitada acessou receitas oficiais privadas.");
+    result("alerta","Conta comum acessou receitas oficiais privadas.");
   }
   if(EXTERNAL_KEYS.includes(obs.key)){
    if(obs.accessDenied)return result("conforme","Leitura administrativa bloqueada.");
