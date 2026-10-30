@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {buildAuxiliaryEditorialWorkflowPreview} from "./lib/pilotAuxiliaryEditorialWorkflowPreview";
 import {buildAuxiliaryAuthorizationBlueprint} from "./lib/pilotAuxiliaryAuthorizationBlueprint";
+import {buildAuxiliaryMigrationRunbook} from "./lib/pilotAuxiliaryMigrationRunbook";
 import type {AuxiliaryConsumptionLink,AuxiliaryMeasureUnit} from "./lib/pilotAuxiliaryConsumptionModel";
 import {
  buildAuxiliaryReviewDraft,
@@ -47,6 +48,7 @@ export default function PilotAuxiliaryReviewWorksheet({
  };
  const workflow=draft?buildAuxiliaryEditorialWorkflowPreview(draft):null;
  const authorizationBlueprint=workflow?buildAuxiliaryAuthorizationBlueprint(workflow):null;
+ const migrationRunbook=authorizationBlueprint?buildAuxiliaryMigrationRunbook(authorizationBlueprint):null;
  const copyDraft=async()=>{
   if(!draft)return;
   try{
@@ -138,6 +140,27 @@ export default function PilotAuxiliaryReviewWorksheet({
       <ul>{authorizationBlueprint.serverControls.map(item=><li key={item.id}>
        <strong>{item.title}</strong>: {item.detail}
       </li>)}</ul>
+      {migrationRunbook&&<details aria-label="Plano futuro de migração e testes de autorização">
+       <summary>Plano de migração e matriz de testes · não executados</summary>
+       <p><strong>Somente planejamento:</strong> nenhum teste de RLS com usuários de teste, nenhuma migração e nenhuma restauração foram realizados nesta fase. As confirmações abaixo são requisitos para execução posterior em ambiente isolado.</p>
+       <h5>Controles encontrados no sistema atual</h5>
+       <ul>{migrationRunbook.existingPatterns.map(item=><li key={item.system}>
+        <strong>{item.system}</strong>: {item.verifiedBehavior}
+        <small style={{display:"block"}}>Limite para reutilização: {item.caveat}</small>
+       </li>)}</ul>
+       <h5>Etapas obrigatórias antes de uma migração</h5>
+       <ol>{migrationRunbook.phases.map(phase=><li key={phase.id}>
+        <strong>{phase.title}</strong> — ainda não executada
+        <ul>{phase.requiredEvidence.map(entry=><li key={entry}>{entry}</li>)}</ul>
+       </li>)}</ol>
+       <h5>Matriz de testes para ambiente isolado ({migrationRunbook.tests.length} cenários)</h5>
+       <ul>{migrationRunbook.tests.map(item=><li key={item.id}>
+        <strong>{item.id}</strong> · {item.persona}
+        <small style={{display:"block"}}>{item.procedure}</small>
+        <small style={{display:"block"}}>Resultado esperado: {item.expected} · <strong>não executado</strong></small>
+       </li>)}</ul>
+       <p><small>Os testes de construção deste plano rodam no build, mas não substituem os testes de banco/RLS que ainda não foram feitos. Aprovação e publicação continuam bloqueadas.</small></p>
+      </details>}
       <p><small>Qualquer implementação real exigirá avaliação e aprovação específica da migração, das políticas RLS e das permissões. Esta prévia não grava nada.</small></p>
      </details>}
      <p><small>Publicação, aprovação, alterações em ingredientes e liberação de cálculos continuam bloqueadas. A revisão final deverá ser feita por pessoa diferente da autora e com permissão verificada no servidor.</small></p>
