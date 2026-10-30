@@ -54,6 +54,12 @@ BEGIN
    WHERE r.id=p_id AND r.owner_user_id IS NULL AND r.archived_at IS NULL
    FOR UPDATE;
   IF v_id IS NULL THEN RAISE EXCEPTION 'Receita oficial indisponível'; END IF;
+  IF EXISTS(
+    SELECT 1 FROM public.cc_official_recipe_source_records s
+    WHERE s.recipe_id=v_id AND s.use_stage='personal_pilot'
+  ) THEN
+    RAISE EXCEPTION 'Receita autoral em piloto: use a rotina restrita de fotografia; edição de conteúdo bloqueada';
+  END IF;
   SELECT count(*) INTO v_old_count FROM public.recipe_ingredients WHERE recipe_id=v_id;
   UPDATE public.recipes
     SET title=btrim(p_title),category=p_category,description=p_description,
