@@ -4,7 +4,7 @@ import Onboarding from "./Onboarding";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./lib/supabase";
-import { EMAIL_CONFIRM_REDIRECT, PASSWORD_RECOVERY_REDIRECT, isRecoveryCallbackUrl } from "./lib/authRedirect";
+import { PASSWORD_RECOVERY_REDIRECT, isRecoveryCallbackUrl } from "./lib/authRedirect";
 import { Leaf, Mail, Lock, UserRound } from "lucide-react";
 import { authEmailFailureMessage, isAuthEmailRateLimited } from "./lib/authEmailFeedback";
 export default function AuthGate({children}:{children:ReactNode}){
@@ -16,7 +16,7 @@ export default function AuthGate({children}:{children:ReactNode}){
  const [loading,setLoading]=useState(!!supabase);
  const [email,setEmail]=useState("");
  const [password,setPassword]=useState("");
- const [mode,setMode]=useState<"login"|"signup"|"reset">("login");
+ const [mode,setMode]=useState<"login"|"reset">("login");
  const [message,setMessage]=useState("");
  const [busy,setBusy]=useState(false);
  const [recoveryAttempt,setRecoveryAttempt]=useState<{email:string;outcome:"received"|"limited"}|null>(null);
@@ -75,17 +75,10 @@ export default function AuthGate({children}:{children:ReactNode}){
     setRecoveryAttempt({email:currentEmail,outcome:"received"});
     setMessage("Solicitação recebida. Se o e-mail estiver cadastrado, você receberá instruções de recuperação. Confira seu e-mail antes de solicitar novamente.");
    }
-   else if(mode==="signup"){
-    const {error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:EMAIL_CONFIRM_REDIRECT}});
-    if(error)throw error;
-    setMessage("Cadastro recebido. Verifique seu e-mail se a confirmação estiver habilitada.");
-   }
    else {const {error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;}
   }catch(err){
    if(mode==="reset"){
     if(isAuthEmailRateLimited(err))setRecoveryAttempt({email:currentEmail,outcome:"limited"});
-    setMessage(authEmailFailureMessage(err));
-   }else if(mode==="signup"&&isAuthEmailRateLimited(err)){
     setMessage(authEmailFailureMessage(err));
    }else{
     setMessage(err instanceof Error?err.message:"Não foi possível completar a operação.");
@@ -156,9 +149,9 @@ export default function AuthGate({children}:{children:ReactNode}){
  if(!showAuth)return <PublicLanding onAuth={next=>{setMode(next);setShowAuth(true);setMessage("");}}/>;
  return <div className="auth-center"><form className="auth-card" onSubmit={submit}>
  <button className="auth-back-home" type="button" onClick={()=>setShowAuth(false)}>← Voltar para o início</button><div className="auth-logo"><Leaf size={25}/></div><h1>Costa&Costa</h1><p>Sua alimentação. Seu ritmo. Sua evolução.</p>
- <h2>{mode==="signup"?"Crie sua conta":mode==="reset"?"Recuperar senha":"Entre na sua conta"}</h2>
+ <h2>{mode==="reset"?"Recuperar senha":"Entre na sua conta"}</h2>
  <label><Mail size={16}/> E-mail<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="voce@exemplo.com"/></label>
- {mode!=="reset"&&<label><Lock size={16}/> Senha<input type="password" required minLength={6} autoComplete={mode==="signup"?"new-password":"current-password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Sua senha"/></label>}
+ {mode!=="reset"&&<label><Lock size={16}/> Senha<input type="password" required minLength={6} autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Sua senha"/></label>}
  {message&&<div className="auth-message" role="status">{message}</div>}
  {mode==="reset"&&recoveryAlreadyAttempted&&<p className="detail-note" role="status">
   {recoveryAttempt?.outcome==="limited"
@@ -166,10 +159,11 @@ export default function AuthGate({children}:{children:ReactNode}){
    :"Este pedido já foi recebido. Verifique seu e-mail antes de solicitar outro link."}
  </p>}
  <button disabled={busy||recoveryAlreadyAttempted} className="primary auth-submit" type="submit"><UserRound size={17}/>
- {busy?"Aguarde...":mode==="signup"?"Criar conta":mode==="reset"?
+ {busy?"Aguarde...":mode==="reset"?
   recoveryAlreadyAttempted?(recoveryAttempt?.outcome==="limited"?"Limite atingido":"Solicitação recebida"):"Enviar recuperação":"Entrar"}
  </button>
- <div className="auth-links"><button type="button" onClick={()=>{setMode(mode==="login"?"signup":"login");setMessage("");}}>{mode==="login"?"Criar uma conta":"Voltar ao login"}</button>{mode==="login"&&<button type="button" onClick={()=>{setMode("reset");setMessage("");}}>Esqueci minha senha</button>}</div>
+ <div className="auth-links">{mode==="reset"?<button type="button" onClick={()=>{setMode("login");setMessage("");}}>Voltar ao login</button>:<button type="button" onClick={()=>{setMode("reset");setMessage("");}}>Esqueci minha senha</button>}</div>
+ <small>O cadastro de novas contas está temporariamente indisponível durante o desenvolvimento.</small>
  <small>Ao continuar, você reconhece que esta plataforma fornece informações educativas e não substitui acompanhamento profissional.</small>
  </form></div>;
 }
