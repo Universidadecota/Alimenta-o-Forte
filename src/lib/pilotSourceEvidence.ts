@@ -11,6 +11,8 @@ export type OfficialPilotSource={
  original_ingredients:string;
  reference_hash:string;
  use_stage:string;
+ commercial_rights_status?:string;
+ ingredient_review_status?:string;
 };
 export type HistoricalIngredientEvidence=BatchItem&{
  recipe_id:string;
