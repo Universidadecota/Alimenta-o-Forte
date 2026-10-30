@@ -9,13 +9,11 @@ import {
  * sessão real do Supabase Auth deste navegador. Nenhum token é exibido,
  * exportado, registrado em logs ou fornecido a outra conta.
  */
-const ACTIVE_BETA_REFERENCE="0046b050-1367-4cc8-816c-1d145a44e87f";
 type Report={
  auditType:"read_only_browser_jwt";
  execution:"browser_supabase_auth";
  role:JwtAuditRole;
  date:string;
- referenceRecipeEnabledAtDesign:"2026-10-30";
  checks:AuditAssessment[];
  totalAlerts:number;
  totalInconclusive:number;
@@ -46,16 +44,11 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
     userId=data.user.id;
    }
    let admin:boolean|null=false;
-   let betaAccess:boolean|null=false;
    if(userId){
-    const [a,b]=await Promise.all([
-     client.rpc("cc_is_admin"),
-     client.rpc("cc_beta_can_view_recipe",{p_recipe_id:ACTIVE_BETA_REFERENCE})
-    ]);
+    const a=await client.rpc("cc_is_admin");
     admin=a.error||typeof a.data!=="boolean"?null:a.data;
-    betaAccess=b.error||typeof b.data!=="boolean"?null:b.data;
    }
-   const role=classifyJwtAuditRole(Boolean(userId),admin,betaAccess);
+   const role=classifyJwtAuditRole(Boolean(userId),admin);
    const results=await Promise.all(JWT_AUDIT_KEYS.map(async(key):Promise<AuditObservation>=>{
     if(!userId&&["other_plans","other_favorites","other_preferences"].includes(key)){
      return {key,count:null,error:true,accessDenied:false};
@@ -91,7 +84,7 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
    const checks=evaluateJwtAudit(role,results);
    setReport({
     auditType:"read_only_browser_jwt",execution:"browser_supabase_auth",
-    role,date:new Date().toISOString(),referenceRecipeEnabledAtDesign:"2026-10-30",
+    role,date:new Date().toISOString(),
     checks,totalAlerts:checks.filter(c=>c.status==="alerta").length,
     totalInconclusive:checks.filter(c=>c.status==="inconclusivo").length,
     writeTestsExecuted:false,otherUsersSessionsTested:false
@@ -107,7 +100,7 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
  return <div className="auth-center" style={{padding:"20px",alignItems:"flex-start"}}>
   <section className="auth-card" style={{maxWidth:820,width:"100%",margin:"20px auto"}}>
    <h1>Diagnóstico de acesso · Costa&Costa</h1>
-   <p><strong>Pré-lançamento — auditoria de leitura.</strong> Este teste usa a sessão real do navegador, se houver login, e consulta apenas quantidades de registros por meio do Supabase. Não utiliza credenciais administrativas de servidor, não cria usuários e não modifica dados.</p>
+   <p><strong>Ambiente de produção em desenvolvimento — auditoria de leitura.</strong> Este teste usa a sessão real do navegador, se houver login, e consulta apenas quantidades de registros por meio do Supabase. Não utiliza credenciais administrativas de servidor, não cria usuários e não modifica dados.</p>
    <p>Sessão identificada pela aplicação: <strong>{authenticated?"Autenticada":"Anônima"}</strong>. O papel efetivo será reavaliado pelo Supabase ao executar o teste.</p>
    <div style={{display:"flex",gap:10,flexWrap:"wrap",margin:"12px 0"}}>
     <button type="button" className="primary" disabled={busy||!supabase} onClick={()=>void run()}>
@@ -120,8 +113,8 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
    {report&&<section aria-label="Resultado do diagnóstico de acesso">
     <h2>Resultado da sessão</h2>
     <p>Perfil observado: <strong>{{
-     anonymous:"Anônimo",admin:"Administrador",beta_member:"Participante com acesso Beta à receita de referência",
-     ordinary:"Usuário sem acesso Beta à receita de referência",unknown:"Perfil inconclusivo"
+     anonymous:"Anônimo",admin:"Administrador",
+     ordinary:"Usuário comum",unknown:"Perfil inconclusivo"
     }[report.role]}</strong>.</p>
     <p>Alertas: <strong>{report.totalAlerts}</strong>. Verificações inconclusivas: <strong>{report.totalInconclusive}</strong>.</p>
     <ul>{report.checks.map(x=><li key={x.key} style={{marginBottom:10}}>
@@ -129,7 +122,7 @@ export default function AccessSecurityDiagnostics({authenticated}:{authenticated
      {x.count!==null&&<span> · {x.count} registro(s)</span>}
      <small style={{display:"block"}}>{x.description}</small>
     </li>)}</ul>
-    <p><strong>Limitações:</strong> nenhuma escrita, exclusão, concorrência, recuperação ou teste de outro usuário foi executado. Um resultado conforme nesta sessão não homologa todas as políticas RLS. O diagnóstico Beta utiliza uma receita de referência que estava habilitada em 30/10/2026; se o administrador a desabilitar, a classificação Beta pode exigir atualização.</p>
+    <p><strong>Limitações:</strong> nenhuma escrita, exclusão, concorrência, recuperação ou teste de outro usuário foi executado. Um resultado conforme nesta sessão não homologa todas as políticas RLS. O perfil é verificado diretamente pela autorização administrativa atual, sem concessões Beta.</p>
     <button type="button" className="secondary" onClick={()=>void copy()}>Copiar relatório sem identificadores pessoais</button>
     {copied&&<p role="status">Relatório sem e-mail, ID de usuário ou token copiado.</p>}
    </section>}
