@@ -50,13 +50,30 @@ export async function loadRecipes():Promise<Meal[]>{
   supabase.rpc("cc_is_admin")
  ]);
  if(recipeResult.error)throw recipeResult.error;
- // Nunca incluir rascunhos oficiais de outro usuário: somente o administrador vê o próprio piloto.
+ // O catálogo oficial privado só é visível ao administrador ou à conta interna aprovada no servidor.
  const isAdmin=!adminResult.error && adminResult.data===true;
  const sources=new Map<string,PilotRecipeSource>();
  if(isAdmin){
   const {data,error}=await supabase.from("cc_official_recipe_source_records")
    .select("recipe_id,source_kind,source_meal_name,source_document,original_ingredients,original_time,original_yield,ingredient_review_status,is_plannable,use_stage")
    .eq("use_stage","personal_pilot").eq("is_plannable",true);
+  if(error)throw error;
+  for(const row of data??[]){
+   sources.set(row.recipe_id,{
+    kind:row.source_kind as PilotRecipeSource["kind"],
+    sourceMeal:row.source_meal_name,
+    originalIngredients:row.original_ingredients,
+    originalTime:row.original_time,
+    originalYield:row.original_yield,
+    sourceDocument:row.source_document,
+    ingredientsReviewed:row.ingredient_review_status==="structured_confirmed"
+   });
+  }
+ }else{
+  // Acervo interno somente para conta aprovada no servidor. A RPC retorna
+  // zero registros para qualquer outra sessão, inclusive usuários comuns não autorizados.
+  // A tabela de fontes originais e o campo published permanecem privados.
+  const {data,error}=await supabase.rpc("cc_internal_recipe_source_summary");
   if(error)throw error;
   for(const row of data??[]){
    sources.set(row.recipe_id,{
