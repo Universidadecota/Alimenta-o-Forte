@@ -21,6 +21,7 @@ const {buildPilotSourceEvidenceReport}=await import(url(evidenceCode));
 const mappingCode=getJavaScript("../src/lib/pilotEditorialMappingHints.ts")
  .replace(/from ["']\.\/pilotIngredientReview["']/,()=> 'from "'+ingredientUrl+'"');
 const {buildEditorialMappingHints}=await import(url(mappingCode));
+const {traceUntrackedIngredientsToSource}=await import(url(getJavaScript("../src/lib/pilotSourceLiteralTrace.ts")));
 const {classifyEditorialQueueRecipe,summarizeEditorialQueue,filterEditorialQueue,serializeEditorialQueueCsv}=await import(url(getJavaScript("../src/lib/pilotEditorialQueue.ts")));
 
 assert.deepEqual(suggestMeasure("150 g de fraldinha"),{quantity:150,unit:"g",ingredient:"fraldinha"});
@@ -274,3 +275,37 @@ assert.ok(hostileCsv.includes('"\' =2+2;""teste""\nlinha"'),
  "Aspas, delimitador e quebra de linha são preservados sem ativar fórmula");
 assert.equal(hostileQueue.entries.length,1,"CSV não modifica a fila original");
 console.log("OK: CSV da fila filtrada com BOM, escaping e proteção contra fórmulas.");
+
+
+// Presença na fonte é evidência textual; anotação contextual é classe distinta.
+const literalTraceSource={
+ official:{original_ingredients:"Molho: 3 colheres (sopa) de azeite, pimenta chili, pimenta, sal. Salada: 2 tomates. Acompanhamento: 1 tomate assado."},
+ untrackedCurrent:[
+  {id:"new-1",recipe_id:"r",position:1,name:"3 colheres (sopa) de azeite"},
+  {id:"new-2",recipe_id:"r",position:2,name:"pimenta"},
+  {id:"new-3",recipe_id:"r",position:3,name:"2 tomates (salada)"},
+  {id:"new-4",recipe_id:"r",position:4,name:"sal."},
+  {id:"new-5",recipe_id:"r",position:5,name:"1 tomate (para assar no acompanhamento)"},
+  {id:"new-6",recipe_id:"r",position:6,name:"ingrediente não citado"}
+ ]
+};
+const literalReport=traceUntrackedIngredientsToSource(literalTraceSource);
+assert.deepEqual(literalReport.counts,{unique:2,annotated:2,ambiguous:1,not_found:1});
+assert.deepEqual(literalReport.items.map(item=>item.status),
+ ["unique","ambiguous","annotated","unique","annotated","not_found"]);
+assert.equal(literalReport.items[1].occurrences,2,"Texto repetido requer conferência humana");
+assert.equal(literalReport.items[2].matchedFragment,"2 tomates",
+ "Anotação contextual é removida somente para busca auxiliar");
+assert.equal(literalTraceSource.untrackedCurrent.length,6,"Nenhum ingrediente é alterado");
+const boundaryReport=traceUntrackedIngredientsToSource({
+ official:{original_ingredients:"salsinha. Azeite. 1 lata."},
+ untrackedCurrent:[
+  {id:"boundary",recipe_id:"r",position:1,name:"sal"},
+  {id:"case",recipe_id:"r",position:2,name:"azeite"},
+  {id:"measurement",recipe_id:"r",position:3,name:"1 lata (80 g)"},
+  {id:"short",recipe_id:"r",position:4,name:"a"}
+ ]
+});
+assert.deepEqual(boundaryReport.counts,{unique:0,annotated:0,ambiguous:0,not_found:4},
+ "Não confundir substring, capitalização, medida entre parênteses ou fragmento curto");
+console.log("OK: rastreio na fonte com anotações contextuais separadas e sem vínculos.");
