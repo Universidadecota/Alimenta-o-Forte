@@ -19,12 +19,16 @@ A administração mostra as 119 receitas do piloto como "não publicadas". O pro
 A concessão de leitura interna **não** autoriza publicação comercial, compartilhamento público, venda, afirmações de saúde, nutrição calculada ou suposições sobre segurança do preparo. As medidas originais e alergênicos não homologados permanecem claramente indicados. A triagem automática com alergias cadastradas **não foi afrouxada**: `cc_allergy_candidate_ids()` continua conservadora e pode excluir receitas internas não triadas. Essa é a consequência correta enquanto as evidências não estiverem completas.
 
 ## Infraestrutura e implantação
-1. PR com migração `supabase/migrations/20261030190000_cc_internal_catalog_two_roles.sql`, ajuste do `src/lib/planner.ts`, rótulos de administração e testes.
+1. PR com migração `supabase/migrations/20261030174656_cc_internal_catalog_two_roles.sql`, ajuste do `src/lib/planner.ts`, rótulos de administração e testes.
 2. Validar CI antes de mexer no banco.
 3. Aplicar a migração estrutural no Supabase atual e verificar policies, funções e ausência de publicação.
 4. **Em ação administrativa separada e auditada**, autorizar somente a conta comum controlada confirmada pelo proprietário. Não guardar e-mail nem identificador pessoal no código versionado.
 5. Mesclar na `main` após CI aprovada; verificar Vercel READY e domínio apontando para o commit.
 6. Executar teste HTTP com as sessões controladas: usuário comum autorizado visualiza receitas do piloto; visitante anônimo e conta comum não autorizada não visualizam; administrador conserva as evidências.
+
+## Verificação no Supabase atual
+Migração registrada no banco: `20261030174656 cc_internal_catalog_two_roles`. Foi liberada exatamente uma conta comum pré-existente, sem ID ou e-mail versionado no código.
+Testes de papéis SQL transacionais (com claims simuladas, não logins HTTP): a conta autorizada recebeu 119 receitas e 1.120 linhas de ingredientes, com 114 fontes classificadas como planejáveis, e **zero** linhas da tabela original de fontes administrativas. Conta comum não autorizada e acesso anônimo receberam **zero** receitas oficiais privadas. A migração preservou as 1.072 revisões históricas e deixou todas as 119 receitas do piloto com `published=false`.
 
 ## Homologação e limites
 - Contagens esperadas antes de qualquer concessão: 119 fontes com direitos pendentes, 1.120 ingredientes sem medidas e 114 opções elegíveis ao planejamento.
