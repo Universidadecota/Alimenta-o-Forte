@@ -1,16 +1,15 @@
-import {dateKey,recipeFitsSlot,slots,type Meal,type Plan,type Slot} from "./planner";
+import {dateKey,slots,type Meal,type Plan,type Slot} from "./planner";
 
 export type UnavailableWeekMeal={day:string;slot:Slot;locked:boolean};
 export function unavailableMainMeals(current:Plan,recipes:readonly Meal[],days:readonly Date[]):UnavailableWeekMeal[]{
- const available=new Map(recipes.map(r=>[r.id,r]));
+ const available=new Set(recipes.map(r=>r.id));
  const missing:UnavailableWeekMeal[]=[];
  for(const day of days){
   const key=dateKey(day);
   for(const slot of slots){
    const stored=current[key]?.[slot];
    if(!stored)continue;
-   const recipe=available.get(stored.id);
-   if(!recipe||!recipeFitsSlot(recipe,slot))
+   if(!available.has(stored.id))
     missing.push({day:key,slot,locked:Boolean(stored.locked)});
   }
  }
