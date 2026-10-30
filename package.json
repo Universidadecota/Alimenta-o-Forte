@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && tsc -b && vite build",
+    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && tsc -b && vite build",
     "preview": "vite preview",
     "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
     "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
@@ -16,7 +16,8 @@
     "test:preparation-partition": "node scripts/test-pilot-preparation-partition.mjs",
     "test:auxiliary-consumption": "node scripts/test-pilot-auxiliary-consumption-model.mjs",
     "test:auxiliary-review-draft": "node scripts/test-pilot-auxiliary-review-draft.mjs",
-    "test:auxiliary-editorial-workflow": "node scripts/test-pilot-auxiliary-editorial-workflow.mjs"
+    "test:auxiliary-editorial-workflow": "node scripts/test-pilot-auxiliary-editorial-workflow.mjs",
+    "test:auxiliary-authorization-blueprint": "node scripts/test-pilot-auxiliary-authorization-blueprint.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
