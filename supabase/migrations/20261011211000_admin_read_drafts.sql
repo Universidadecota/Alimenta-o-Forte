@@ -1,0 +1,2 @@
+create policy "cc_admin_read_official" on public.recipes for select to authenticated using (owner_user_id is null and public.cc_is_admin());
+create policy "cc_admin_read_official_ingredients" on public.recipe_ingredients for select to authenticated using (public.cc_is_admin() and exists(select 1 from public.recipes r where r.id=recipe_id and r.owner_user_id is null));

@@ -1,0 +1,54 @@
+name: Costa&Costa CI
+on:
+  push:
+    branches: [main, "feat/**"]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: Build e testes de regressao
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Type check and build
+        run: npm run build
+      - name: Validate recipe ingredient parsing
+        run: npm run test:ingredients
+      - name: Validate measure draft batches
+        run: npm run test:measure-batch
+      - name: Validate editorial review batches
+        run: npm run test:editorial-batch
+      - name: Validate full-inventory dry-run auditor
+        run: node scripts/test-measure-inventory-audit.mjs
+      - name: Validate private beta catalog access guards
+        run: node scripts/test-beta-private-access.mjs
+      - name: Validate allergen review triage stays fail-closed
+        run: node scripts/test-allergen-triage-guard.mjs
+      - name: Validate A3 allergen text hints remain non-conclusive
+        run: node scripts/test-allergen-a3-text-hints.mjs
+      - name: Validate A3B evidence stays append-only and non-conclusive
+        run: node scripts/test-allergen-a3b-evidence.mjs
+      - name: Validate A4 findings require current A3B evidence and stay non-conclusive
+        run: node scripts/test-allergen-a4-findings.mjs
+      - name: Validate A5 weekly server guard screens allergy profiles before writes
+        run: node scripts/test-allergen-a5-week-guard.mjs
+      - name: Validate preliminary allergy week recommendations fail closed
+        run: node scripts/test-allergy-week-pretriage.mjs
+      - name: Validate future allergy eligibility fails closed
+        run: node scripts/test-allergen-eligibility.mjs
+      - name: Validate private recipe favorites contract
+        run: node scripts/test-recipe-favorites.mjs
+      - name: Validate weekly favorites and persistent manual meal pins
+        run: node scripts/test-weekly-favorites-pins.mjs
+      - name: Validate planner, shopping and allergy guards
+        run: npm run test:pilot-flow

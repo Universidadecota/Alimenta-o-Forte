@@ -1,0 +1,77 @@
+import {useEffect,useState} from "react";
+import {supabase} from "./lib/supabase";
+type Recipe={recipe_id:string;title:string;enabled:boolean};
+type Member={email:string;enabled:boolean;created_at:string};
+export default function AdminBetaAccess(){
+ const [email,setEmail]=useState("");
+ const [recipes,setRecipes]=useState<Recipe[]>([]);
+ const [members,setMembers]=useState<Member[]>([]);
+ const [search,setSearch]=useState("");
+ const [onlyEnabled,setOnlyEnabled]=useState(false);
+ const [busy,setBusy]=useState(false);
+ const [error,setError]=useState("");
+ const [message,setMessage]=useState("");
+ const load=async()=>{
+  if(!supabase)return;
+  const {data,error}=await supabase.rpc("cc_admin_beta_catalog_overview");
+  if(error)setError("Não foi possível consultar o catálogo beta.");
+  else setRecipes((data??[]) as Recipe[]);
+  const memberResult=await supabase.rpc("cc_admin_beta_members_overview");
+  if(memberResult.error)setError("Não foi possível consultar os participantes beta.");
+  else setMembers((memberResult.data??[]) as Member[]);
+ };
+ useEffect(()=>{void load();},[]);
+ const updateMember=async(enabled:boolean)=>{
+  if(!supabase||busy||!email.trim())return;
+  setBusy(true);setError("");setMessage("");
+  const {error}=await supabase.rpc("cc_admin_set_beta_member",{p_email:email.trim(),p_enabled:enabled});
+  if(error)setError("Não foi possível alterar acesso. Confira se a conta já está cadastrada e se você possui permissão.");
+  else{setMessage(enabled?"Participante habilitado.":"Acesso do participante revogado.");setEmail("");await load();}
+  setBusy(false);
+ };
+ const updateRecipe=async(row:Recipe)=>{
+  if(!supabase||busy)return;
+  const action=row.enabled?"retirar do":"incluir no";
+  if(!window.confirm("Confirmar "+action+" catálogo beta: "+row.title+"?"))return;
+  setBusy(true);setError("");setMessage("");
+  const {error}=await supabase.rpc("cc_admin_set_beta_recipe",{p_recipe_id:row.recipe_id,p_enabled:!row.enabled});
+  if(error)setError("Não foi possível alterar a disponibilidade dessa receita.");
+  else{setMessage("Disponibilidade beta atualizada.");await load();}
+  setBusy(false);
+ };
+ const shown=recipes.filter(x=>(!onlyEnabled||x.enabled)&&x.title.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")));
+ return <section className="detail-panel" style={{marginTop:20}}>
+  <h3>Participantes e receitas do beta gratuito</h3>
+  <p className="detail-note">Acesso restrito aos participantes convidados. Esta liberação não publica a receita na internet e não altera ingredientes ou preparo.</p>
+  <label htmlFor="beta-email">E-mail de usuário já cadastrado</label>
+  <div style={{display:"flex",flexWrap:"wrap",gap:8,margin:"8px 0 18px"}}>
+   <input id="beta-email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="usuario@exemplo.com" style={{flex:"1 1 230px",minWidth:0}}/>
+   <button className="primary" type="button" disabled={busy||!email.trim()} onClick={()=>void updateMember(true)}>Autorizar beta</button>
+   <button className="secondary" type="button" disabled={busy||!email.trim()} onClick={()=>void updateMember(false)}>Revogar acesso</button>
+  </div>
+  <h3>Participantes cadastrados</h3>
+  <p className="detail-note">{members.filter(m=>m.enabled).length} participantes ativos de {members.length} registros.</p>
+  {members.length===0?<p className="detail-note">Nenhum participante autorizado até o momento.</p>:<div style={{maxHeight:230,overflowY:"auto",marginBottom:18}}>
+   {members.map(m=><div key={m.email} style={{display:"flex",flexWrap:"wrap",gap:10,justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #ddd"}}>
+    <span>{m.email} · {m.enabled?"Ativo":"Revogado"}</span>
+    <button type="button" className="secondary" disabled={busy} onClick={()=>{setEmail(m.email);setMessage("E-mail selecionado. Confirme a ação acima para alterar o acesso.");}}>Selecionar</button>
+   </div>)}
+  </div>}
+  <h3>Catálogo disponível aos testadores</h3>
+  <p className="detail-note">{recipes.filter(r=>r.enabled).length} de {recipes.length} receitas habilitadas para o beta.</p>
+  <div style={{display:"flex",flexWrap:"wrap",gap:12,alignItems:"center"}}>
+   <input aria-label="Buscar receita do catálogo beta" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar receita..." style={{width:"100%",maxWidth:420}}/>
+   <label style={{display:"flex",alignItems:"center",gap:6}}><input type="checkbox" checked={onlyEnabled} onChange={e=>setOnlyEnabled(e.target.checked)}/> Somente liberadas</label>
+   <button className="secondary" type="button" disabled={busy} onClick={()=>void load()}>Atualizar catálogo</button>
+  </div>
+  <p className="detail-note">{shown.length} receitas exibidas nos filtros atuais.</p>
+  <div style={{maxHeight:360,overflowY:"auto",marginTop:12}}>
+   {shown.map(row=><div key={row.recipe_id} style={{display:"flex",gap:10,alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid #ddd"}}>
+    <span>{row.title} · {row.enabled?"No beta":"Restrita"}</span>
+    <button type="button" className="secondary" disabled={busy} onClick={()=>void updateRecipe(row)}>{row.enabled?"Retirar do beta":"Liberar no beta"}</button>
+   </div>)}
+  </div>
+  {error&&<p role="alert">{error}</p>}
+  {message&&<p role="status">{message}</p>}
+ </section>;
+}

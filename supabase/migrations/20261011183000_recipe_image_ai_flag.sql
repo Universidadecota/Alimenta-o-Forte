@@ -1,0 +1,1 @@
+alter table public.recipes add column if not exists image_is_ai boolean not null default false;
