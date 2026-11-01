@@ -10,6 +10,8 @@ import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientA
 import ShoppingListSections from "./ShoppingListSections";
 import {groupShoppingForReview} from "./lib/shoppingReviewGroups";
 import {purchaseKey,loadPurchasedKeys,savePurchasedItem,changedPurchasedItems} from "./lib/shoppingProgress";
+import {loadShoppingDecisions,saveShoppingDecision,decisionKind,decisionDescription,type ShoppingDecision} from "./lib/shoppingDecisions";
+import type {PilotShoppingItem} from "./lib/shopping";
 import {openWeeklyPrint,type PrintKind} from "./lib/weeklyPrint";
 import {dataReadyForUser,sessionReadyForMealPlanning} from "./lib/flowReadiness";
 import {unavailableMainMeals,editableWeekDraft,readableWeekError} from "./lib/legacyWeekAccess";
@@ -51,6 +53,9 @@ export default function App(){
  const [purchased,setPurchased]=useState<{scope:string;keys:string[];loaded:boolean}>({scope:"",keys:[],loaded:false});
  const [purchasing,setPurchasing]=useState<string|null>(null);
  const [purchaseLoadError,setPurchaseLoadError]=useState(false);
+ const [shoppingDecisions,setShoppingDecisions]=useState<{scope:string;rows:ShoppingDecision[];loaded:boolean}>({scope:"",rows:[],loaded:false});
+ const [decisionBusyKey,setDecisionBusyKey]=useState<string|null>(null);
+ const [decisionLoadError,setDecisionLoadError]=useState(false);
  const days=Array.from({length:7},(_,i)=>{const d=new Date(week);d.setDate(week.getDate()+i);return d;});
  const weekStart=dateKey(week);
  const recipesReady=!supabase||dataReadyForUser(recipesLoadedFor,userId);
@@ -179,6 +184,18 @@ export default function App(){
   void loadPurchasedKeys(userId,weekStart,currentItems)
    .then(keys=>{if(active)setPurchased({scope,keys,loaded:true});})
    .catch(err=>{if(active){setPurchaseLoadError(true);setError(err instanceof Error?err.message:"Não foi possível carregar as marcações de compras.");}});
+  return ()=>{active=false;};
+ },[page,userId,weekStart,loading,weekReady,plan,recipes,recipesReady]);
+ // Decisões privadas por usuário e semana; não reutilizar conteúdo anterior.
+ useEffect(()=>{
+  if(!supabase||!userId||page!=="Compras"||loading||!weekReady||!recipesReady)return;
+  let active=true;
+  const scope=userId+"|"+weekStart;
+  setShoppingDecisions({scope,rows:[],loaded:false});setDecisionLoadError(false);
+  const items=collectPilotShopping(days,plan,recipes).filter(item=>decisionKind(item)!==null);
+  void loadShoppingDecisions(userId,weekStart,items).then(rows=>{
+   if(active)setShoppingDecisions({scope,rows,loaded:true});
+  }).catch(()=>{if(active){setDecisionLoadError(true);setError("Não foi possível carregar suas decisões de compra; tente reabrir a página.");}});
   return ()=>{active=false;};
  },[page,userId,weekStart,loading,weekReady,plan,recipes,recipesReady]);
  useEffect(()=>{if(!supabase)setDone([]);},[weekStart]);
@@ -449,14 +466,34 @@ export default function App(){
  const purchasedScope=(userId??"")+"|"+weekStart;
  const purchasedLoaded=!supabase||(purchased.scope===purchasedScope&&purchased.loaded);
  const purchasedKeys=supabase?(purchasedLoaded?purchased.keys:[]):done;
+ const decisionsLoaded=!supabase||(shoppingDecisions.scope===purchasedScope&&shoppingDecisions.loaded);
+ const decisionRows=decisionsLoaded?shoppingDecisions.rows:[];
+ const handleSaveDecision=async(item:PilotShoppingItem,decision:ShoppingDecision|null)=>{
+  const key=purchaseKey(item);
+  if(!decisionKind(item))return;
+  if(supabase&&(!userId||!decisionsLoaded||decisionBusyKey||loading||!weekReady||!recipesReady))return;
+  const current=pilotShopping.find(row=>purchaseKey(row)===key&&decisionKind(row)===decisionKind(item));
+  if(!current){setError("O ingrediente mudou; atualize a lista antes de decidir.");return;}
+  setDecisionBusyKey(key);setError("");
+  try{
+   if(supabase)await saveShoppingDecision(userId!,weekStart,current,decision);
+   setShoppingDecisions(prev=>{
+    if(supabase&&prev.scope!==purchasedScope)return prev;
+    return {scope:purchasedScope,loaded:true,rows:[
+     ...prev.rows.filter(row=>row.itemKey!==key),...(decision?[decision]:[])
+    ]};
+   });
+  }catch(err){setError("A escolha não foi salva. "+(err instanceof Error?err.message:"Tente novamente."));}
+  finally{setDecisionBusyKey(null);}
+ };
  const printWeek=(kind:PrintKind)=>{
   if(loading||!weekReady||!recipesReady||Boolean(supabase&&!userId)){
    setError("Aguarde o carregamento do cardápio antes de imprimir.");return;
   }
-  if(kind==="shopping"&&!purchasedLoaded){
+  if(kind==="shopping"&&(!purchasedLoaded||!decisionsLoaded)){
    setError("Aguarde carregar os itens comprados para imprimir a lista atualizada.");return;
   }
-  const opened=openWeeklyPrint({kind,days,plan,recipes,shopping,pilotShopping,notes:shoppingAnnotations,purchasedKeys});
+  const opened=openWeeklyPrint({kind,days,plan,recipes,shopping,pilotShopping,notes:shoppingAnnotations,purchasedKeys,decisions:decisionRows});
   if(!opened)setError("O navegador bloqueou a prévia. Permita pop-ups para imprimir ou salvar em PDF.");
  };
  const togglePurchased=async(item:ShoppingItem)=>{
@@ -595,10 +632,12 @@ export default function App(){
   onClick={()=>setRecipePage(page=>Math.min(recipeTotalPages,page+1))}>Próxima</button>
 </nav>}
 </>}
- {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div><div className="toolbar-actions"><button type="button" className="secondary" disabled={loading||!weekReady||!recipesReady||Boolean(supabase&&!purchasedLoaded)} onClick={()=>printWeek("shopping")}><Printer size={16}/> Imprimir lista / Salvar PDF</button></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<ShoppingListSections shopping={shopping} pilotShopping={pilotShopping} notes={shoppingAnnotations}
+ {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div><div className="toolbar-actions"><button type="button" className="secondary" disabled={loading||!weekReady||!recipesReady||Boolean(supabase&&(!purchasedLoaded||!decisionsLoaded))} onClick={()=>printWeek("shopping")}><Printer size={16}/> Imprimir lista / Salvar PDF</button></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{!decisionsLoaded&&!decisionLoadError&&<div className="notice" role="status">Carregando escolhas e opcionais...</div>}{decisionLoadError&&<div className="notice" role="alert">Não foi possível consultar as decisões. Abra Compras novamente para tentar.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<ShoppingListSections shopping={shopping} pilotShopping={pilotShopping} notes={shoppingAnnotations}
   purchasedKeys={purchasedKeys} onToggle={item=>void togglePurchased(item)}
+  decisions={decisionRows} decisionBusyKey={decisionBusyKey} decisionDisabled={!decisionsLoaded}
+  onSaveDecision={(item,decision)=>void handleSaveDecision(item,decision)}
   disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)}/>
- {(shopping.length>0||pilotShopping.length>0||shoppingAnnotations.length>0)&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText((()=>{
+ {(shopping.length>0||pilotShopping.length>0||shoppingAnnotations.length>0)&&<button className="secondary" disabled={Boolean(supabase&&!decisionsLoaded)} onClick={()=>navigator.clipboard?.writeText((()=>{
   const groups=groupShoppingForReview(shopping,pilotShopping,shoppingAnnotations);
   const original=(x:typeof pilotShopping[number])=>(x.totalLabel??x.sourceText)+(x.totalLabel?" · Originais: "+x.sourceExpressions.join(" + "):"")+(x.quantity>1?" · "+x.quantity+" usos":"")+" · Em: "+x.sourceRecipes.join("; ");
   return [
@@ -611,7 +650,7 @@ export default function App(){
    ...groups.incompleteReference.map(x=>original(x)+" · Referência incompleta, não comprar automaticamente"),
    "",
    "Alternativas e opcionais (não contabilizados):",
-   ...groups.choicesAndOptional.map(original),
+   ...groups.choicesAndOptional.map(x=>original(x)+" · "+decisionDescription(x,decisionRows)),
    ...groups.notes.map(x=>x.name+": "+x.description)
   ].join("\n");
  })())}>Copiar lista</button>}</>}
