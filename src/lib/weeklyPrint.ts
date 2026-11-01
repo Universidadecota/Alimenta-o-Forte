@@ -2,6 +2,7 @@ import {dateKey,daySlots,type Meal,type Plan} from "./planner";
 import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasures";
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
+import {groupShoppingForReview} from "./shoppingReviewGroups";
 import {parseRecipePreparation} from "./recipePreparationSections.mjs";
 
 export type PrintKind="fridge"|"week"|"shopping";
@@ -64,9 +65,11 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    ${recipe.pilotSource&&!recipe.pilotSource.ingredientsReviewed?'<p class="warning">Medidas originais preservadas; não houve redimensionamento automático.</p>':""}
    </article>`;
  }).join("");
- const requiresSourceReview=(item:PilotShoppingItem)=>/^(?:[0-9]+|[½¼¾⅓⅔])\s*(?:x[ií]cara|colher(?:es)?)(?:\s+\([^)]*\))?\s*\.?$/i.test(item.sourceText.trim())||/\(receita abaixo\)/i.test(item.sourceText);
- const availablePilot=pilotShopping.filter(item=>!requiresSourceReview(item));
- const needsReview=pilotShopping.filter(requiresSourceReview);
+ const groups=groupShoppingForReview(shopping,pilotShopping,notes);
+ const availablePilot=groups.needsChecking;
+ const needsReview=groups.incompleteReference;
+ const measuredPilot=groups.consolidatedOriginal;
+ const alternatives=groups.choicesAndOptional;
  // Agrupamento visual conservador, somente para impressão.
  // Não modifica itens persistidos, porções ou receitas originais.
  const shoppingGroup=(item:PilotShoppingItem):string|null=>{
@@ -109,16 +112,21 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
   ].filter(Boolean).join(" · "));
  }).join("");
  const shoppingBody=`
- ${shopping.length?"<h2>Ingredientes com quantidades estruturadas</h2>":""}
+ ${shopping.length||measuredPilot.length?'<h2>Medidas consolidadas — conferir rendimento</h2>':""}
+ ${shopping.length||measuredPilot.length?'<p class="muted">Somente medidas estruturadas ou expressões literais equivalentes são somadas. As receitas internas não foram redimensionadas para a família; confira porções, embalagens e rendimentos antes da compra.</p>':""}
  ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:""}
- ${availablePilot.length?`<h2>Ingredientes das receitas originais</h2>
- <p class="muted">Medidas conforme as receitas, sem redimensionamento. Somente equivalências seguras são somadas. Quando não há quantidade clara, “usos” indica a frequência no cardápio, não unidades para comprar.</p>
- <ul class="checklist">${printPilot}</ul>`:""}
- ${needsReview.length?`<h2>Referências incompletas: conferir na receita</h2>
- <p class="muted">Estes trechos não identificam claramente um produto para compra e não devem ser considerados como quantidades a adquirir.</p>
- <ul class="review-list">${needsReview.map(item=>`<li>${safe(item.sourceText)}</li>`).join("")}</ul>`:""}
- ${notes.length?`<h2>Opcionais, a gosto ou sem quantidade definida</h2>
- <ul class="checklist">${notes.map(item=>`<li class="item"><span class="square"></span><div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div></li>`).join("")}</ul>`:""}
+ ${measuredPilot.length?`<ul class="checklist">${measuredPilot.map(item=>checklist(item,item.totalLabel??item.sourceText,
+ "Medida original para referência, sem redimensionar · "+item.quantity+" usos · Expressões: "+item.sourceExpressions.join(" + ")+" · Em: "+item.sourceRecipes.join("; "))).join("")}</ul>`:""}
+ ${availablePilot.length||needsReview.length?'<h2>Conferir antes de comprar</h2>':""}
+ ${availablePilot.length?'<p class="muted">Itens sem quantidade verificável ou com diferentes unidades devem ser conferidos na receita. “Usos” não indica unidades para comprar.</p>':""}
+ ${availablePilot.length?`<ul class="checklist">${printPilot}</ul>`:""}
+ ${needsReview.length?`<h3>Referências incompletas: conferir na receita</h3>
+ <p class="muted">Estes trechos não identificam claramente um produto para compra e não devem ser usados como quantidade a adquirir.</p>
+ <ul class="review-list">${needsReview.map(item=>`<li>${safe(item.sourceText)} <small>Em: ${safe(item.sourceRecipes.join("; "))}</small></li>`).join("")}</ul>`:""}
+ ${alternatives.length||notes.length?'<h2>Alternativas e opcionais — decidir antes de comprar</h2>':""}
+ ${alternatives.length||notes.length?'<p class="muted">Não computados automaticamente como quantidades de compra. A alternativa deve ser escolhida e os opcionais só devem entrar na lista mediante decisão.</p>':""}
+ ${alternatives.length?`<ul class="review-list">${alternatives.map(item=>`<li>${safe(item.sourceText)} <small>${safe(item.requiresChoice?"Escolher opção":"Opcional")} · Em: ${safe(item.sourceRecipes.join("; "))}</small></li>`).join("")}</ul>`:""}
+ ${notes.length?`<ul class="checklist">${notes.map(item=>`<li class="item"><span class="square"></span><div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div></li>`).join("")}</ul>`:""}
  ${!shopping.length&&!pilotShopping.length&&!notes.length?'<p class="muted">Planeje refeições para gerar a lista de compras.</p>':""}
  `;
  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
