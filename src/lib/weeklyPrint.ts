@@ -109,7 +109,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    !item.totalLabel&&item.quantity>1?item.quantity+" usos no cardápio":"",
    item.requiresChoice?"Escolha entre as alternativas":"",
    item.optionalSource?"Opcional":"",
-   item.ambiguousSource?"Confira o texto original":""
+   item.ambiguousSource?"Confira o texto original":"",
    "Em: "+item.sourceRecipes.join("; ")
   ].filter(Boolean).join(" · "));
  }).join("");
