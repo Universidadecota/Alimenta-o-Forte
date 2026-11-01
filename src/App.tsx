@@ -7,6 +7,8 @@ import FoodLibrary from "./FoodLibrary";
 import CopyMealAction from "./CopyMealAction";
 import RecipeImage from "./RecipeImage";
 import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientAmount,type ShoppingItem} from "./lib/shopping";
+import ShoppingListSections from "./ShoppingListSections";
+import {groupShoppingForReview} from "./lib/shoppingReviewGroups";
 import {purchaseKey,loadPurchasedKeys,savePurchasedItem,changedPurchasedItems} from "./lib/shoppingProgress";
 import {openWeeklyPrint,type PrintKind} from "./lib/weeklyPrint";
 import {dataReadyForUser,sessionReadyForMealPlanning} from "./lib/flowReadiness";
@@ -18,7 +20,7 @@ import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
 import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, loadPreliminaryAllergyCandidates, saveMeal, setMealLocked, replaceWeekMainMeals, removeMeal, moveMeal } from "./lib/planner";
-import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Check, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer, Heart, LockKeyhole, LockKeyholeOpen } from "lucide-react";
+import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer, Heart, LockKeyhole, LockKeyholeOpen } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
  const [isAdmin,setIsAdmin]=useState(false);
@@ -593,39 +595,25 @@ export default function App(){
   onClick={()=>setRecipePage(page=>Math.min(recipeTotalPages,page+1))}>Próxima</button>
 </nav>}
 </>}
- {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div><div className="toolbar-actions"><button type="button" className="secondary" disabled={loading||!weekReady||!recipesReady||Boolean(supabase&&!purchasedLoaded)} onClick={()=>printWeek("shopping")}><Printer size={16}/> Imprimir lista / Salvar PDF</button></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<div className="shopping-list">{shopping.length===0&&!pilotShopping.length?<div className="empty">{shoppingAnnotations.length?"Ingredientes sem quantidade numérica nas observações abaixo.":"Ainda não há ingredientes. Planeje suas refeições primeiro."}</div>:shopping.map(item=>{const k=purchaseKey(item);return <button type="button" key={k} disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)} aria-pressed={purchasedKeys.includes(k)} className={purchasedKeys.includes(k)?"shopping-item checked":"shopping-item"} onClick={()=>void togglePurchased(item)}><span className="checkmark">{purchasedKeys.includes(k)&&<Check size={14}/>}</span><span>{item.name}</span><strong>{formatIngredientAmount(item.quantity,item.unit)}</strong></button>;})}</div>
-{pilotShopping.length>0&&<section className="cc-pilot-shopping" aria-label="Ingredientes das receitas do acervo pessoal">
-  <h3>Ingredientes das receitas do acervo pessoal ({pilotShopping.length})</h3>
-  <p>Somamos medidas equivalentes somente com o mesmo ingrediente e unidade. Também organizamos preparos com subtítulos explícitos. Alternativas e trechos ambíguos são sinalizados, sem conversões ou escolhas inventadas; as receitas originais não são modificadas.</p>
-  <div className="shopping-list">{pilotShopping.map(item=>{const key=purchaseKey(item);return <button type="button" key={key}
-   disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)}
-   aria-pressed={purchasedKeys.includes(key)}
-   className={purchasedKeys.includes(key)?"shopping-item checked":"shopping-item"}
-   onClick={()=>void togglePurchased(item)}>
-   <span className="checkmark">{purchasedKeys.includes(key)&&<Check size={14}/>}</span>
-   <span className="cc-pilot-shopping-text">{item.totalLabel??item.sourceText}
-    {!item.totalLabel&&<small>Quantidade conforme a receita · {item.quantity>1?item.quantity+" utilizações no cardápio":"1 utilização no cardápio"}. Não indica unidades a comprar.</small>}
-    {item.totalLabel&&<small>Medida original consolidada para referência; {item.quantity>1?item.quantity+" ocorrências":"1 ocorrência"} no cardápio. Expressões: {item.sourceExpressions.join(" + ")}</small>}
-    {item.requiresChoice&&<small className="cc-pilot-shopping-attention">Alternativas no documento: escolha uma opção antes de comprar. Nada foi substituído automaticamente.</small>}
-    {item.optionalSource&&<small className="cc-pilot-shopping-attention">Opcional — inclua na compra somente se decidir utilizar.</small>}
-    {item.ambiguousSource&&<small className="cc-pilot-shopping-attention">Trecho composto ou ambíguo: confira as instruções da receita.</small>}
-    {item.sourceRawFragments.length>0&&<small>Trecho original completo: {item.sourceRawFragments.join(" | ")}</small>}
-    <small>Em: {item.sourceRecipes.join("; ")}</small>
-   </span>
-   <strong>{item.quantity>1?item.quantity+" usos":"1 uso"}</strong>
-  </button>;})}</div>
- </section>}
-{shoppingAnnotations.length>0&&<section className="cc-shopping-notes" aria-label="Ingredientes a gosto e opcionais">
-  <h3>Ingredientes a gosto, opcionais e sem quantificação</h3>
-  <p>Itens sem quantidade exata permanecem separados para não gerar totais inventados.</p>
-  <ul>{shoppingAnnotations.map(note=><li key={note.name+"|"+note.description}>
-    <span>{note.name}</span><strong>{note.description}</strong>
-  </li>)}</ul>
- </section>}
- {(shopping.length>0||pilotShopping.length>0||shoppingAnnotations.length>0)&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText([
-  ...shopping.map(x=>x.name+": "+formatIngredientAmount(x.quantity,x.unit)),
-  ...(pilotShopping.length?["","Ingredientes das receitas do piloto (quantidades originais):",...pilotShopping.map(x=>(x.totalLabel??x.sourceText)+(x.totalLabel?" · Originais: "+x.sourceExpressions.join(" + "):"")+(x.quantity>1?" · "+x.quantity+" usos":"")+" · "+x.sourceRecipes.join("; "))]:[]),
-  ...(shoppingAnnotations.length?["","A gosto e opcionais (sem quantidade automática):",...shoppingAnnotations.map(x=>x.name+": "+x.description)]:[])
- ].join("\n"))}>Copiar lista</button>}</>}
+ {page==="Compras"&&<><div className="toolbar"><div><h2>Lista de supermercado</h2><span>Ingredientes estruturados e itens originais das receitas da semana {fmt(days[0])} a {fmt(days[6])}</span></div><div className="toolbar-actions"><button type="button" className="secondary" disabled={loading||!weekReady||!recipesReady||Boolean(supabase&&!purchasedLoaded)} onClick={()=>printWeek("shopping")}><Printer size={16}/> Imprimir lista / Salvar PDF</button></div></div>{!purchasedLoaded&&!purchaseLoadError&&<div className="notice" role="status">Carregando itens comprados...</div>}{purchaseLoadError&&<div className="notice" role="alert">Não foi possível consultar as marcações. Abra novamente esta página para tentar outra vez.</div>}{purchasing&&<div className="notice" role="status">Salvando marcacao de compra...</div>}<ShoppingListSections shopping={shopping} pilotShopping={pilotShopping} notes={shoppingAnnotations}
+  purchasedKeys={purchasedKeys} onToggle={item=>void togglePurchased(item)}
+  disabled={Boolean(supabase)&&(!userId||!purchasedLoaded||Boolean(purchasing)||loading)}/>
+ {(shopping.length>0||pilotShopping.length>0||shoppingAnnotations.length>0)&&<button className="secondary" onClick={()=>navigator.clipboard?.writeText((()=>{
+  const groups=groupShoppingForReview(shopping,pilotShopping,shoppingAnnotations);
+  const original=(x:typeof pilotShopping[number])=>(x.totalLabel??x.sourceText)+(x.totalLabel?" · Originais: "+x.sourceExpressions.join(" + "):"")+(x.quantity>1?" · "+x.quantity+" usos":"")+" · Em: "+x.sourceRecipes.join("; ");
+  return [
+   "Medidas consolidadas (conferir rendimento):",
+   ...groups.structured.map(x=>x.name+": "+formatIngredientAmount(x.quantity,x.unit)),
+   ...groups.consolidatedOriginal.map(original),
+   "",
+   "Conferir antes de comprar:",
+   ...groups.needsChecking.map(original),
+   ...groups.incompleteReference.map(x=>original(x)+" · Referência incompleta, não comprar automaticamente"),
+   "",
+   "Alternativas e opcionais (não contabilizados):",
+   ...groups.choicesAndOptional.map(original),
+   ...groups.notes.map(x=>x.name+": "+x.description)
+  ].join("\n");
+ })())}>Copiar lista</button>}</>}
  </main><div className="mobile-nav">{nav.map(([name,Icon])=><button key={name} className={page===name?"active":""} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={21}/><small>{name}</small></button>)}</div></div>;
 }
