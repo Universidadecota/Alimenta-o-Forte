@@ -51,6 +51,7 @@ assert.deepEqual(groupShoppingForReview([],[],[]),{
 
 const app=readFileSync(new URL("../src/App.tsx",import.meta.url),"utf8");
 const ui=readFileSync(new URL("../src/ShoppingListSections.tsx",import.meta.url),"utf8");
+const decisionPanel=readFileSync(new URL("../src/ShoppingDecisionsPanel.tsx",import.meta.url),"utf8");
 const print=readFileSync(new URL("../src/lib/weeklyPrint.ts",import.meta.url),"utf8");
 const progress=readFileSync(new URL("../src/lib/shoppingProgress.ts",import.meta.url),"utf8");
 assert.match(app,/<ShoppingListSections shopping=\{shopping\}/);
@@ -59,7 +60,9 @@ assert.match(ui,/purchaseKey\(item\)/);
 assert.match(ui,/onToggle\(item\)/);
 assert.match(ui,/Conferir antes de comprar/);
 assert.match(ui,/Medidas consolidadas/);
-assert.match(ui,/Alternativas e opcionais/);
+assert.match(ui,/ShoppingDecisionsPanel/);
+assert.match(decisionPanel,/Alternativas e opcionais/);
+assert.match(decisionPanel,/decisionDescription/);
 assert.match(ui,/sourceRecipes\.join\("; "\)/);
 assert.match(print,/groupShoppingForReview\(shopping,pilotShopping,notes\)/);
 assert.match(print,/purchasedKeys\.includes\(purchaseKey\(item\)\)/);
