@@ -61,7 +61,8 @@ const html=buildWeeklyPrintHtml({
 assert.match(html,/<h2>Conferir antes de comprar<\/h2>/);
 assert.match(html,/16 ovos/);
 assert.match(html,/Subtotal de ovos/);
-assert.match(html,/2 xícaras de chá/);
+assert.ok(html.includes("1 xícara de chá."),"O PDF mostra o texto original, não o subtotal de uma bebida genérica");
+assert.ok(html.includes("2 ocorrências no cardápio"),"A origem e os usos não desaparecem");
 assert.match(html,/Referências incompletas/);
 assert.match(html,/<div class="cc-print-decisions">/);
 assert.match(html,/<span class="cc-print-tag">Escolher opção<\/span>/);
