@@ -99,7 +99,8 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    drawn.add(group);
    const allPurchased=siblings.every(row=>purchasedKeys.includes(purchaseKey(row)));
    const lines=siblings.map(row=>'<li>'+safe(row.totalLabel??row.sourceText)+
-    (row.quantity>1&&!row.totalLabel?' <small>('+safe(row.quantity)+' usos)</small>':'')+'</li>').join("");
+    (row.quantity>1&&!row.totalLabel?' <small>('+safe(row.quantity)+' usos)</small>':'')+
+    ' <small>Em: '+safe(row.sourceRecipes.join("; "))+'</small></li>').join("");
    return '<li class="item grouped"><span class="square">'+(allPurchased?"✓":"")+
     '</span><div><strong>'+safe(group)+' — conferir medidas</strong><ul class="group-details">'+
     lines+'</ul></div></li>';
@@ -109,6 +110,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    item.requiresChoice?"Escolha entre as alternativas":"",
    item.optionalSource?"Opcional":"",
    item.ambiguousSource?"Confira o texto original":""
+   "Em: "+item.sourceRecipes.join("; ")
   ].filter(Boolean).join(" · "));
  }).join("");
  const shoppingBody=`
