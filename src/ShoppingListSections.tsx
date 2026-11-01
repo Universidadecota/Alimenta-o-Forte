@@ -69,7 +69,7 @@ export default function ShoppingListSections({
     <ul>{groups.incompleteReference.map(item=><li className="cc-shopping-decision" key={purchaseKey(item)}>
      <span className="cc-shopping-decision-body">
       <span className="cc-shopping-decision-title">{item.sourceText}</span>
-      <small className="cc-shopping-decision-note">{shoppingReviewReason(item,pilotShopping)}</small>
+      <small className="cc-shopping-decision-note">{item.quantity>1?item.quantity+" ocorrências no cardápio. ":""}{shoppingReviewReason(item,pilotShopping)}</small>
       <small className="cc-shopping-decision-origin">Em: {item.sourceRecipes.join("; ")}</small>
      </span>
      <span className="cc-shopping-decision-tag">Conferir receita</span>
