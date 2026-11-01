@@ -127,7 +127,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  ${needsReview.length?`<h3>Referências incompletas: conferir na receita</h3>
  <p class="muted">Estes trechos não identificam claramente um produto para compra e não devem ser usados como quantidade a adquirir.</p>
  <div class="cc-print-decisions">${needsReview.map(item=>`<div class="cc-print-decision">
- <div><strong>${safe(item.sourceText)}</strong><small>${safe(shoppingReviewReason(item,pilotShopping)??"Referência sem produto definido")}</small><small>Em: ${safe(item.sourceRecipes.join("; "))}</small></div>
+ <div><strong>${safe(item.sourceText)}</strong><small>${item.quantity>1?safe(item.quantity+" ocorrências no cardápio. "):""}${safe(shoppingReviewReason(item,pilotShopping)??"Referência sem produto definido")}</small><small>Em: ${safe(item.sourceRecipes.join("; "))}</small></div>
  <span class="cc-print-tag">Conferir receita</span></div>`).join("")}</div>`:""}
  ${alternatives.length||notes.length?'<h2>Alternativas e opcionais — decidir antes de comprar</h2>':""}
  ${alternatives.length||notes.length?'<p class="muted">Não computados automaticamente como quantidades de compra. A alternativa deve ser escolhida e os opcionais só devem entrar na lista mediante decisão.</p>':""}
