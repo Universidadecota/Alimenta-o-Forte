@@ -14,6 +14,7 @@ function DecisionRow({item,decision,disabled,busy,onSave}:{
  onSave:Props["onSave"];
 }){
  const key=purchaseKey(item);
+ const inputId="cc-choice-"+encodeURIComponent(key);
  const kind=decisionKind(item);
  const [editing,setEditing]=useState(false);
  const [draft,setDraft]=useState("");
@@ -30,8 +31,8 @@ function DecisionRow({item,decision,disabled,busy,onSave}:{
     event.preventDefault();
     if(draft.trim()&&!disabled&&!busy)onSave(item,{itemKey:key,kind:"choice",selection:draft.trim()});
    }}>
-    <label htmlFor={"cc-choice-"+key}>Alternativa escolhida (não altera automaticamente a quantidade)</label>
-    <input id={"cc-choice-"+key} type="text" maxLength={180} value={draft}
+    <label htmlFor={inputId}>Alternativa escolhida (não altera automaticamente a quantidade)</label>
+    <input id={inputId} type="text" maxLength={180} value={draft}
      placeholder="Ex.: azeite, endro ou alface romana"
      disabled={disabled||busy} onChange={event=>setDraft(event.target.value)}
      required/>
