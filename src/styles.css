@@ -666,3 +666,29 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .recipe-favorite-action:focus-visible{outline:3px solid #295744;outline-offset:3px}
 .recipe-favorite-action:disabled{opacity:.65;cursor:wait}
 @media(max-width:700px){.recipe-title-actions{align-items:stretch;flex-direction:column}.recipe-title-actions h2{flex-basis:auto}.recipe-favorite-action{width:100%}}
+
+
+/* Compras: decisões e referências sem checkbox, com hierarquia visual clara. */
+.cc-shopping-decisions ul{margin:0;padding:0;list-style:none}
+.cc-shopping-decisions li.cc-shopping-decision{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,135px);
+ align-items:start;gap:16px;padding:14px 0;
+ border-top:1px solid #e1eae0;font-size:14px;
+}
+.cc-shopping-decision-body{display:grid;gap:6px;min-width:0;overflow-wrap:anywhere}
+.cc-shopping-decision-title{font-weight:650;line-height:1.45;color:#183f35}
+.cc-shopping-decision-body small{display:block;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.cc-shopping-decision-note{color:#596d5e}
+.cc-shopping-decision-origin{color:#64816e}
+.cc-shopping-decisions .cc-shopping-decision-tag{
+ display:inline-flex;align-items:center;justify-content:center;
+ padding:6px 9px;border-radius:8px;background:#edf3eb;
+ color:#315f48;font-weight:700;font-size:12px;line-height:1.3;
+ text-align:center;white-space:normal;overflow-wrap:anywhere;
+}
+@media(max-width:620px){
+ .cc-shopping-decisions li.cc-shopping-decision{
+  grid-template-columns:minmax(0,1fr);gap:8px
+ }
+ .cc-shopping-decisions .cc-shopping-decision-tag{justify-self:start}
+}
