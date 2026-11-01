@@ -14,13 +14,14 @@ type Props={
  onToggle:(item:ShoppingItem)=>void;
  decisions:ShoppingDecision[];
  decisionBusyKey:string|null;
+ decisionDisabled:boolean;
  onSaveDecision:(item:PilotShoppingItem,decision:ShoppingDecision|null)=>void;
  disabled:boolean;
 };
 
 /** Três grupos de apresentação; mantém IDs, quantidades e marcações originais. */
 export default function ShoppingListSections({
- shopping,pilotShopping,notes,purchasedKeys,onToggle,decisions,decisionBusyKey,onSaveDecision,disabled
+ shopping,pilotShopping,notes,purchasedKeys,onToggle,decisions,decisionBusyKey,onSaveDecision,decisionDisabled,disabled
 }:Props){
  const groups=groupShoppingForReview(shopping,pilotShopping,notes);
  const measuredCount=groups.structured.length+groups.consolidatedOriginal.length;
@@ -83,7 +84,7 @@ export default function ShoppingListSections({
   </section>}
 
   {optionalCount>0&&<ShoppingDecisionsPanel items={groups.choicesAndOptional} notes={groups.notes}
-   decisions={decisions} busyKey={decisionBusyKey} disabled={disabled}
+   decisions={decisions} busyKey={decisionBusyKey} disabled={disabled||decisionDisabled}
    onSave={onSaveDecision}/>}
  </>;
 }
