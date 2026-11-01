@@ -2,7 +2,7 @@ import {dateKey,daySlots,type Meal,type Plan} from "./planner";
 import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasures";
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
-import {groupShoppingForReview} from "./shoppingReviewGroups";
+import {groupShoppingForReview,shoppingReviewReason} from "./shoppingReviewGroups";
 import {parseRecipePreparation} from "./recipePreparationSections.mjs";
 
 export type PrintKind="fridge"|"week"|"shopping";
@@ -100,6 +100,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    const allPurchased=siblings.every(row=>purchasedKeys.includes(purchaseKey(row)));
    const lines=siblings.map(row=>'<li>'+safe(row.totalLabel??row.sourceText)+
     (row.quantity>1&&!row.totalLabel?' <small>('+safe(row.quantity)+' usos)</small>':'')+
+    (shoppingReviewReason(row,pilotShopping)?' <small class="cc-print-warning">'+safe(shoppingReviewReason(row,pilotShopping))+'</small>':"")+
     ' <small>Em: '+safe(row.sourceRecipes.join("; "))+'</small></li>').join("");
    return '<li class="item grouped"><span class="square">'+(allPurchased?"✓":"")+
     '</span><div><strong>'+safe(group)+' — conferir medidas</strong><ul class="group-details">'+
@@ -110,6 +111,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    item.requiresChoice?"Escolha entre as alternativas":"",
    item.optionalSource?"Opcional":"",
    item.ambiguousSource?"Confira o texto original":"",
+   shoppingReviewReason(item,pilotShopping)??"",
    "Em: "+item.sourceRecipes.join("; ")
   ].filter(Boolean).join(" · "));
  }).join("");
@@ -124,11 +126,22 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  ${availablePilot.length?`<ul class="checklist">${printPilot}</ul>`:""}
  ${needsReview.length?`<h3>Referências incompletas: conferir na receita</h3>
  <p class="muted">Estes trechos não identificam claramente um produto para compra e não devem ser usados como quantidade a adquirir.</p>
- <ul class="review-list">${needsReview.map(item=>`<li>${safe(item.sourceText)} <small>Em: ${safe(item.sourceRecipes.join("; "))}</small></li>`).join("")}</ul>`:""}
+ <div class="cc-print-decisions">${needsReview.map(item=>`<div class="cc-print-decision">
+ <div><strong>${safe(item.sourceText)}</strong><small>${item.quantity>1?safe(item.quantity+" ocorrências no cardápio. "):""}${safe(shoppingReviewReason(item,pilotShopping)??"Referência sem produto definido")}</small><small>Em: ${safe(item.sourceRecipes.join("; "))}</small></div>
+ <span class="cc-print-tag">Conferir receita</span></div>`).join("")}</div>`:""}
  ${alternatives.length||notes.length?'<h2>Alternativas e opcionais — decidir antes de comprar</h2>':""}
  ${alternatives.length||notes.length?'<p class="muted">Não computados automaticamente como quantidades de compra. A alternativa deve ser escolhida e os opcionais só devem entrar na lista mediante decisão.</p>':""}
- ${alternatives.length?`<ul class="review-list">${alternatives.map(item=>`<li>${safe(item.sourceText)} <small>${safe(item.requiresChoice?"Escolher opção":"Opcional")} · Em: ${safe(item.sourceRecipes.join("; "))}</small></li>`).join("")}</ul>`:""}
- ${notes.length?`<ul class="checklist">${notes.map(item=>`<li class="item"><span class="square"></span><div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div></li>`).join("")}</ul>`:""}
+ ${alternatives.length||notes.length?`<div class="cc-print-decisions">
+ ${alternatives.map(item=>`<div class="cc-print-decision">
+ <div><strong>${safe(item.sourceText)}</strong>
+ <small>${safe(item.quantity>1?item.quantity+" usos no cardápio":"1 uso no cardápio")}. ${safe(item.requiresChoice?"Escolha uma alternativa antes de comprar.":"Somente se desejar utilizar.")}</small>
+ <small>Em: ${safe(item.sourceRecipes.join("; "))}</small></div>
+ <span class="cc-print-tag">${safe(item.requiresChoice?"Escolher opção":"Opcional")}</span>
+ </div>`).join("")}
+ ${notes.map(item=>`<div class="cc-print-decision">
+ <div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div>
+ <span class="cc-print-tag">A gosto</span></div>`).join("")}
+ </div>`:""}
  ${!shopping.length&&!pilotShopping.length&&!notes.length?'<p class="muted">Planeje refeições para gerar a lista de compras.</p>':""}
  `;
  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
@@ -155,6 +168,23 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  .grouped{border-bottom:1px solid #c8d6c9}.grouped strong{font-size:12px}.group-details{padding:0 0 0 16px;margin:5px 0 2px}.group-details li{font-size:11px;line-height:1.3;margin:2px 0}.group-details small{font-weight:normal;color:#506258}.item small{display:block;font-size:10px;color:#506258;margin-top:2px}
  .square{border:1px solid #8b998e;width:14px;height:14px;flex:0 0 14px;text-align:center;line-height:12px;margin-top:2px}
  .page-break{break-before:page}.foot{font-size:10px;margin-top:20px;color:#506258}
+ .cc-print-decisions{columns:2;column-gap:16px;margin:4px 0 10px}
+ .cc-print-decision{display:flex;align-items:flex-start;gap:7px;justify-content:space-between;min-width:0;break-inside:avoid;border-bottom:1px solid #e0e8df;padding:6px 0;font-size:11px;overflow-wrap:anywhere}
+ .cc-print-decision>div{min-width:0;flex:1}
+ .cc-print-decision strong{display:block;font-size:11px;line-height:1.35}
+ .cc-print-decision small{display:block;color:#506258;font-size:9.5px;line-height:1.35;margin-top:3px}
+ .cc-print-tag{display:block;flex:0 0 63px;font-size:9px;font-weight:700;color:#315f48;text-align:right;overflow-wrap:anywhere}
+ .cc-print-warning{color:#875325!important;font-weight:650!important}
+ .shopping h2,.shopping h3{break-after:avoid}
+ .shopping h2{font-size:15px;margin-top:14px;padding-bottom:4px}
+ .shopping h3{margin-top:10px}
+ .shopping .item{padding:4px 0}
+ .shopping .item strong{font-size:11px;line-height:1.3}
+ .shopping .item small{font-size:9.5px;line-height:1.35}
+ .shopping .checklist{column-gap:15px}
+ .shopping .subhead{margin-bottom:8px}
+ .shopping .foot{margin-top:10px}
+ .shopping p.muted{line-height:1.35;margin:3px 0 6px}
  @media(max-width:680px){.week{grid-template-columns:1fr}.recipe-body{grid-template-columns:1fr}.checklist{columns:1}}
  @media print{body{padding:0;max-width:none}.toolbar{display:none}.week{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
  .day{padding:5px 7px;border-radius:5px;line-height:1.1}
