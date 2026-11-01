@@ -20,6 +20,7 @@ function DecisionRow({item,decision,disabled,busy,onSave}:{
  const [draft,setDraft]=useState("");
  useEffect(()=>{setEditing(false);setDraft(decision?.kind==="choice"?decision.selection:"");},[key,decision]);
  const status=decisionDescription(item,decision?[decision]:[]);
+ const editLabel=kind==="choice"?(decision?"Alterar escolha":"Escolher opção"):(decision?"Alterar opcional":"Decidir opcional");
  return <li className="cc-shopping-decision">
   <span className="cc-shopping-decision-body">
    <span className="cc-shopping-decision-title">{item.sourceText}</span>
@@ -27,7 +28,7 @@ function DecisionRow({item,decision,disabled,busy,onSave}:{
    {item.sourceRawFragments.length>0&&<small className="cc-shopping-decision-note">Texto original: {item.sourceRawFragments.join(" | ")}</small>}
    <small className="cc-shopping-decision-origin">Em: {item.sourceRecipes.join("; ")}</small>
    <small className={decision?"cc-shopping-decision-selected":"cc-shopping-decision-note"} role="status">{busy?"Salvando decisão...":status}</small>
-   {kind==="choice"&&(editing||!decision)&&<form className="cc-shopping-choice-form" onSubmit={event=>{
+   {kind==="choice"&&editing&&<form className="cc-shopping-choice-form" onSubmit={event=>{
     event.preventDefault();
     if(draft.trim()&&!disabled&&!busy)onSave(item,{itemKey:key,kind:"choice",selection:draft.trim()});
    }}>
@@ -36,11 +37,14 @@ function DecisionRow({item,decision,disabled,busy,onSave}:{
      placeholder="Ex.: azeite, endro ou alface romana"
      disabled={disabled||busy} onChange={event=>setDraft(event.target.value)}
      required/>
-    <button type="submit" className="secondary" disabled={disabled||busy||!draft.trim()}>Salvar escolha</button>
+    <div className="cc-shopping-choice-actions">
+     <button type="submit" className="secondary" disabled={disabled||busy||!draft.trim()}>Salvar escolha</button>
+     <button type="button" className="cc-shopping-clear-decision" disabled={disabled||busy}
+      onClick={()=>{setEditing(false);setDraft(decision?.kind==="choice"?decision.selection:"");}}>Cancelar</button>
+    </div>
    </form>}
-   <div className="cc-shopping-choice-actions">
-    {kind==="choice"&&decision&&!editing&&<button type="button" className="secondary" disabled={disabled||busy} onClick={()=>setEditing(true)}>Alterar escolha</button>}
-    {kind==="optional"&&<>
+   {(kind==="optional"&&editing||Boolean(decision))&&<div className="cc-shopping-choice-actions">
+    {kind==="optional"&&editing&&<>
      <button type="button" className="secondary" disabled={disabled||busy}
       aria-pressed={decision?.kind==="optional"&&decision.included}
       onClick={()=>onSave(item,{itemKey:key,kind:"optional",included:true})}>Incluir</button>
@@ -50,9 +54,12 @@ function DecisionRow({item,decision,disabled,busy,onSave}:{
     </>}
     {decision&&<button type="button" className="cc-shopping-clear-decision" disabled={disabled||busy}
      onClick={()=>onSave(item,null)}>Limpar decisão</button>}
-   </div>
+   </div>}
   </span>
-  <span className="cc-shopping-decision-tag">{decision?"Decidido":kind==="choice"?"Escolher opção":"Opcional"}</span>
+  <button type="button" className="cc-shopping-decision-tag cc-shopping-decision-toggle"
+   disabled={disabled||busy} aria-expanded={editing} onClick={()=>setEditing(open=>!open)}>
+   {editLabel}
+  </button>
  </li>;
 }
 
