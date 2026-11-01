@@ -57,6 +57,14 @@ const escaped=buildWeeklyPrintHtml({
 assert.doesNotMatch(escaped,/<img src=x onerror/);
 assert.match(escaped,/&lt;img src=x/);
 assert.equal(JSON.stringify([choice,optional]),unchanged,"Decidir não modifica as receitas ou a lista original");
+const panel=readFileSync(fileURLToPath(new URL("../src/ShoppingDecisionsPanel.tsx",import.meta.url)),"utf8");
+assert.match(panel,/<button type="button" className="cc-shopping-decision-tag cc-shopping-decision-toggle"/);
+assert.match(panel,/aria-expanded=\{editing\} onClick=\{\(\)=>setEditing\(open=>!open\)\}/);
+assert.match(panel,/kind==="choice"&&editing&&<form/);
+assert.match(panel,/kind==="optional"&&editing&&<>/);
+assert.match(panel,/Salvar escolha/);
+assert.match(panel,/Não incluir/);
+assert.match(panel,/Limpar decisão/);
 const sql=readFileSync(fileURLToPath(new URL("../supabase/migrations/20261101183756_cc_shopping_decisions_phase45.sql",import.meta.url)),"utf8");
 assert.match(sql,/enable row level security/i);
 assert.match(sql,/revoke all on table public\.cc_shopping_decisions from public,anon,authenticated/i);
