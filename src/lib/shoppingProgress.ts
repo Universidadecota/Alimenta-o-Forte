@@ -39,7 +39,9 @@ export async function loadPurchasedKeys(userId: string, weekStart: string, curre
   if (!listId) return [];
   const keys: string[] = [];
   const valid = currentItems ? new Set(currentItems.map(purchaseKey)) : null;
-  const stale: Array<{name:string;unit:string}> = [];
+  // Fase 45: leitura nunca exclui marcacoes persistidas.
+  // Uma divergencia na geracao da lista pode ser transitoria; filtrar na tela
+  // sem destruir o historico de compras do usuario.
   for (let offset = 0; ; offset += 500) {
     const { data, error } = await supabase.from("shopping_list_items")
       .select("name,unit,quantity").eq("user_id", userId).eq("shopping_list_id", listId)
@@ -48,19 +50,13 @@ export async function loadPurchasedKeys(userId: string, weekStart: string, curre
     if (error) throw error;
     for (const row of data ?? []) {
       const key = purchaseKey(row);
-      if (valid && !valid.has(key)) stale.push({name:row.name,unit:row.unit});
-      else keys.push(key);
+      if (!valid || valid.has(key)) keys.push(key);
     }
     if ((data ?? []).length < 500) break;
   }
-  // A reconciliação é reexecutada ao abrir Compras: se a conexão falhou
-  // durante a mudança do cardápio, a marcação antiga não reaparece.
-  for (const row of stale) {
-    const {error} = await supabase.from("shopping_list_items").delete()
-      .eq("user_id", userId).eq("shopping_list_id", listId)
-      .eq("name", row.name).eq("unit", row.unit);
-    if (error) throw error;
-  }
+  // Anteriormente essa consulta apagava itens divergentes. Isso fez
+  // marcacoes sumirem do PDF, inclusive apos somente abrir outra versao
+  // do app. Nunca executar DELETE em operacoes de leitura.
   return keys;
 }
 
