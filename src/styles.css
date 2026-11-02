@@ -726,3 +726,34 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-quantity-review-grid li+li{margin-top:3px}
 .cc-quantity-review-grid li small{color:#718071}
 @media(max-width:720px){.cc-quantity-review{padding:12px}.cc-quantity-review-grid{grid-template-columns:1fr}}
+
+
+/* Fase 47: triagem editorial somente leitura da precisão das compras. */
+.cc-precision-review{border:1px solid #d6e4d6;border-radius:15px;background:#f9fbf7;padding:18px 20px;margin:16px 0 18px;color:#153e31}
+.cc-precision-review-header{display:flex;align-items:start;justify-content:space-between;gap:12px}
+.cc-precision-review-header h3{font-size:18px;margin:0 0 7px;color:#153e31}
+.cc-precision-review-header p{font-size:12px;line-height:1.55;color:#52695b;margin:0}
+.cc-precision-total{white-space:nowrap;flex-shrink:0;background:#e7eee6;color:#2d5640;border-radius:7px;padding:7px 9px;font-size:12px;font-weight:700}
+.cc-precision-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0 12px}
+.cc-precision-summary>div{background:white;border:1px solid #e0eadf;border-radius:9px;padding:12px;min-width:0;display:grid;gap:3px}
+.cc-precision-summary strong{font-size:21px;font-variant-numeric:tabular-nums}
+.cc-precision-summary span{font-size:12px;color:#5f7667;overflow-wrap:anywhere}
+.cc-precision-filters{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+.cc-precision-filters button,.cc-precision-more{border:1px solid #ccddcd;border-radius:9px;background:white;color:#2d5841;padding:9px 12px;font-size:12px;font-weight:700;min-height:40px;cursor:pointer}
+.cc-precision-filters button.is-active{background:#194b39;border-color:#194b39;color:white}
+.cc-precision-filters button:focus-visible,.cc-precision-more:focus-visible,.cc-precision-source summary:focus-visible{outline:3px solid #267e51;outline-offset:3px}
+.cc-precision-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;list-style:none;padding:0;margin:0}
+.cc-precision-items>li{background:white;border:1px solid #dce7dd;border-radius:10px;padding:13px 14px;min-width:0;overflow-wrap:anywhere}
+.cc-precision-issue-head{display:flex;align-items:start;justify-content:space-between;gap:7px;flex-wrap:wrap}
+.cc-precision-issue-head strong{font-size:13px;color:#1a4334}
+.cc-precision-issue-head span{font-size:10px;font-weight:700;line-height:1.25;background:#edf4eb;border-radius:6px;padding:4px 7px;color:#43654a}
+.cc-precision-items p{font-size:12px;line-height:1.5;margin:8px 0;color:#405e4a}
+.cc-precision-items p strong{color:#234d38}
+.cc-precision-items small{font-size:11px;color:#657c6c;line-height:1.45;display:block}
+.cc-precision-source{margin-top:7px;padding-top:7px;border-top:1px solid #e4ece4}
+.cc-precision-source summary{font-size:12px;font-weight:700;cursor:pointer;color:#2a644a}
+.cc-precision-more{margin-top:13px}
+.cc-precision-empty{font-size:13px;color:#536d5b;margin:16px 0}
+.cc-precision-disclaimer{margin:14px 0 0;font-size:11px;line-height:1.5;color:#62766a}
+@media(max-width:750px){.cc-precision-review{padding:13px}.cc-precision-items{grid-template-columns:1fr}.cc-precision-review-header{flex-wrap:wrap}.cc-precision-total{white-space:normal}}
+@media(max-width:480px){.cc-precision-summary{grid-template-columns:1fr}.cc-precision-summary>div{display:flex;align-items:center;gap:10px}.cc-precision-summary strong{font-size:19px}}
