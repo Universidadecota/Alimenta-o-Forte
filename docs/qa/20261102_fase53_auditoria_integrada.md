@@ -58,3 +58,33 @@ Contagens obtidas com agregações (sem expor dados pessoais):
 3. Homologação visual desktop/mobile.
 4. Autorização explícita para merge; manter produção na Fase 52 até lá.
 5. **Mesmo após publicar correção de UX, não abrir comercialmente até concluir revisão de direitos e segurança alimentar.**
+
+
+## Atualização de homologação — após limpeza do banco (02/11/2026)
+
+A auditoria de limpeza no PR #63 removeu uma tabela **legada e vazia**, `public.profiles`, com `DROP TABLE ... RESTRICT` aplicada diretamente no Supabase. Após a migração, as contagens de integridade confirmaram **36 tabelas públicas, todas com RLS**, 4 contas Auth, 4 preferências, 128 receitas e 1.157 ingredientes. Nenhuma estrutura de assinatura ou revisão nutricional profissional foi removida.
+
+O responsável enviou capturas das áreas Início, Cardápio, Receitas, Alimentos, Compras, Perfil, Evolução e Administração no domínio oficial. As áreas carregaram visualmente.
+
+**Observação importante de carregamento:** inicialmente a interface mostrava 0/21, embora 21 refeições já estivessem gravadas na conta analisada. Após o usuário realizar `Ctrl + F5`, a semana 02–08/11 voltou a apresentar **3/3 refeições por dia**, totalizando 21, com receitas e porções. A causa da divergência inicial não foi provada; não regenerar/regravar as refeições como solução.
+
+### Melhoria F53-UX-02 — legibilidade das medidas em Compras
+
+Captura da produção demonstrou que o ingrediente aparecia concatenado à legenda, por exemplo `AbobrinhaQuantidade estruturada`. A causa estava no JSX `<span>{item.name}<small>Quantidade estruturada</small></span>` e ausência de tratamento de exibição do `small` nesse contexto.
+
+**Correção nesta branch:**
+- Separar explicitamente o nome e a legenda em elementos distintos e classes dedicadas: `cc-shopping-ingredient-name` e `cc-shopping-structured-text`.
+- Layout em coluna com quebra de linha, controle de palavras longas e tamanhos legíveis no celular; manter a quantidade alinhada à direita.
+- Preservar `purchaseKey(item)`, `purchased(item)`, `onToggle(item)`, `aria-pressed`, dados e filtros do planejamento, sem alterar backend.
+- Acrescentar regressões estáticas no teste `test:integrated-phase53`.
+
+### Testes móveis a homologar na prévia
+
+- Em Chrome DevTools, alternar 360×800, 390×844 e 768×1024 (ou dispositivos equivalentes).
+- Confirmar rolagem horizontal da navegação inferior, acesso às sete seções sem sobreposição, foco visível ao usar Tab e indicação da aba atual.
+- Na seção Compras, conferir que `Abobrinha` aparece na linha superior e `Quantidade estruturada` na inferior; verificar textos longos e valor à direita sem corte.
+- Alternar Início → Cardápio → Compras → Perfil → Evolução e conferir retorno ao topo e rótulo da página.
+- Não marcar compras nem regerar cardápio durante o teste visual; preservar 21 refeições, 2 compras marcadas e 2 decisões.
+- Testes automatizados de fonte/CSS/build não substituem um ensaio visual em navegador real.
+
+**Publicação:** PR #62 ainda em homologação (não mesclar sem aprovação); produção permanece na Fase 52.
