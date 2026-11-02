@@ -64,7 +64,7 @@ const titles:Record<PrecisionReason,{explanation:string;nextStep:string}>={
  */
 export function hasLiteralMeasure(sourceText:string):boolean{
  const text=sourceText.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("pt-BR").trim();
- return /(?:^|\\s)(?:\\d+(?:[,.]\\d+)?|[½¼¾⅓⅔]|\\d+\\s*[½¼¾⅓⅔])(?=\\s|$)/u.test(text);
+ return /(?:^|\s)(?:\d+(?:[,.]\d+)?|[½¼¾⅓⅔]|\d+\s*[½¼¾⅓⅔])(?=\s|$)/u.test(text);
 }
 
 /** Painel de revisão somente leitura: não resolve nem edita entradas do catálogo. */
@@ -75,9 +75,9 @@ export function auditShoppingPrecision(items:readonly PilotShoppingItem[],decisi
   let priority:PrecisionPriority="quantity";
   const kind=decisionKind(item);
   if(isIncompletePilotReference(item)){
-   reason=/\\(receita abaixo\\)/i.test(item.sourceText)?"linkedRecipe":"reference";priority="source";
+   reason=/\(receita abaixo\)/i.test(item.sourceText)?"linkedRecipe":"reference";priority="source";
   }else if(item.ambiguousSource){
-   reason="ambiguous";priority="source";
+   reason=/\bmaionese caseira\b.*\brende\b/i.test(item.sourceText)?"linkedRecipe":"ambiguous";priority="source";
   }else if(kind){
    const decided=decisions.some(d=>d.itemKey===purchaseKey(item)&&d.kind===kind
     &&(d.kind==="optional"||d.selection.trim().length>0));
@@ -86,7 +86,7 @@ export function auditShoppingPrecision(items:readonly PilotShoppingItem[],decisi
    reason="egg";
   }else if(isSubjectiveOriginalMeasure(item)){
    reason="subjective";
-   }else if(!item.totalLabel){
+  }else if(!item.totalLabel){
    reason=hasLiteralMeasure(item.sourceText)?"literal":"unmeasured";
   }
   if(!reason)continue;
