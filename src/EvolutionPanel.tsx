@@ -1,4 +1,4 @@
-import {useEffect,useMemo,useState,type FormEvent} from "react";
+import {useEffect,useMemo,useRef,useState,type FormEvent} from "react";
 import {supabase} from "./lib/supabase";
 import {
  emptyEvolutionDraft,entryToDraft,evaluationLabel,evolutionHabitLabels,
@@ -31,8 +31,16 @@ export default function EvolutionPanel({userId}:{userId:string}){
  const [error,setError]=useState("");
  const [message,setMessage]=useState("");
  const [ack,setAck]=useState(false);
+ const [confirmDelete,setConfirmDelete]=useState(false);
+ const deleteDialogRef=useRef<HTMLDialogElement>(null);
  const selected=rows.find(r=>r.recorded_on===date);
  const recent=useMemo(()=>[...rows].sort((a,b)=>b.recorded_on.localeCompare(a.recorded_on)).slice(0,30),[rows]);
+ useEffect(()=>{
+  const dialog=deleteDialogRef.current;
+  if(!dialog)return;
+  if(confirmDelete&&!dialog.open)dialog.showModal();
+  if(!confirmDelete&&dialog.open)dialog.close();
+ },[confirmDelete]);
  useEffect(()=>{
   let active=true;
   async function load(){
@@ -59,7 +67,7 @@ export default function EvolutionPanel({userId}:{userId:string}){
  function changeDate(value:string){
   if(!value||value>today)return;
   setDate(value);setDraft(entryToDraft(rows.find(r=>r.recorded_on===value)));
-  setAck(false);setError("");setMessage("");
+  setAck(false);setConfirmDelete(false);setError("");setMessage("");
  }
  async function verifyOwner(){
   if(!supabase)throw new Error("Serviço indisponível.");
@@ -94,8 +102,7 @@ export default function EvolutionPanel({userId}:{userId:string}){
   }finally{setSaving(false);}
  }
  async function remove(){
-  if(!selected||saving||!supabase)return;
-  if(!window.confirm("Excluir definitivamente o registro de "+displayDate(date)+"?"))return;
+  if(!confirmDelete||!selected||saving||!supabase)return;
   setSaving(true);setError("");setMessage("");
   try{
    await verifyOwner();
@@ -103,9 +110,9 @@ export default function EvolutionPanel({userId}:{userId:string}){
     .delete().eq("id",selected.id).eq("user_id",userId).select("id").single();
    if(deleteError||data?.id!==selected.id)throw new Error("Não foi possível confirmar a exclusão do registro.");
    setRows(current=>current.filter(x=>x.id!==selected.id));
-   setDraft(emptyEvolutionDraft());setAck(false);setMessage("Registro excluído.");
+   setDraft(emptyEvolutionDraft());setAck(false);setConfirmDelete(false);setMessage("Registro excluído.");
   }catch(err){setError(err instanceof Error?err.message:"Não foi possível excluir.");}
-  finally{setSaving(false);}
+  finally{setSaving(false);setConfirmDelete(false);}
  }
  function scoreInput(field:(typeof scoreFields)[number]){
   return <label key={field.key} className="cc-evo-select">
@@ -165,8 +172,21 @@ export default function EvolutionPanel({userId}:{userId:string}){
     <div className="cc-evo-actions">
      <button type="submit" disabled={loading||saving||!ack}>{saving?"Salvando...":"Salvar registro privado"}</button>
      <button type="button" disabled={loading||saving} onClick={()=>{setDraft(entryToDraft(selected));setAck(false);setError("");setMessage("");}}>Descartar edição</button>
-     {selected&&<button type="button" className="danger" disabled={loading||saving} onClick={()=>void remove()}>Excluir este dia</button>}
+     {selected&&<button type="button" className="danger" disabled={loading||saving} onClick={()=>setConfirmDelete(true)}>Excluir este dia</button>}
     </div>
+    {selected&&<dialog ref={deleteDialogRef} className="cc-evo-confirm-dialog"
+     aria-labelledby="cc-evo-delete-title" aria-describedby="cc-evo-delete-desc"
+     onCancel={e=>{e.preventDefault();if(!saving)setConfirmDelete(false);}}
+     onClose={()=>setConfirmDelete(false)}>
+      <h3 id="cc-evo-delete-title">Excluir registro privado?</h3>
+      <p id="cc-evo-delete-desc">Excluir definitivamente o registro de <strong>{displayDate(date)}</strong>? Esta ação não pode ser desfeita.</p>
+      <div className="cc-evo-confirm-actions">
+       <button type="button" disabled={saving} onClick={()=>setConfirmDelete(false)}>Cancelar</button>
+       <button type="button" className="danger" disabled={saving} onClick={()=>void remove()}>
+        {saving?"Excluindo...":"Sim, excluir registro"}
+       </button>
+      </div>
+     </dialog>}
    </form>
    <aside className="cc-evo-history" aria-label="Histórico privado de evolução">
     <h3>Seu histórico recente</h3>
