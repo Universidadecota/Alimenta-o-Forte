@@ -853,3 +853,32 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-evo-confirm-actions button.danger{background:#9a4036;color:#fff;border-color:#9a4036}
 .cc-evo-confirm-actions button:disabled{opacity:.5;cursor:not-allowed}
 .cc-evo-confirm-actions button:focus-visible{outline:3px solid #2f8155;outline-offset:3px}
+
+
+/* Fase 52 — histórico visual privado: valores literais, lacunas explícitas, sem metas. */
+.cc-trends{background:#fff;border:1px solid #dce9dd;border-radius:14px;padding:20px;margin:16px 0 20px;color:#194433}
+.cc-trends-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.cc-trends-header h3{font-size:19px;margin:0 0 9px}
+.cc-trends-header p{font-size:12px;line-height:1.6;color:#586f60;max-width:740px;margin:0}
+.cc-trends-privacy{font-size:11px;white-space:nowrap;background:#eff6ee;color:#336348;padding:7px 10px;border-radius:8px}
+.cc-trends-controls{display:flex;align-items:start;gap:20px;flex-wrap:wrap;margin:17px 0 12px}
+.cc-trends-filter{border:0;margin:0;padding:0;min-width:0}
+.cc-trends-filter legend{font-size:12px;font-weight:700;color:#385944;margin:0 0 7px}
+.cc-trends-options{display:flex;flex-wrap:wrap;gap:6px}
+.cc-trends-options button{border:1px solid #c5d9c9;background:#f6faf5;color:#315c45;border-radius:8px;font:inherit;font-size:12px;font-weight:650;min-height:40px;padding:9px 12px;cursor:pointer}
+.cc-trends-options button.active{background:#1a4e37;border-color:#1a4e37;color:#fff}
+.cc-trends-options button:focus-visible,.cc-trends-details button:focus-visible,.cc-trends-details summary:focus-visible{outline:3px solid #368657;outline-offset:2px}
+.cc-trends-empty{font-size:13px;line-height:1.6;color:#587262;background:#f6faf6;border-radius:10px;padding:17px;margin:12px 0}
+.cc-trends-count{font-size:12px;line-height:1.6;color:#496955;margin:11px 0}
+.cc-trends-chart{width:100%;max-width:950px}
+.cc-trends-chart svg{display:block;width:100%;height:auto;max-height:360px}
+.cc-trends-details{border-top:1px solid #e5ede4;padding-top:11px;margin-top:8px}
+.cc-trends-details summary{font-size:12px;color:#2b6244;font-weight:700;cursor:pointer}
+.cc-trends-table-wrapper{overflow-x:auto;margin-top:12px}
+.cc-trends-details table{border-collapse:collapse;min-width:370px;width:100%;font-size:12px}
+.cc-trends-details th,.cc-trends-details td{text-align:left;padding:10px;border-bottom:1px solid #e5ece6}
+.cc-trends-details th{color:#355d46;background:#f5f9f5}
+.cc-trends-details button{border:1px solid #c4d9c7;background:#f0f7ef;color:#22523c;padding:8px 10px;border-radius:8px;font:inherit;cursor:pointer}
+.cc-trends-details button:disabled{opacity:.65;cursor:default}
+.cc-trends-footer{font-size:11px;line-height:1.6;color:#667e6d;margin:14px 0 0}
+@media(max-width:670px){.cc-trends{padding:13px}.cc-trends-header{flex-wrap:wrap}.cc-trends-header h3{font-size:17px}.cc-trends-privacy{white-space:normal}.cc-trends-controls{gap:12px}}
