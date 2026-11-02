@@ -4,6 +4,7 @@ import {purchaseKey} from "./lib/shoppingProgress";
 import {groupShoppingForReview,shoppingReviewReason} from "./lib/shoppingReviewGroups";
 import {recurringIngredientReviews} from "./lib/recurringIngredientReview";
 import ShoppingDecisionsPanel from "./ShoppingDecisionsPanel";
+import ShoppingPrecisionPanel from "./ShoppingPrecisionPanel";
 import type {ShoppingDecision} from "./lib/shoppingDecisions";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./lib/shopping";
 
@@ -51,6 +52,8 @@ export default function ShoppingListSections({
  return <>
   {measuredCount===0&&reviewCount===0&&optionalCount===0&&
    <div className="empty">Ainda não há ingredientes. Planeje suas refeições primeiro.</div>}
+
+  <ShoppingPrecisionPanel items={pilotShopping} decisions={decisions}/>
 
   {recurring.length>0&&<details className="cc-quantity-review">
    <summary>Conferir alimentos em diferentes apresentações ({recurring.length})</summary>
