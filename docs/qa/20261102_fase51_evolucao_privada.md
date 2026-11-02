@@ -38,3 +38,12 @@ Migração aditiva: `20261102193000_cc_evolution_private_checkins_phase51.sql`, 
 - O histórico é deliberadamente simples: sem medidas corporais, fotos ou relatórios clínicos.
 - Futuras fases devem oferecer exportação dos dados e fluxo adequado de exclusão/privacidade LGPD; há exclusão de cada registro desde já.
 - Se a migração não estiver aplicada ao Supabase utilizado pela prévia, a tela mostrará falha de carregamento, sem criar registro local.
+
+## Homologação funcional e ajuste de desempenho (01/11/2026)
+
+- Usuário realizou criação, persistência/reload, edição para energia 4 e exclusão confirmada no navegador, com histórico vazio ao final.
+- Consulta de conferência em Supabase retornou **zero registros** para 01/11/2026. O dado de teste foi realmente eliminado.
+- A Vercel Toolbar sinalizou INP elevado (aprox. 5,2 segundos) na interação do botão de exclusão. Isso pode ser causado pelo `window.confirm()` síncrono; a causa exata não foi provada por profiling.
+- Para eliminar essa fonte de bloqueio, a confirmação foi trocada por `<dialog>` nativo assíncrono, com botões de Cancelar e Sim, excluir registro e escape protegido durante exclusão.
+- A troca **exige nova conferência visual** e medição em navegador; não se deve declarar o INP resolvido apenas pelo build.
+- PR continua em prévia; merge/produção requer autorização específica.
