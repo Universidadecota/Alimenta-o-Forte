@@ -147,3 +147,16 @@ Não há backup restaurável confirmado, e as estruturas suspeitas têm uso atua
 Foi criado `scripts/sql/20261102_pr63_readonly_preflight.sql`, **somente SELECT**, e executado no projeto correto; a verificação final preservou **21 refeições, 2 compras concluídas e 2 decisões**. O script não contém operações destrutivas.
 
 **Regra para limpeza posterior:** não executar `DROP TABLE` baseado apenas em nomes `pilot`, `beta`, volume de linhas ou ausência de referência textual. Exigir isolamento em homologação, fonte de backup verificada, alternativa de restauração, inventário de permissões e aprovação do conjunto explícito de objetos a remover.
+
+
+## Terceira passada — segurança de backup antes de limpeza (02/11/2026)
+
+- Supabase conectado confirma a organização **Free**, sem backup diário automático garantido pelo plano. Guia do Supabase recomenda exportação periódica via CLI para Free.
+- Projeto PostgreSQL **17**, ativo/saudável.
+- **87 migrações** registradas no banco; árvore GitHub `main@63bd28f` contém **86 arquivos de migração**. Nomes e carimbos de migração historicamente divergem; não tentar `migration repair`, `db push` nem `db reset` em produção sem reconciliação.
+- Integridade por consulta SQL: **37 tabelas, 0 sem RLS, 4 contas Auth, 128 receitas, 1.157 ingredientes, 177 refeições planejadas, 2 listas de compras, 2 itens persistidos e 2 decisões**.
+- Storage confirmado: **130 arquivos públicos** em `recipe-illustrations` e **5 privados** em `personal-recipe-images`; metadados SQL não recuperam os bytes originais.
+- Preparado `scripts/backup/20261102_pr63_export_local_wsl.sh` (exportação local manual, verifica projeto, arquivos e checksums, mas **não cria backup completo por si só**).
+- Preparado e **executado com sucesso no banco de produção, somente SELECT**, `scripts/sql/20261102_pr63_compare_restore.sql` para comparar contagens e RLS após restauração.
+- Plano operacional e links da documentação oficial em `docs/qa/20261102_pr63_backup_e_restauracao.md`.
+- **Ainda não houve dump real, cópia dos arquivos do Storage, exportação confirmada de Auth ou ensaio de restauração**. Esses são pré-requisitos obrigatórios; nenhuma tabela está aprovada para exclusão.
