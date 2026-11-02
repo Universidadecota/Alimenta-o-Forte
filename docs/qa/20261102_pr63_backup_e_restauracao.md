@@ -66,6 +66,33 @@ O `supabase db dump` usa filtros internos e, por padrão, a referência da CLI i
 
 Se essas entidades não estiverem incluídas, siga as instruções oficiais de migração e um procedimento administrativo próprio para backup seguro de autenticação, garantindo recuperação das 4 contas. **Não executar consultas que exportem credenciais ou e-mails para esta conversa ou para o repositório.**
 
+
+### Alternativa Windows PowerShell — WSL ausente ou com Bash quebrado (02/11/2026)
+
+O comando `bash scripts/backup/20261102_pr63_export_local_wsl.sh` no PowerShell retornou `execvpe(/bin/bash) failed: No such file or directory`. Isso ocorre **antes de o script começar**: o executável `bash` foi encaminhado ao WSL, mas a distribuição não encontrou `/bin/bash`. Não houve tentativa de conexão, exportação nem alteração de dados por esse comando.
+
+Foi acrescentada uma alternativa de backup lógica usando **PowerShell Windows**, sem WSL: `scripts/backup/20261102_pr63_export_windows.ps1`. Ela exige Docker Desktop rodando e Supabase CLI (`supabase` ou `npx.cmd` instalado com Node.js). Por padrão, armazena saídas em `%LOCALAPPDATA%\\CostaCosta\\Backups\\gclhailalyrokvmkwllm\\<timestamp-UTC>`, fora da pasta do repositório e fora do OneDrive, e valida os tamanhos dos SQL gerados e hashes SHA-256. Solicita a URI por `Read-Host -AsSecureString` e não a grava em arquivo, mas a CLI ainda poderá expor o argumento durante a execução a processos locais de inspeção, razão para usar apenas máquina confiável.
+
+Para utilizar sem trocar a branch de trabalho ou modificar arquivos locais, a partir da raiz do projeto no PowerShell:
+
+```powershell
+# Atualize apenas as referencias remotas; nao muda a branch de trabalho.
+git fetch origin
+$Script = Join-Path $env:TEMP 'cc_pr63_export_windows.ps1'
+git show origin/audit/limpeza-tabelas-segura-02nov2026:scripts/backup/20261102_pr63_export_windows.ps1 | Set-Content -Path $Script -Encoding UTF8
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Script
+```
+
+Antes de executar, confira o conteúdo do script caso deseje: `notepad $Script`. O uso pontual de `-ExecutionPolicy Bypass` só vale para o processo iniciado; não altera permanentemente a política do Windows. A instalação inicial via `npx.cmd --yes supabase` exige conexão à internet. **Nenhuma senha ou conteúdo do backup deve ser publicado no chat ou no GitHub.**
+
+Para diagnosticar o WSL independentemente do backup:
+
+```powershell
+wsl --list --verbose
+```
+
+Se não aparecer uma distribuição Linux instalada, a ausência de `/bin/bash` é esperada. Corrigir o WSL não é necessário para seguir com a versão PowerShell.
+
 ## 4. Storage: copiar os arquivos reais, não só metadados
 
 A tabela PostgreSQL `storage.objects` guarda metadados; **não contém o conteúdo dos arquivos**. No momento da auditoria havia 135 objetos: 130 ilustrações públicas e 5 arquivos privados.
