@@ -757,3 +757,31 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-precision-disclaimer{margin:14px 0 0;font-size:11px;line-height:1.5;color:#62766a}
 @media(max-width:750px){.cc-precision-review{padding:13px}.cc-precision-items{grid-template-columns:1fr}.cc-precision-review-header{flex-wrap:wrap}.cc-precision-total{white-space:normal}}
 @media(max-width:480px){.cc-precision-summary{grid-template-columns:1fr}.cc-precision-summary>div{display:flex;align-items:center;gap:10px}.cc-precision-summary strong{font-size:19px}}
+
+
+/* Fase 48 — dossiê editorial exclusivamente na administração (sem alteração do catálogo). */
+.cc-f48-dossier{margin:16px 0 24px;padding:20px;border:1px solid #d1e1d4;border-radius:16px;background:#f7faf5;color:#193e30}
+.cc-f48-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px}
+.cc-f48-heading h2{font-size:21px;margin:0 0 9px}
+.cc-f48-heading p{font-size:13px;line-height:1.55;margin:0;color:#526a5a}
+.cc-f48-heading>span{flex-shrink:0;white-space:nowrap;font-size:12px;font-weight:700;background:#e4eee2;padding:8px 10px;border-radius:8px}
+.cc-f48-warning{margin:15px 0;border-left:3px solid #ba8742;background:#fff9ef;padding:12px 14px;font-size:12px;line-height:1.6;color:#6b512b}
+.cc-f48-cases{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.cc-f48-cases article{min-width:0;background:white;padding:15px;border:1px solid #dce8dc;border-radius:11px}
+.cc-f48-cases h3{font-size:16px;line-height:1.4;margin:0 0 12px}
+.cc-f48-cases article>p{font-size:12px;line-height:1.6;color:#415e4c;margin:10px 0;overflow-wrap:anywhere}
+.cc-f48-caution{color:#825b31!important}
+.cc-f48-evidence{border-top:1px solid #e1eae0;margin-top:12px;padding-top:11px}
+.cc-f48-evidence>summary{cursor:pointer;color:#295b40;font-size:12px;font-weight:700}
+.cc-f48-evidence>div{padding:10px 0;border-bottom:1px solid #e5ece4}
+.cc-f48-evidence h4{font-size:13px;margin:3px 0 6px}
+.cc-f48-evidence p{font-size:12px;line-height:1.55;margin:6px 0;overflow-wrap:anywhere}
+.cc-f48-evidence details summary{font-size:12px;cursor:pointer;color:#426a4f}
+.cc-f48-original{white-space:pre-line}
+.cc-f48-cases button{font-size:12px;min-height:40px;line-height:1.3;margin-top:8px;padding:10px 12px;border:1px solid #c1d6c4;border-radius:8px;background:#eff5ec;color:#225340;cursor:pointer}
+.cc-f48-copy{display:block}
+.cc-f48-cases button:focus-visible,.cc-f48-evidence summary:focus-visible{outline:3px solid #2b8150;outline-offset:2px}
+.cc-f48-cases button:disabled{opacity:.55;cursor:not-allowed}
+.cc-f48-empty{color:#825b31}
+.cc-f48-footer{color:#65766a;font-size:11px;line-height:1.5;margin:12px 0 0}
+@media(max-width:700px){.cc-f48-dossier{padding:14px}.cc-f48-heading{flex-wrap:wrap}.cc-f48-heading>span{white-space:normal}}
