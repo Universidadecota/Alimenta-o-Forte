@@ -108,6 +108,10 @@ export default function UserProfile({userId,email,initial,onSaved,onOpenCardapio
      onClick={()=>{setDraft(p=>({...p,goal:id}));setMessage("");}}>{label}</button>)}</div>
    </fieldset>
    {group("liked_foods",profileLikes)}
+   <p className="cc-profile-choice-notice" role="note">
+    <strong>Atenção:</strong> “Sem lactose” e “Sem glúten” nesta seção indicam preferências de alimentação, não uma certificação das receitas.
+    Se houver alergia ou intolerância, declare-a também na seção específica abaixo e confira ingredientes, rótulos e preparo.
+   </p>
    {group("disliked_foods",profileAvoids)}
    {group("allergies",profileAllergens)}
    <div className="cc-profile-allergy-notice" role="note">
