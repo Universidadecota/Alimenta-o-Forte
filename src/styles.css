@@ -799,3 +799,7 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  .mobile-nav button{flex:1 0 60px;min-width:60px;padding:2px 3px;white-space:nowrap}
  .mobile-nav button small{font-size:10px}
 }
+
+/* Fase 50: separar preferência alimentar de alegação sobre alergênicos. */
+.cc-profile-choice-notice{margin:-7px 0 0;border:1px solid #d9e5d6;background:#f7faf4;border-radius:10px;padding:12px 15px;font-size:12px;line-height:1.55;color:#49624f}
+.cc-profile-choice-notice strong{color:#234e35}
