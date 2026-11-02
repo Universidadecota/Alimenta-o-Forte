@@ -22,8 +22,8 @@ export function normalizeProfilePreferences(value:Partial<FoodPreferences>):Food
   liked_foods:cleanList(value.liked_foods),
   disliked_foods:cleanList(value.disliked_foods),
   allergies:cleanList(value.allergies),
-  household_size:Number(value.household_size),
-  cooking_minutes:Number(value.cooking_minutes)
+  household_size:value.household_size==null?1:Number(value.household_size),
+  cooking_minutes:value.cooking_minutes==null?40:Number(value.cooking_minutes)
  };
 }
 export function validateProfilePreferences(value:FoodPreferences):string|null{
