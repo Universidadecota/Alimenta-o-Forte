@@ -49,6 +49,28 @@ assert.match(html,/Opcional não incluído/);
 assert.match(html,/Decidido/);
 assert.match(html,/1 colher de azeite ou banha/);
 assert.doesNotMatch(html,/undefined|NaN/);
+// Regressão real da semana 02–08/11: itens restaurados continuam assinalados no PDF,
+// mesmo depois da inclusão de opções e decisões (quantidade = número de usos).
+const coconut={...base("1 xícara de leite de coco","fixed"),
+ name:"Piloto · xicara|leite de coco · 2 usos · total 1.25",quantity:2,
+ totalLabel:"1¼ xícaras de leite de coco"};
+const oliveOil={...base("1 colher (sopa) de azeite","fixed"),
+ name:"Piloto · colher-sopa|azeite · 10 usos · total 13",quantity:10,
+ totalLabel:"13 colheres (sopa) de azeite"};
+assert.equal(purchaseKey(coconut),"piloto · xicara|leite de coco · 2 usos · total 1.25|un|2");
+assert.equal(purchaseKey(oliveOil),"piloto · colher-sopa|azeite · 10 usos · total 13|un|10");
+const restoredPdf=buildWeeklyPrintHtml({
+ kind:"shopping",days:dates,plan:{},recipes:[],shopping:[],
+ pilotShopping:[coconut,oliveOil,choice,optional],notes:[],
+ purchasedKeys:[purchaseKey(coconut),purchaseKey(oliveOil)],
+ decisions:[chosen,included]
+});
+assert.equal((restoredPdf.match(/<span class="square">✓<\\/span>/g)||[]).length,2,
+ "O PDF deve manter dois itens comprados após decisões de alternativas");
+assert.match(restoredPdf,/Escolha registrada: azeite/);
+assert.match(restoredPdf,/Opcional incluído por decisão do usuário/);
+assert.match(restoredPdf,/1¼ xícaras de leite de coco/);
+assert.match(restoredPdf,/13 colheres \\(sopa\\) de azeite/);
 const attack={...chosen,selection:'<img src=x onerror="alert(1)">'};
 const escaped=buildWeeklyPrintHtml({
  kind:"shopping",days:dates,plan:{},recipes:[],shopping:[],
