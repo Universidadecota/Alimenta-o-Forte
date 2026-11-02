@@ -692,3 +692,22 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
  }
  .cc-shopping-decisions .cc-shopping-decision-tag{justify-self:start}
 }
+
+
+/* Fase 45: decisões pessoais sobre alternativas e opcionais. */
+.cc-shopping-decision-selected{color:#19543e!important;font-weight:700}
+.cc-shopping-choice-form{display:grid;gap:7px;margin-top:8px;max-width:550px}
+.cc-shopping-choice-form label{font-size:12px;font-weight:650;color:#325542}
+.cc-shopping-choice-form input{min-width:0;width:100%;background:#fff;border:1px solid #b5ccba;border-radius:9px;color:#173f35;padding:11px 12px;font-size:14px}
+.cc-shopping-choice-form button{justify-self:start;min-height:40px}
+.cc-shopping-choice-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.cc-shopping-choice-actions button{font-size:12px;line-height:1.35;min-height:40px;white-space:normal;text-align:center}
+.cc-shopping-choice-actions button[aria-pressed="true"]{background:#1d5540;color:#fff}
+.cc-shopping-clear-decision{border:1px solid #d3dfd4;background:#fff;border-radius:9px;color:#426452;padding:9px 12px}
+.cc-shopping-decisions .cc-shopping-decision-toggle{cursor:pointer;border:1px solid #cadbcd;min-height:42px;font:inherit;font-size:12px;font-weight:700;transition:background .15s,color .15s}
+.cc-shopping-decisions .cc-shopping-decision-toggle:hover:not(:disabled){background:#dbe9da;color:#143c2d}
+.cc-shopping-decisions .cc-shopping-decision-toggle[aria-expanded="true"]{background:#1b4a38;color:#fff;border-color:#1b4a38}
+.cc-shopping-decisions .cc-shopping-decision-toggle:focus-visible{outline:3px solid #267e51;outline-offset:3px}
+.cc-shopping-choice-actions button:disabled,.cc-shopping-choice-form button:disabled{opacity:.55;cursor:not-allowed}
+.cc-shopping-choice-actions button:focus-visible,.cc-shopping-choice-form input:focus-visible{outline:2px solid #267e51;outline-offset:2px}
+@media(max-width:620px){.cc-shopping-choice-actions{align-items:stretch}.cc-shopping-choice-actions button{flex:1 1 130px}.cc-shopping-choice-form button{justify-self:stretch}}

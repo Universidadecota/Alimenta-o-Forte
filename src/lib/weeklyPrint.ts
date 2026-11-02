@@ -3,13 +3,14 @@ import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasure
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
 import {groupShoppingForReview,shoppingReviewReason} from "./shoppingReviewGroups";
+import {decisionDescription,decisionKind,type ShoppingDecision} from "./shoppingDecisions";
 import {parseRecipePreparation} from "./recipePreparationSections.mjs";
 
 export type PrintKind="fridge"|"week"|"shopping";
 export type WeeklyPrintData={
  kind:PrintKind;days:Date[];plan:Plan;recipes:Meal[];
  shopping:ShoppingItem[];pilotShopping:PilotShoppingItem[];
- notes:ShoppingNote[];purchasedKeys:string[];
+ notes:ShoppingNote[];purchasedKeys:string[];decisions?:ShoppingDecision[];
 };
 const escapeHtml=(value:unknown)=>String(value??"").replace(/[&<>"']/g,char=>({
  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
@@ -19,7 +20,7 @@ const period=(days:Date[])=>days.length?days[0].toLocaleDateString("pt-BR")+" a 
 const safe=(value:unknown)=>escapeHtml(value);
 
 export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
- const {kind,days,plan,recipes,shopping,pilotShopping,notes,purchasedKeys}=data;
+ const {kind,days,plan,recipes,shopping,pilotShopping,notes,purchasedKeys,decisions=[]}=data;
  const byId=new Map(recipes.map(r=>[r.id,r]));
  const dateRange=period(days);
  const heading=kind==="fridge"?"Cardápio da semana":kind==="week"?"Cardápio e receitas da semana":"Lista de compras da semana";
@@ -135,8 +136,9 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  ${alternatives.map(item=>`<div class="cc-print-decision">
  <div><strong>${safe(item.sourceText)}</strong>
  <small>${safe(item.quantity>1?item.quantity+" usos no cardápio":"1 uso no cardápio")}. ${safe(item.requiresChoice?"Escolha uma alternativa antes de comprar.":"Somente se desejar utilizar.")}</small>
- <small>Em: ${safe(item.sourceRecipes.join("; "))}</small></div>
- <span class="cc-print-tag">${safe(item.requiresChoice?"Escolher opção":"Opcional")}</span>
+ <small>Em: ${safe(item.sourceRecipes.join("; "))}</small>
+ <small class="cc-print-decision-selected">${safe(decisionDescription(item,decisions))}</small></div>
+ <span class="cc-print-tag">${safe(decisions.some(row=>row.itemKey===purchaseKey(item)&&row.kind===decisionKind(item))?"Decidido":item.requiresChoice?"Escolher opção":"Opcional")}</span>
  </div>`).join("")}
  ${notes.map(item=>`<div class="cc-print-decision">
  <div><strong>${safe(item.name)}</strong><small>${safe(item.description)}</small></div>
@@ -175,6 +177,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  .cc-print-decision small{display:block;color:#506258;font-size:9.5px;line-height:1.35;margin-top:3px}
  .cc-print-tag{display:block;flex:0 0 63px;font-size:9px;font-weight:700;color:#315f48;text-align:right;overflow-wrap:anywhere}
  .cc-print-warning{color:#875325!important;font-weight:650!important}
+ .cc-print-decision-selected{color:#1c5b42!important;font-weight:700;overflow-wrap:anywhere}
  .shopping h2,.shopping h3{break-after:avoid}
  .shopping h2{font-size:15px;margin-top:14px;padding-bottom:4px}
  .shopping h3{margin-top:10px}

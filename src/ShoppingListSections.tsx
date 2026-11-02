@@ -2,6 +2,8 @@ import {Check} from "lucide-react";
 import {formatIngredientAmount} from "./lib/ingredientMeasures";
 import {purchaseKey} from "./lib/shoppingProgress";
 import {groupShoppingForReview,shoppingReviewReason} from "./lib/shoppingReviewGroups";
+import ShoppingDecisionsPanel from "./ShoppingDecisionsPanel";
+import type {ShoppingDecision} from "./lib/shoppingDecisions";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./lib/shopping";
 
 type Props={
@@ -10,12 +12,16 @@ type Props={
  notes:ShoppingNote[];
  purchasedKeys:string[];
  onToggle:(item:ShoppingItem)=>void;
+ decisions:ShoppingDecision[];
+ decisionBusyKey:string|null;
+ decisionDisabled:boolean;
+ onSaveDecision:(item:PilotShoppingItem,decision:ShoppingDecision|null)=>void;
  disabled:boolean;
 };
 
 /** Três grupos de apresentação; mantém IDs, quantidades e marcações originais. */
 export default function ShoppingListSections({
- shopping,pilotShopping,notes,purchasedKeys,onToggle,disabled
+ shopping,pilotShopping,notes,purchasedKeys,onToggle,decisions,decisionBusyKey,onSaveDecision,decisionDisabled,disabled
 }:Props){
  const groups=groupShoppingForReview(shopping,pilotShopping,notes);
  const measuredCount=groups.structured.length+groups.consolidatedOriginal.length;
@@ -77,27 +83,8 @@ export default function ShoppingListSections({
    </div>}
   </section>}
 
-  {optionalCount>0&&<section className="cc-shopping-notes cc-shopping-decisions" aria-label="Alternativas e opcionais">
-   <h3>Alternativas e opcionais ({optionalCount})</h3>
-   <p>Não incluídos automaticamente como quantidades de compra. Escolha a alternativa ou decida pelo opcional antes de acrescentar ao supermercado.</p>
-   <ul>
-    {groups.choicesAndOptional.map(item=><li className="cc-shopping-decision" key={purchaseKey(item)}>
-     <span className="cc-shopping-decision-body">
-      <span className="cc-shopping-decision-title">{item.sourceText}</span>
-      <small className="cc-shopping-decision-note">{item.quantity>1?item.quantity+" usos":"1 uso"} no cardápio. {item.requiresChoice?"Escolha uma opção antes de comprar.":""} {item.optionalSource?"Só inclua se desejar utilizar.":""}</small>
-      {item.sourceRawFragments.length>0&&<small className="cc-shopping-decision-note">Texto original: {item.sourceRawFragments.join(" | ")}</small>}
-      <small className="cc-shopping-decision-origin">Em: {item.sourceRecipes.join("; ")}</small>
-     </span>
-     <span className="cc-shopping-decision-tag">{item.requiresChoice?"Escolher opção":item.optionalSource?"Opcional":"Conferir"}</span>
-    </li>)}
-    {groups.notes.map(note=><li className="cc-shopping-decision" key={note.name+"|"+note.description}>
-     <span className="cc-shopping-decision-body">
-      <span className="cc-shopping-decision-title">{note.name}</span>
-      <small className="cc-shopping-decision-note">{note.description}</small>
-     </span>
-     <span className="cc-shopping-decision-tag">A gosto</span>
-    </li>)}
-   </ul>
-  </section>}
+  {optionalCount>0&&<ShoppingDecisionsPanel items={groups.choicesAndOptional} notes={groups.notes}
+   decisions={decisions} busyKey={decisionBusyKey} disabled={disabled||decisionDisabled}
+   onSave={onSaveDecision}/>}
  </>;
 }
