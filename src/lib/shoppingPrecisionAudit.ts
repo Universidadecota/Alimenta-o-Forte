@@ -4,7 +4,7 @@ import {hasSeparateEggPreparations,isIncompletePilotReference,isSubjectiveOrigin
 import type {PilotShoppingItem} from "./shopping";
 
 export type PrecisionPriority="source"|"decision"|"quantity";
-export type PrecisionReason="reference"|"linkedRecipe"|"ambiguous"|"choice"|"optional"|"egg"|"subjective"|"literal"|"unmeasured";
+export type PrecisionReason="reference"|"linkedRecipe"|"ambiguous"|"choice"|"optional"|"egg"|"subjective"|"unmeasured";
 
 export type PrecisionIssue={
  key:string;
@@ -47,10 +47,6 @@ const titles:Record<PrecisionReason,{explanation:string;nextStep:string}>={
   explanation:"Pitada ou punhado é uma medida subjetiva e não indica diretamente quanto comprar.",
   nextStep:"Conferir o preparo e a embalagem desejada; não atribuir uma conversão automática."
  },
- literal:{
-  explanation:"A receita informa uma quantidade literal. O que falta conferir é a soma de preparos diferentes e o rendimento, não a existência da medida.",
-  nextStep:"Conferir repetições e rendimentos nas receitas de origem; não somar medidas ou unidades incompatíveis."
- },
  unmeasured:{
   explanation:"O produto é identificável, mas o trecho não informa uma quantidade de compra verificável.",
   nextStep:"Conferir a medida e o rendimento na receita original; o número de usos não equivale à quantidade a comprar."
@@ -58,7 +54,7 @@ const titles:Record<PrecisionReason,{explanation:string;nextStep:string}>={
 };
 
 /**
- * Distingue uma medida literal identificável de uma expressão "a gosto".
+ * Distingue uma quantidade literal identificável de uma expressão "a gosto".
  * Reconhece apenas numerais explícitos: não estima rendimento nem converte unidades.
  * A quantidade pode estar no início ou após um preparo (ex.: suco de 1 limão).
  */
@@ -86,8 +82,10 @@ export function auditShoppingPrecision(items:readonly PilotShoppingItem[],decisi
    reason="egg";
   }else if(isSubjectiveOriginalMeasure(item)){
    reason="subjective";
-  }else if(!item.totalLabel){
-   reason=hasLiteralMeasure(item.sourceText)?"literal":"unmeasured";
+  }else if(!item.totalLabel&&!hasLiteralMeasure(item.sourceText)){
+   // Medidas literais explícitas (1 cebola, ½ abacate, 1 gema) não são
+   // pendências; apresentações distintas já aparecem no painel da Fase 46.
+   reason="unmeasured";
   }
   if(!reason)continue;
   found.push({
