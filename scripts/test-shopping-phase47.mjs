@@ -40,8 +40,8 @@ const pilot=[tea,maionese,ambiguity,choice,optional,egg,yolk,subjective,tomato,c
 const before=JSON.stringify(pilot);
 const unresolved=auditShoppingPrecision(pilot,[]);
 assert.deepEqual(precisionCounts(unresolved),{source:3,decision:2,quantity:4});
-assert.deepEqual(unresolved.slice(0,3).map(x=>x.reason),["reference","reference","ambiguous"].sort((a,b)=>a==="reference"?-1:1).length===3?
- unresolved.slice(0,3).map(x=>x.reason):[]); // As três devem ser fontes, sem importar a ordenação editorial.
+assert.deepEqual(unresolved.slice(0,3).map(x=>x.reason).sort(),["ambiguous","reference","reference"],
+ "Duas referências incompletas e uma expressão ambígua exigem conferência prioritária");
 assert.ok(unresolved.slice(0,3).every(x=>x.priority==="source"));
 assert.ok(unresolved.slice(3,5).every(x=>x.priority==="decision"));
 assert.equal(unresolved.find(x=>x.key===purchaseKey(tea))?.usages,2);
