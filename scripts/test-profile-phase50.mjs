@@ -45,5 +45,8 @@ assert.match(profile,/\.update\(\{/);
 assert.doesNotMatch(profile,/\.delete\(|\.insert\(|\.upsert\(|\.rpc\(/);
 assert.doesNotMatch(profile,/localStorage|sessionStorage/);
 assert.match(profile,/nenhum cardápio já salvo será reavaliado/i);
+assert.match(profile,/“Sem lactose” e “Sem glúten”/);
+assert.match(profile,/não uma certificação das receitas/);
+assert.match(profile,/declare-a também na seção específica/);
 assert.match(css,/\.mobile-nav\{overflow-x:auto/);
 console.log("PASS F50: valores, RLS no fluxo, alergias, rascunho, navegação e sem alteração de cardápio.");
