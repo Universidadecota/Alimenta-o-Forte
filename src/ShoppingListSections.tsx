@@ -77,7 +77,7 @@ export default function ShoppingListSections({
      className={purchased(item)?"shopping-item checked":"shopping-item"}
      onClick={()=>onToggle(item)}>
      <span className="checkmark">{purchased(item)&&<Check size={14}/>}</span>
-     <span>{item.name}<small>Quantidade estruturada</small></span>
+     <span className="cc-shopping-structured-text"><span className="cc-shopping-ingredient-name">{item.name}</span><small>Quantidade estruturada</small></span>
      <strong>{formatIngredientAmount(item.quantity,item.unit)}</strong>
     </button>)}
     {groups.consolidatedOriginal.map(pilotButton)}
