@@ -157,7 +157,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <title>${safe("Costa&Costa — "+heading+" — "+dateRange)}</title>
  <style>
- @page{size:A4;margin:11mm 12mm}
+ @page{size:A4;margin:13mm 14mm}
  *{box-sizing:border-box}
  body{font-family:Arial,Helvetica,sans-serif;color:#173a31;max-width:980px;margin:0 auto;padding:20px;line-height:1.45;background:#fff}
  h1{font-family:Georgia,serif;font-size:25px;margin:8px 0}h2{font-size:17px;border-bottom:1px solid #b6c7bc;padding-bottom:6px;margin-top:22px}
