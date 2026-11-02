@@ -711,3 +711,18 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-shopping-choice-actions button:disabled,.cc-shopping-choice-form button:disabled{opacity:.55;cursor:not-allowed}
 .cc-shopping-choice-actions button:focus-visible,.cc-shopping-choice-form input:focus-visible{outline:2px solid #267e51;outline-offset:2px}
 @media(max-width:620px){.cc-shopping-choice-actions{align-items:stretch}.cc-shopping-choice-actions button{flex:1 1 130px}.cc-shopping-choice-form button{justify-self:stretch}}
+
+
+/* Fase 46: conferencia acessivel e nao destrutiva de alimentos recorrentes. */
+.cc-quantity-review{margin:18px 0 20px;border:1px solid #cfdfcf;background:#f7faf5;border-radius:14px;padding:15px 18px;color:#173f35}
+.cc-quantity-review summary{font-weight:700;cursor:pointer;line-height:1.4;min-height:32px;padding:5px 0}
+.cc-quantity-review summary:focus-visible{outline:3px solid #267e51;outline-offset:3px}
+.cc-quantity-review>p{font-size:12px;color:#53725e;line-height:1.55;margin:10px 0 14px}
+.cc-quantity-review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.cc-quantity-review-grid section{border:1px solid #dde9dc;background:white;border-radius:9px;padding:12px 14px;min-width:0}
+.cc-quantity-review-grid h4{font-size:13px;line-height:1.4;margin:0 0 7px;color:#1a4a36}
+.cc-quantity-review-grid ul{margin:0;padding:0 0 0 17px}
+.cc-quantity-review-grid li{font-size:12px;line-height:1.5;color:#405f4e;overflow-wrap:anywhere}
+.cc-quantity-review-grid li+li{margin-top:3px}
+.cc-quantity-review-grid li small{color:#718071}
+@media(max-width:720px){.cc-quantity-review{padding:12px}.cc-quantity-review-grid{grid-template-columns:1fr}}
