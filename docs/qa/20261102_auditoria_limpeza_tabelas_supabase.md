@@ -110,3 +110,40 @@ A decisão **não autoriza desabilitar tabelas, renomeá-las, revogar permissõe
 ## Conclusão
 
 **Não foram identificadas tabelas comprovadamente dispensáveis com segurança suficiente para remoção imediata em produção.** A exclusão automática de todas as tabelas chamadas “beta” ou “pilot” poderia remover dados de catálogo e funções que ainda participam do aplicativo; a redução deve seguir uma matriz de dependências e decisão de produto. O objetivo desta etapa é manter a operação atual intacta e preparar a limpeza auditável.
+
+
+## Segunda passada: uso real no código e proveniência (02/11/2026)
+
+### Cruzamento da aplicação publicada
+
+A árvore da `main@63bd28f` contém **87 arquivos-fonte** sob `src/`; foram examinados para nomes diretos das tabelas potencialmente removíveis. Há usos efetivos de estruturas piloto/beta:
+
+- `src/AdminBetaAccess.tsx` chama `cc_admin_beta_catalog_overview`, `cc_admin_beta_members_overview`, `cc_admin_set_beta_member` e `cc_admin_set_beta_recipe`: dependem da autorização beta.
+- `src/AdminRecipes.tsx`, `src/AdminAllergenReviewQueue.tsx`, `src/AccessSecurityDiagnostics.tsx` e `src/lib/planner.ts` consultam `cc_official_recipe_source_records`; o planejador precisa distinguir fontes piloto antes de escolher receitas.
+- `src/PilotIngredientMeasureReview.tsx`, `src/PilotMeasureEditorialReview.tsx`, `src/PilotMeasureSourceEvidence.tsx` e diagnósticos consultam `cc_pilot_ingredient_measure_reviews`; a trilha de revisão não é descartável.
+- `src/PilotMeasureEditorialReview.tsx` consulta `cc_pilot_measure_review_events`.
+- `src/EdvCollection.tsx` consulta `source_recipe_review`: preservar registro das fontes/licenças.
+- `src/MedicalReviewerOnboarding.tsx`, `src/AdminNutritionN2.tsx` e `src/FoodNutritionReviewPanel.tsx` usam módulos que o responsável decidiu manter para o futuro.
+
+**Limites da análise:** buscas literais não detectam automaticamente toda referência dinâmica, SQL externo, tarefa agendada ou integrações fora do repositório. Foram observados também scripts de teste e migrações históricas, mas a ausência de ocorrência textual não prova obsolescência.
+
+### Caso `cc_pilot_food_registry` — reclassificado para preservação
+
+- **172 registros**, todos com status `needs_ingredient_review`.
+- Sua origem declarada é **“Seis PDFs Desafio 30 Dias enviados para uso pessoal”**; o objetivo da migration `20261016110000_cc_pilot_food_registry_phase3b.sql` é registrar proveniência preliminar, não aprovar nutriente nem alergênico.
+- Os 172 registros possuem correspondência com `food_items`; **16 alimentos aparecem vinculados a variantes nutricionais**, sem que isso represente aprovação clínica.
+- Não se encontrou referência direta a essa tabela nos 87 arquivos-fonte consultados, nem referência textual em função SQL pública ou FK entrando nela. **Ainda assim, a proveniência poderá ser necessária à revisão profissional futura**, explicitamente preservada pelo responsável. Por isso **não propor DROP neste ciclo**.
+
+### Estruturas vazias protegidas
+
+As **11 tabelas vazias** não são automaticamente resíduos. Exemplos preservados: `profiles` (identidade), `cc_evolution_checkins` (diário opcional já publicado), `subscription_plans` e `user_entitlements` (monetização futura), além de `cc_food_nutrition_drafts`, `cc_recipe_ingredient_food_links`, `cc_nutrition_reviewers`, `cc_food_nutrition_review_cases`, `cc_food_nutrition_review_events`, `cc_recipe_nutrition_facts` e `cc_n2_ingredient_review_notes` (revisão editorial/nutricional futura). Algumas têm gatilhos, outras integram fluxos administrativos.
+
+### Resultado objetivo
+
+**Quantidade de tabelas liberadas para exclusão imediata: 0.**
+
+Não há backup restaurável confirmado, e as estruturas suspeitas têm uso atual, dados editoriais a preservar ou relevância futura autorizada. A análise progrediu da triagem por nome até o cruzamento com a aplicação e a proveniência, sem comprometer o banco.
+
+Foi criado `scripts/sql/20261102_pr63_readonly_preflight.sql`, **somente SELECT**, e executado no projeto correto; a verificação final preservou **21 refeições, 2 compras concluídas e 2 decisões**. O script não contém operações destrutivas.
+
+**Regra para limpeza posterior:** não executar `DROP TABLE` baseado apenas em nomes `pilot`, `beta`, volume de linhas ou ausência de referência textual. Exigir isolamento em homologação, fonte de backup verificada, alternativa de restauração, inventário de permissões e aprovação do conjunto explícito de objetos a remover.
