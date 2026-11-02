@@ -3,6 +3,7 @@ import {formatRecipeIngredient,formatIngredientAmount} from "./ingredientMeasure
 import {purchaseKey} from "./shoppingProgress";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./shopping";
 import {groupShoppingForReview,shoppingReviewReason} from "./shoppingReviewGroups";
+import {recurringIngredientReviews} from "./recurringIngredientReview";
 import {decisionDescription,decisionKind,type ShoppingDecision} from "./shoppingDecisions";
 import {parseRecipePreparation} from "./recipePreparationSections.mjs";
 
@@ -67,6 +68,7 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
    </article>`;
  }).join("");
  const groups=groupShoppingForReview(shopping,pilotShopping,notes);
+ const quantityReviews=recurringIngredientReviews(pilotShopping);
  const availablePilot=groups.needsChecking;
  const needsReview=groups.incompleteReference;
  const measuredPilot=groups.consolidatedOriginal;
@@ -117,6 +119,11 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
   ].filter(Boolean).join(" · "));
  }).join("");
  const shoppingBody=`
+ ${quantityReviews.length?`<section class="cc-print-quantity-review">
+ <strong>Conferência de apresentações distintas:</strong>
+ ${quantityReviews.map(group=>'<span>'+safe(group.label)+' ('+group.variants.length+')</span>').join(" · ")}
+ <small>As variações aparecem detalhadas abaixo. Não somar automaticamente porções, preparos ou unidades diferentes.</small>
+ </section>`:""}
  ${shopping.length||measuredPilot.length?'<h2>Medidas consolidadas — conferir rendimento</h2>':""}
  ${shopping.length||measuredPilot.length?'<p class="muted">Somente medidas estruturadas ou expressões literais equivalentes são somadas. As receitas internas não foram redimensionadas para a família; confira porções, embalagens e rendimentos antes da compra.</p>':""}
  ${shopping.length?`<ul class="checklist">${shopping.map(item=>checklist(item,item.name+" — "+formatIngredientAmount(item.quantity,item.unit))).join("")}</ul>`:""}
@@ -178,6 +185,9 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  .cc-print-tag{display:block;flex:0 0 63px;font-size:9px;font-weight:700;color:#315f48;text-align:right;overflow-wrap:anywhere}
  .cc-print-warning{color:#875325!important;font-weight:650!important}
  .cc-print-decision-selected{color:#1c5b42!important;font-weight:700;overflow-wrap:anywhere}
+ .cc-print-quantity-review{margin:0 0 9px;padding:5px 8px;border:1px solid #d4ded4;border-radius:5px;font-size:10px;line-height:1.35;color:#254b37}
+ .cc-print-quantity-review strong{font-weight:700}
+ .cc-print-quantity-review small{display:block;font-size:9px;color:#506258}
  .shopping h2,.shopping h3{break-after:avoid}
  .shopping h2{font-size:15px;margin-top:14px;padding-bottom:4px}
  .shopping h3{margin-top:10px}
@@ -212,6 +222,27 @@ export function buildWeeklyPrintHtml(data:WeeklyPrintData):string{
  .fridge .subhead{font-size:12px;margin:0 0 12px}
  .fridge .brand{font-size:16px}
  .fridge .foot{font-size:10px;margin-top:15px}
+ /* Fase 46: impressão mais compacta sem reduzir o texto essencial da origem. */
+ .shopping{line-height:1.3}
+ .shopping header h1{font-size:22px;margin:4px 0}
+ .shopping .brand{font-size:14px}
+ .shopping .subhead{font-size:11px;margin:0 0 6px}
+ .shopping .checklist{columns:2;column-gap:12px;margin:3px 0 6px}
+ .shopping .item{padding:2px 0;gap:6px}
+ .shopping .item strong{font-size:10.7px;line-height:1.26}
+ .shopping .item small{font-size:9.5px;line-height:1.23;margin-top:1px}
+ .shopping .group-details{margin:3px 0 1px}
+ .shopping .group-details li{font-size:10px;line-height:1.22;margin:1px 0}
+ .shopping h2{font-size:14px;margin-top:10px;margin-bottom:5px;padding-bottom:3px}
+ .shopping h3{font-size:12.5px;margin-top:8px;margin-bottom:3px}
+ .shopping p.muted{font-size:10px;margin:2px 0 4px;line-height:1.24}
+ .shopping .cc-print-decisions{column-gap:12px;margin:3px 0 5px}
+ .shopping .cc-print-decision{padding:4px 0;gap:5px}
+ .shopping .cc-print-decision small{font-size:9.5px;line-height:1.25;margin-top:2px}
+ .shopping .cc-print-decision strong{font-size:10.5px;line-height:1.28}
+ .shopping .cc-print-tag{flex-basis:54px;font-size:8.8px}
+ .shopping .cc-print-quantity-review{padding:4px 7px;margin-bottom:6px}
+ .shopping .foot{font-size:9px;margin-top:7px}
  .recipe-body{grid-template-columns:1fr 1fr}.checklist{columns:2}a{color:inherit;text-decoration:none}}
  </style></head><body class="${safe(kind)}">
  <div class="toolbar"><button type="button" onclick="window.print()">Imprimir / salvar como PDF</button>

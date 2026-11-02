@@ -2,6 +2,7 @@ import {Check} from "lucide-react";
 import {formatIngredientAmount} from "./lib/ingredientMeasures";
 import {purchaseKey} from "./lib/shoppingProgress";
 import {groupShoppingForReview,shoppingReviewReason} from "./lib/shoppingReviewGroups";
+import {recurringIngredientReviews} from "./lib/recurringIngredientReview";
 import ShoppingDecisionsPanel from "./ShoppingDecisionsPanel";
 import type {ShoppingDecision} from "./lib/shoppingDecisions";
 import type {ShoppingItem,PilotShoppingItem,ShoppingNote} from "./lib/shopping";
@@ -24,6 +25,7 @@ export default function ShoppingListSections({
  shopping,pilotShopping,notes,purchasedKeys,onToggle,decisions,decisionBusyKey,onSaveDecision,decisionDisabled,disabled
 }:Props){
  const groups=groupShoppingForReview(shopping,pilotShopping,notes);
+ const recurring=recurringIngredientReviews(pilotShopping);
  const measuredCount=groups.structured.length+groups.consolidatedOriginal.length;
  const reviewCount=groups.needsChecking.length+groups.incompleteReference.length;
  const optionalCount=groups.choicesAndOptional.length+groups.notes.length;
@@ -49,6 +51,19 @@ export default function ShoppingListSections({
  return <>
   {measuredCount===0&&reviewCount===0&&optionalCount===0&&
    <div className="empty">Ainda não há ingredientes. Planeje suas refeições primeiro.</div>}
+
+  {recurring.length>0&&<details className="cc-quantity-review">
+   <summary>Conferir alimentos em diferentes apresentações ({recurring.length})</summary>
+   <p>Esses alimentos aparecem de maneiras diferentes nas receitas. O quadro ajuda a conferir as medidas, mas não converte unidades nem define a quantidade definitiva a comprar. As entradas completas continuam nas seções abaixo.</p>
+   <div className="cc-quantity-review-grid">
+    {recurring.map(group=><section key={group.id} aria-label={"Conferir "+group.label}>
+     <h4>{group.label}</h4>
+     <ul>{group.variants.map((variant,index)=><li key={index}>
+      {variant.description}{variant.uses>1&&<small> ({variant.uses} usos)</small>}
+     </li>)}</ul>
+    </section>)}
+   </div>
+  </details>}
 
   {measuredCount>0&&<section className="cc-pilot-shopping" aria-label="Medidas estruturadas e originais consolidadas">
    <h3>Medidas consolidadas ({measuredCount})</h3>
