@@ -1,5 +1,6 @@
 import {useEffect,useMemo,useRef,useState,type FormEvent} from "react";
 import {supabase} from "./lib/supabase";
+import EvolutionTrends from "./EvolutionTrends";
 import {
  emptyEvolutionDraft,entryToDraft,evaluationLabel,evolutionHabitLabels,
  evolutionScoreOptions,localDateKey,validateEvolutionDraft,
@@ -144,6 +145,7 @@ export default function EvolutionPanel({userId}:{userId:string}){
   </div>
   {error&&<p className="cc-evo-error" role="alert">{error}</p>}
   {message&&<p className="cc-evo-success" role="status">{message}</p>}
+  {!loading&&!error&&<EvolutionTrends entries={rows} today={today} selectedDay={date} onSelectDay={changeDate}/>}
   <div className="cc-evo-layout">
    <form className="cc-evo-form" onSubmit={e=>void save(e)}>
     <h3>{selected?"Editar registro do dia":"Novo registro do dia"}</h3>
