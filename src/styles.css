@@ -841,3 +841,15 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-evo-disclaimer{font-size:11px;line-height:1.6;color:#6b8072;margin:18px 0}
 @media(max-width:800px){.cc-evo-layout{grid-template-columns:1fr}}
 @media(max-width:480px){.cc-evo-form,.cc-evo-history{padding:13px}.cc-evo-actions button{width:100%}.cc-evo-intro h2{font-size:21px}}
+
+
+/* Fase 51: confirmação modal não bloqueante; evitar window.confirm e long task de INP. */
+.cc-evo-confirm-dialog{width:min(420px,calc(100vw - 30px));max-width:100%;border:1px solid #d1dfd2;border-radius:14px;padding:22px;background:white;color:#214535;box-shadow:0 20px 70px #102b2440}
+.cc-evo-confirm-dialog::backdrop{background:rgba(20,39,31,.52)}
+.cc-evo-confirm-dialog h3{font-size:19px;margin:0 0 12px}
+.cc-evo-confirm-dialog p{font-size:13px;line-height:1.6;margin:0 0 18px}
+.cc-evo-confirm-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px}
+.cc-evo-confirm-actions button{min-height:44px;border:1px solid #bdd2c0;border-radius:9px;padding:10px 14px;background:#f1f7f0;color:#245440;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.cc-evo-confirm-actions button.danger{background:#9a4036;color:#fff;border-color:#9a4036}
+.cc-evo-confirm-actions button:disabled{opacity:.5;cursor:not-allowed}
+.cc-evo-confirm-actions button:focus-visible{outline:3px solid #2f8155;outline-offset:3px}
