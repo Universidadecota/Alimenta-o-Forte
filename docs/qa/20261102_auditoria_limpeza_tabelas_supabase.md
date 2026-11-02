@@ -3,7 +3,7 @@
 **Data:** 02/11/2026  
 **Projeto:** Alimentação Forte, produção Supabase `gclhailalyrokvmkwllm`  
 **Método:** inspeção somente leitura de catálogo PostgreSQL, dados agregados, relações, funções, gatilhos, RLS e código identificado no GitHub.  
-**Alterações executadas:** **nenhuma exclusão de tabela**. Não existe até este momento candidato comprovadamente sem uso e com restauração garantida.
+**Atualização após auditoria:** uma tabela legada vazia (`public.profiles`) foi excluída diretamente no Supabase em 02/11/2026, sem backup, conforme preferência expressa do responsável. O inventário de 37 tabelas abaixo é o retrato **anterior à remoção**; agora há 36 tabelas. A decisão anterior de 0 exclusões correspondia ao estado da auditoria antes de comprovar a ausência de referências a `profiles`.
 **Decisão do responsável (02/11/2026):** preservar para uso futuro os módulos de **assinaturas** e **revisão nutricional profissional**. Eles não serão utilizados por enquanto, mas devem continuar disponíveis estruturalmente para retomada futura. A decisão não equivale à aprovação ou ativação clínica/comercial.
 
 ## Síntese executiva
@@ -160,3 +160,25 @@ Foi criado `scripts/sql/20261102_pr63_readonly_preflight.sql`, **somente SELECT*
 - Preparado e **executado com sucesso no banco de produção, somente SELECT**, `scripts/sql/20261102_pr63_compare_restore.sql` para comparar contagens e RLS após restauração.
 - Plano operacional e links da documentação oficial em `docs/qa/20261102_pr63_backup_e_restauracao.md`.
 - **Ainda não houve dump real, cópia dos arquivos do Storage, exportação confirmada de Auth ou ensaio de restauração**. Esses são pré-requisitos obrigatórios; nenhuma tabela está aprovada para exclusão.
+
+
+## Resultado da ação direta autorizada — 02/11/2026
+
+O responsável informou expressamente: **“Eu não tenho interesse em fazer backup. Podemos trabalhar diretamente no supabase.”** A etapa de backup deixou de ser um pré-requisito exigido por ele para a limpeza pontual. **Isso não elimina o risco**: excluir uma tabela sem cópia recuperável pode ser irreversível.
+
+Foi aprofundada a avaliação de `public.profiles`: **0 registros**, campos `id`, `display_name`, `created_at`; **0 gatilhos de aplicação, 0 FKs de entrada, nenhuma função SQL ou view referenciando-a** segundo inspeção dinâmica. Código atual de autenticação/Perfil consulta `user_preferences`, e não `profiles`. A tabela não possuía gatilho de criação em `auth.users`.
+
+**AÇÃO EXECUTADA:** `DROP TABLE public.profiles RESTRICT`, via migração no Supabase `20261102141835_remove_unused_empty_legacy_profiles_20261102`. A migração abortaria se houvesse registros, gatilhos, dependências/ funções conhecidas. O mesmo SQL foi versionado em `supabase/migrations/20261102141835_remove_unused_empty_legacy_profiles_20261102.sql`.
+
+### Validação imediata
+- `to_regclass('public.profiles') IS NULL`: **verdadeiro**.
+- **36 tabelas públicas** restantes, **0 sem RLS**.
+- **4 usuários** em `auth.users` e **4 preferências** em `user_preferences`.
+- **128 receitas**, **1.157 ingredientes**, **10 planos** e **177 refeições planejadas**.
+- **2 listas**, **2 decisões de compra** e **12 favoritos**.
+- **119 fontes oficiais** e **172 registros de alimentos piloto**.
+- `subscription_plans`, `cc_nutrition_reviewers` e `cc_evolution_checkins` continuam existentes.
+
+**Limites:** foi confirmada a integridade estrutural e de contagens; a operação não comprova que consumidores externos antigos não utilizem `profiles`. A homologação visual pós-migração ainda está pendente. Sem backup, a tabela não pode ser recuperada automaticamente com seus direitos/permissões anteriores.
+
+**Próximas exclusões:** nenhuma das outras 36 tabelas demonstrou inutilidade suficiente no escopo já revisado. Tabelas vazias de assinaturas, perfis atuais, nutrição e evolução são mantidas conforme decisões anteriores. Não utilizar `CASCADE` ou excluir por nomenclatura.
