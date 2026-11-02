@@ -792,3 +792,10 @@ h1,h2,h3,.brand strong,.hero h2,.section-intro h2,.home-bottom h2{font-family:"P
 .cc-profile-unsaved{font-size:12px;color:#865d2c;margin:0}
 .cc-profile-disclaimer{font-size:11px;line-height:1.55;color:#657b6b;margin:18px 0 0}
 @media(max-width:640px){.cc-profile-intro h2{font-size:21px}.cc-profile-numbers{grid-template-columns:1fr}.cc-profile-group{padding:13px 12px}.cc-profile-chips button{flex:0 1 auto}.cc-profile-actions button{width:100%}}
+
+/* A nova aba Perfil não deve esmagar ou recortar a navegação em telas estreitas. */
+@media(max-width:800px){
+ .mobile-nav{overflow-x:auto;overscroll-behavior-x:contain;justify-content:flex-start;gap:2px;scrollbar-width:thin}
+ .mobile-nav button{flex:1 0 60px;min-width:60px;padding:2px 3px;white-space:nowrap}
+ .mobile-nav button small{font-size:10px}
+}
