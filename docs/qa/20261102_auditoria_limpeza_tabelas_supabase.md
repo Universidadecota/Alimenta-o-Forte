@@ -195,3 +195,11 @@ Capturas do **site oficial** enviadas pelo responsável mostram sessão autentic
 **Segurança/preservação verificada depois da exclusão:** `profiles` ausente; 36 tabelas públicas; RLS ativa em todas; 4 contas, 4 preferências, 128 receitas, 197 alimentos, 21 refeições atribuídas à conta observada na semana, 2 compras marcadas e 2 decisões preservadas no outro conjunto de registros de validação. Os dados continuam presentes, mas ainda falta verificar o resultado de leitura pela sessão real no navegador.
 
 Nenhuma outra tabela foi removida. Não houve restauração, alteração de cardápio ou publicação do aplicativo.
+
+## Revalidação do cardápio após Ctrl + F5 — 02/11/2026
+
+O responsável enviou nova captura do site oficial após atualização forçada do navegador (Ctrl + F5). A semana de **02 a 08/11/2026** agora apresenta **3/3 refeições em cada um dos sete dias**; segunda-feira exibe café da manhã, almoço e jantar, com receita, porções e ação de fixação. Os totais da interface correspondem às **21 refeições** previamente encontradas para a mesma conta e semana no Supabase, sem alterações de dados.
+
+**Estado:** divergência visual 0/21 / 0/3 anteriormente observada **não persiste após recarregamento**. A causa exata (cache/estado de carregamento/atualização de sessão) não foi demonstrada; não atribuir à remoção da tabela `profiles` sem evidência adicional. Não houve regeneração de sugestões, alteração de pratos nem exclusões adicionais.
+
+**Pendências independentes:** validar a navegação em celular e estados de gravação; corrigir o espaçamento entre nome do alimento e subtítulo `Quantidade estruturada` na lista Compras, já identificado no front-end; manter revisão comercial de fontes e nutricional futura. A tabela `profiles` permanece a única exclusão estrutural executada.
