@@ -3,7 +3,7 @@ import {readFileSync} from "node:fs";
 import {fileURLToPath} from "node:url";
 
 const read=path=>readFileSync(fileURLToPath(new URL(path,import.meta.url)),"utf8");
-const app=read("../src/App.tsx"),css=read("../src/styles.css");
+const app=read("../src/App.tsx"),css=read("../src/styles.css"),shopping=read("../src/ShoppingListSections.tsx");
 const packageJSON=JSON.parse(read("../package.json"));
 const navigation=["Início","Cardápio","Receitas","Alimentos","Compras","Perfil","Evolução"];
 for(const label of navigation)assert.ok(app.includes('["'+label+'",'),"Rota ausente: "+label);
@@ -29,6 +29,18 @@ assert.match(css,/\.sidebar nav button:focus-visible,\.mobile-nav button:focus-v
 assert.match(css,/\.mobile-nav button\[aria-current="page"\]/);
 assert.match(css,/@media\(max-width:800px\)/);
 assert.match(css,/\.mobile-nav\{overflow-x:auto/,"As abas devem continuar roláveis em telas estreitas.");
+assert.match(shopping,/<span className="cc-shopping-structured-text"><span className="cc-shopping-ingredient-name">\{item\.name\}<\/span><small>Quantidade estruturada<\/small><\/span>/,
+ "Nome do ingrediente e legenda precisam de elementos distintos.");
+assert.doesNotMatch(shopping,/<span>\{item\.name\}<small>Quantidade estruturada<\/small><\/span>/,
+ "A legenda nao deve ficar concatenada ao nome.");
+assert.match(css,/\.cc-shopping-structured-text\{display:flex;flex-direction:column/);
+assert.match(css,/\.cc-shopping-structured-text small\{display:block/);
+assert.match(css,/\.cc-pilot-shopping \.shopping-item \.cc-shopping-structured-text\{flex:1 1 auto/);
+assert.match(css,/\.mobile-nav\{scroll-padding-inline:12px/);
+assert.match(css,/\.mobile-nav button\{scroll-margin-inline:12px/);
+assert.match(shopping,/key=\{purchaseKey\(item\)\}/,"Chaves de compras devem permanecer inalteradas.");
+assert.match(shopping,/aria-pressed=\{purchased\(item\)\}/,"Estado da compra continua acessivel.");
+assert.match(shopping,/onClick=\{\(\)=>onToggle\(item\)\}/,"Persistencia da compra nao deve ser alterada.");
 assert.doesNotMatch(app,/(?:service_role|SUPABASE_SERVICE_ROLE_KEY)/,"Nunca importar credenciais privilegiadas para o front.");
 assert.ok(packageJSON.scripts.build.includes("test:integrated-phase53"),"Teste de integração precisa ser executado em todo build.");
-console.log("PASS F53: navegação, orientação de foco, teclado, mobile, isolamento visual e regressão de módulos.");
+console.log("PASS F53: navegacao, foco, rolagem mobile, legenda de Compras e regressao de integracao.");
