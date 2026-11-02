@@ -5,6 +5,7 @@ import AdminNutritionN2 from "./AdminNutritionN2";
 import HomeDashboard from "./HomeDashboard";
 import FoodLibrary from "./FoodLibrary";
 import UserProfile from "./UserProfile";
+import EvolutionPanel from "./EvolutionPanel";
 import CopyMealAction from "./CopyMealAction";
 import RecipeImage from "./RecipeImage";
 import {consolidateShopping,collectPilotShopping,shoppingNotes,formatIngredientAmount,type ShoppingItem} from "./lib/shopping";
@@ -23,7 +24,7 @@ import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
 import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, loadPreliminaryAllergyCandidates, saveMeal, setMealLocked, replaceWeekMainMeals, removeMeal, moveMeal } from "./lib/planner";
-import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer, Heart, LockKeyhole, LockKeyholeOpen, UserRound } from "lucide-react";
+import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer, Heart, LockKeyhole, LockKeyholeOpen, UserRound, Activity } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
 export default function App(){
  const [isAdmin,setIsAdmin]=useState(false);
@@ -524,7 +525,7 @@ export default function App(){
  const recipeTargetDate=days.find(day=>dateKey(day)===selected)??days[0];
  const recipeTargetLong=recipeTargetDate.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
  const recipeTargetShort=recipeTargetDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
- const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Alimentos",Apple],["Compras",ShoppingBasket],["Perfil",UserRound],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
+ const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Alimentos",Apple],["Compras",ShoppingBasket],["Perfil",UserRound],["Evolução",Activity],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
  return <div className="shell"><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav>{nav.map(([name,Icon])=><button className={page===name?"active":""} key={name} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={19}/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1>{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div>{supabase?<div className="cc-account-controls"><span className="cc-account-email" title={userEmail??"Minha conta"}>{userEmail??"Minha conta"}</span><button type="button" onClick={()=>void supabase?.auth.signOut()} aria-label="Sair da conta"><LogOut size={16}/> Sair</button></div>:<div className="avatar">C&C</div>}</header><div className="notice"><Leaf size={15}/> {isAdmin?"Piloto pessoal · Receitas autorais para organizar seu cardápio e suas compras. Confira ingredientes e rótulos: alergênicos e composição nutricional ainda não foram verificados.":"Biblioteca culinária em testes · Organize receitas e compras; nenhuma sugestão constitui prescrição de dieta."}</div>
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
  {page==="Início"&&<HomeDashboard
@@ -596,6 +597,9 @@ export default function App(){
     onSaved={updated=>{setPreferences(updated);setPreferencesLoadedFor(userId);}}
     onOpenCardapio={()=>setPage("Cardápio")}/>
   :<div className="notice" role="status">Não foi possível carregar as preferências com segurança. Atualize a página ou entre novamente antes de editar o perfil.</div>)}
+ {page==="Evolução"&&(userId
+  ?<EvolutionPanel key={userId} userId={userId}/>
+  :<div className="notice" role="status">Entre na sua conta para acessar seus registros privados de evolução.</div>)}
  {page==="Administração"&&isAdmin&&<><AdminNutritionN2/><AdminRecipes onRefresh={reloadRecipes}/><AdminRecipeRatings/><AdminAllergenReviewQueue/></> }
  {page==="Receitas"&&!recipeForm&&<section className="cc-recipe-target-date" aria-label="Dia escolhido para adicionar receitas">
   <div className="cc-recipe-target-summary">
