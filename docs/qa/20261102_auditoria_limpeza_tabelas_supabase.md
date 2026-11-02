@@ -182,3 +182,16 @@ Foi aprofundada a avaliação de `public.profiles`: **0 registros**, campos `id`
 **Limites:** foi confirmada a integridade estrutural e de contagens; a operação não comprova que consumidores externos antigos não utilizem `profiles`. A homologação visual pós-migração ainda está pendente. Sem backup, a tabela não pode ser recuperada automaticamente com seus direitos/permissões anteriores.
 
 **Próximas exclusões:** nenhuma das outras 36 tabelas demonstrou inutilidade suficiente no escopo já revisado. Tabelas vazias de assinaturas, perfis atuais, nutrição e evolução são mantidas conforme decisões anteriores. Não utilizar `CASCADE` ou excluir por nomenclatura.
+
+
+## Homologação visual posterior à exclusão e divergência de planejamento — 02/11/2026
+
+Capturas do **site oficial** enviadas pelo responsável mostram sessão autenticada e navegação funcional em Início, Cardápio, Receitas, Alimentos, Compras, Perfil, Evolução e Administração (inclusive triagem nutricional e catálogo editorial). O histórico de Evolução mostra estado vazio coerente com 0 registros de diário no banco.
+
+**Identificação de discrepância a investigar:** no mesmo conjunto de imagens, a página Início informa **0/21** refeições planejadas e o calendário de Cardápio exibe **0/3** no dia 02/11. Porém, consulta SQL de leitura filtrada pela conta mostrada nas capturas confirmou **21 refeições para 02–08/11/2026**, três em cada dia (7 breakfast, 7 lunch, 7 dinner), em um plano iniciado em 02/11/2026, com todos os 21 IDs de receitas válidos. Por isso a homologação do Cardápio **não pode ser marcada como concluída** apenas com base nas imagens. Verificar se houve carregamento parcial, sessão/RLS, falha silenciosa ou estado desatualizado. **Não regenerar/regravar refeições antes de esclarecer a diferença.**
+
+**Observação de UX:** na lista de Compras os nomes aparecem concatenados com 'Quantidade estruturada' (ex.: 'AbobrinhaQuantidade estruturada'). O componente `src/ShoppingListSections.tsx` exibe `<span>{item.name}<small>Quantidade estruturada</small></span>` sem quebra em bloco; correção sugerida na Fase 53 como ajuste de apresentação, sem tocar na persistência. A ocorrência não é decorrência demonstrada da exclusão de `profiles`.
+
+**Segurança/preservação verificada depois da exclusão:** `profiles` ausente; 36 tabelas públicas; RLS ativa em todas; 4 contas, 4 preferências, 128 receitas, 197 alimentos, 21 refeições atribuídas à conta observada na semana, 2 compras marcadas e 2 decisões preservadas no outro conjunto de registros de validação. Os dados continuam presentes, mas ainda falta verificar o resultado de leitura pela sessão real no navegador.
+
+Nenhuma outra tabela foi removida. Não houve restauração, alteração de cardápio ou publicação do aplicativo.
