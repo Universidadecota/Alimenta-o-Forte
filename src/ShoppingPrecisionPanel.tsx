@@ -1,13 +1,18 @@
 import {useState} from "react";
-import {auditShoppingPrecision,precisionCounts,type PrecisionPriority} from "./lib/shoppingPrecisionAudit";
+import {auditShoppingPrecision,precisionCounts,type PrecisionPriority,type PrecisionReason} from "./lib/shoppingPrecisionAudit";
 import type {ShoppingDecision} from "./lib/shoppingDecisions";
 import type {PilotShoppingItem} from "./lib/shopping";
 
 type Filter="all"|PrecisionPriority;
-const headings:Record<PrecisionPriority,string>={
- source:"Texto ou referência incompleta",
- decision:"Escolha ou opcional pendente",
- quantity:"Medida ou rendimento a conferir"
+const headings:Record<PrecisionReason,string>={
+ reference:"Produto não identificado",
+ linkedRecipe:"Preparo complementar",
+ ambiguous:"Texto composto ou ambíguo",
+ choice:"Escolha pendente",
+ optional:"Opcional pendente",
+ egg:"Subtotal de ovos",
+ subjective:"Medida subjetiva",
+ unmeasured:"Quantidade não definida"
 };
 const filters:ReadonlyArray<{id:Filter;label:string}>=[
  {id:"all",label:"Todas"},
@@ -31,14 +36,14 @@ export default function ShoppingPrecisionPanel({
   <div className="cc-precision-review-header">
    <div>
     <h3>Pendências para conferir antes de comprar</h3>
-    <p>Revisão do texto das receitas piloto: estas informações precisam de confirmação humana. Não são novas compras nem quantidades calculadas.</p>
+    <p>Mostra apenas referências que exigem decisão ou conferência. Ingredientes com medida literal já informada permanecem na lista e no painel de apresentações distintas. Não são novas compras.</p>
    </div>
    <span className="cc-precision-total">{issues.length} referências</span>
   </div>
   <div className="cc-precision-summary" aria-label="Contagem por tipo de pendência">
    <div><strong>{counts.source}</strong><span>Textos de origem</span></div>
    <div><strong>{counts.decision}</strong><span>Decisões pendentes</span></div>
-   <div><strong>{counts.quantity}</strong><span>Medidas a conferir</span></div>
+   <div><strong>{counts.quantity}</strong><span>Medidas sem definição ou subtotais</span></div>
   </div>
   <div className="cc-precision-filters" role="group" aria-label="Filtrar pendências">
    {filters.map(option=><button key={option.id} type="button"
@@ -54,7 +59,7 @@ export default function ShoppingPrecisionPanel({
     {visible.map(issue=><li key={issue.key}>
      <div className="cc-precision-issue-head">
       <strong>{issue.title}</strong>
-      <span>{headings[issue.priority]}</span>
+      <span>{headings[issue.reason]}</span>
      </div>
      <p>{issue.explanation}</p>
      <p><strong>Próxima conferência:</strong> {issue.nextStep}</p>
