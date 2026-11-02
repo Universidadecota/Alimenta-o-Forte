@@ -1,3 +1,5 @@
+> **Nota de decisão posterior — 02/11/2026:** o responsável optou expressamente por **não realizar backups** e trabalhar diretamente no Supabase. Este procedimento fica preservado apenas como referência opcional, **não como etapa a exigir novamente**. Uma única tabela legada vazia, `public.profiles`, foi posteriormente removida diretamente no banco após testes de ausência de dados e dependências. O risco da falta de backup permanece real e foi comunicado. Consulte `20261102_auditoria_limpeza_tabelas_supabase.md` para a migração e os resultados. Nenhuma das outras tabelas foi excluída.
+
 # Costa&Costa — Fase PR #63: backup lógico e ensaio de recuperação
 
 **Data da verificação:** 02/11/2026 (13:37 UTC)  
