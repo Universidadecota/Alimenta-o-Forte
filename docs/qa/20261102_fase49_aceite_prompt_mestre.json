@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "phase": 49,
+  "audited_date": "2026-11-02",
+  "reference": "Prompt Mestre Costa&Costa — critérios de aceite da Fase 1 (14 itens)",
+  "branch_basis": "main@b24a074a3bb6f80143f33c75b77ab6698d0b6a20",
+  "status_legend": {
+    "presente": "Código / fluxo existente. Não significa aceite E2E completo.",
+    "parcial": "Implementação ou validação incompleta.",
+    "ausente": "Não identificado no código / schema inspecionados."
+  },
+  "verdict_rule": "Nenhum critério é marcado como aceite integral de produção apenas por análise estática, existência de tabela ou testes unitários.",
+  "checks": [
+    {
+      "id": 1,
+      "title": "Criar conta e acessar o aplicativo",
+      "implementation": "presente",
+      "verification": "evidência anterior; reconfirmar",
+      "evidence": [
+        "src/AuthGate.tsx",
+        "src/Onboarding.tsx",
+        "docs/qa/20261022_auth_recuperacao_dominio_oficial_evidencias.md"
+      ],
+      "next_test": "Testar cadastro/confirmacao/login de conta teste em dominio oficial sem reutilizar conta real."
+    },
+    {
+      "id": 2,
+      "title": "Completar o perfil",
+      "implementation": "parcial",
+      "verification": "pendente teste completo",
+      "evidence": [
+        "src/Onboarding.tsx",
+        "src/App.tsx",
+        "tabela user_preferences"
+      ],
+      "next_test": "Confirmar edicao permanente do perfil e opcionalidade; nao equivale a onboarding de cinco passos."
+    },
+    {
+      "id": 3,
+      "title": "Criar um cardápio de sete dias",
+      "implementation": "presente",
+      "verification": "cenário piloto observado; suite total pendente",
+      "evidence": [
+        "src/lib/planner.ts",
+        "src/App.tsx",
+        "planned_meals"
+      ],
+      "next_test": "Criar semana isolada, recarregar e verificar sete dias e horarios."
+    },
+    {
+      "id": 4,
+      "title": "Adicionar receitas em todas as categorias habilitadas",
+      "implementation": "parcial",
+      "verification": "pendente matriz de categorias",
+      "evidence": [
+        "src/lib/planner.ts",
+        "src/RecipeDetails.tsx",
+        "src/App.tsx"
+      ],
+      "next_test": "Testar cafe/almoço/jantar/lanches/ceia e restricoes honestas de receitas piloto."
+    },
+    {
+      "id": 5,
+      "title": "Trocar almoço de quarta sem alterar outros dias",
+      "implementation": "presente",
+      "verification": "pendente e2e específico",
+      "evidence": [
+        "src/App.tsx",
+        "src/lib/planner.ts"
+      ],
+      "next_test": "Testar alteracao de um slot com snapshot antes/depois dos demais dias."
+    },
+    {
+      "id": 6,
+      "title": "Ajustar número de porções",
+      "implementation": "parcial",
+      "verification": "restricao no piloto",
+      "evidence": [
+        "src/RecipeDetails.tsx",
+        "src/lib/planner.ts",
+        "src/lib/shopping.ts"
+      ],
+      "next_test": "Testar redimensionamento só de receitas com medidas confiaveis; piloto não deve inventar quantidades."
+    },
+    {
+      "id": 7,
+      "title": "Gerar lista de compras consolidada",
+      "implementation": "parcial",
+      "verification": "pendência de precisao",
+      "evidence": [
+        "src/lib/shopping.ts",
+        "src/ShoppingListSections.tsx",
+        "docs/qa/20261102_fase47_triagem_precisao_compras.md"
+      ],
+      "next_test": "Resolver referencias não estruturadas e cenarios de diferentes porcoes sem regressão nos checks."
+    },
+    {
+      "id": 8,
+      "title": "Marcar produtos como comprados",
+      "implementation": "presente",
+      "verification": "evidência de producao",
+      "evidence": [
+        "src/lib/shoppingProgress.ts",
+        "scripts/test-shopping-purchase-readonly.mjs"
+      ],
+      "next_test": "Conferir on/off e recarga; preservacao de leite de coco e azeite já comprovada."
+    },
+    {
+      "id": 9,
+      "title": "Salvar receita favorita",
+      "implementation": "presente",
+      "verification": "evidência de dados e codigo",
+      "evidence": [
+        "src/RecipeDetails.tsx",
+        "src/App.tsx",
+        "tabela favorites",
+        "scripts/test-recipe-favorites.mjs"
+      ],
+      "next_test": "Revalidar inclusão, remoção e persistência com conta de teste."
+    },
+    {
+      "id": 10,
+      "title": "Sair e entrar sem perder os dados",
+      "implementation": "parcial",
+      "verification": "falta teste transversal",
+      "evidence": [
+        "src/AuthGate.tsx",
+        "src/lib/planner.ts",
+        "src/lib/shoppingProgress.ts"
+      ],
+      "next_test": "Testar novo login em aparelho/dispositivo distinto para perfil, semana, favoritos e compras."
+    },
+    {
+      "id": 11,
+      "title": "Segundo usuário não pode acessar dados privados do primeiro",
+      "implementation": "parcial",
+      "verification": "políticas presentes; cobertura global pendente",
+      "evidence": [
+        "pg_policies do Supabase",
+        "scripts/test-beta-private-access.mjs",
+        "docs/qa/20261018_fase1_homologacao_consolidada.md"
+      ],
+      "next_test": "Executar testes HTTP/JWT com duas contas isoladas e Storage, RPCs, dados de saúde sem vazamento."
+    },
+    {
+      "id": 12,
+      "title": "Navegação correta no celular",
+      "implementation": "parcial",
+      "verification": "homologacao mobile pendente",
+      "evidence": [
+        "src/styles.css",
+        "src/App.tsx",
+        "src/Onboarding.tsx"
+      ],
+      "next_test": "Testar Android/iOS, 320-430 px, teclado, scroll e leitor de tela."
+    },
+    {
+      "id": 13,
+      "title": "Persistência após recarregar a página",
+      "implementation": "parcial",
+      "verification": "comprovada em parte; cobertura pendente",
+      "evidence": [
+        "src/lib/planner.ts",
+        "src/lib/shoppingProgress.ts",
+        "src/App.tsx"
+      ],
+      "next_test": "Recarregar em cada fluxo: preferencias, semanas, favoritos, compra, opções e porções."
+    },
+    {
+      "id": 14,
+      "title": "Nenhum botão principal meramente decorativo",
+      "implementation": "parcial",
+      "verification": "auditoria funcional total pendente",
+      "evidence": [
+        "src/App.tsx",
+        "src/ShoppingDecisionsPanel.tsx",
+        "src/RecipeDetails.tsx"
+      ],
+      "next_test": "Varredura de todos controles visíveis e tratamentos de erro em aparelho real."
+    }
+  ]
+}
