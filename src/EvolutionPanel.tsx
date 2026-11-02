@@ -130,7 +130,7 @@ export default function EvolutionPanel({userId}:{userId:string}){
  return <section className="cc-evolution">
   <div className="cc-evo-intro">
    <h2>Sua evolução, no seu ritmo</h2>
-   <p>Este é um diário **voluntário e privado** para perceber como você se sente e quais hábitos fazem sentido para sua rotina. Não há metas obrigatórias, pontuação de sucesso ou diagnóstico.</p>
+   <p>Este é um diário <strong>voluntário e privado</strong> para perceber como você se sente e quais hábitos fazem sentido para sua rotina. Não há metas obrigatórias, pontuação de sucesso ou diagnóstico.</p>
   </div>
   <div className="cc-evo-privacy" role="note">
    <strong>Privacidade:</strong> os registros ficam vinculados à sua conta e não são publicados no perfil de outros usuários. Você escolhe o que registrar e pode apagar cada dia. Não use este diário para informações médicas urgentes.
