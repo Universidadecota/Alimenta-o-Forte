@@ -65,12 +65,12 @@ const restoredPdf=buildWeeklyPrintHtml({
  purchasedKeys:[purchaseKey(coconut),purchaseKey(oliveOil)],
  decisions:[chosen,included]
 });
-assert.equal((restoredPdf.match(/<span class="square">✓<\\/span>/g)||[]).length,2,
+assert.equal((restoredPdf.match(/<span class="square">✓<\/span>/g)||[]).length,2,
  "O PDF deve manter dois itens comprados após decisões de alternativas");
 assert.match(restoredPdf,/Escolha registrada: azeite/);
 assert.match(restoredPdf,/Opcional incluído por decisão do usuário/);
 assert.match(restoredPdf,/1¼ xícaras de leite de coco/);
-assert.match(restoredPdf,/13 colheres \\(sopa\\) de azeite/);
+assert.match(restoredPdf,/13 colheres \(sopa\) de azeite/);
 const attack={...chosen,selection:'<img src=x onerror="alert(1)">'};
 const escaped=buildWeeklyPrintHtml({
  kind:"shopping",days:dates,plan:{},recipes:[],shopping:[],
