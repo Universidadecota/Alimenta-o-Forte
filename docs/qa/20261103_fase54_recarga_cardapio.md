@@ -42,3 +42,22 @@ Na implementação anterior `src/App.tsx`, o `loadWeek` acionava `setPlan({})` a
 4. **Aprovação explícita para merge na main** e publicação no site oficial.
 
 O usuário mantém a preferência de trabalhar diretamente no Supabase sem exigir backup; **nenhuma escrita no banco é necessária nesta Fase 54**. A limpeza de tabelas é escopo independente do PR #63, que permanece sem merge.
+
+
+## Capturas de homologação — 03/11/2026
+
+O responsável enviou **cinco capturas da prévia** `costa-costa-alimentacao-2oyuoysoo-myclever607-7251s-projects.vercel.app`, sem executar operações de escrita:
+
+| Tela | Evidência visível | Estado |
+|---|---|---|
+| Início | Indicadores **3/3 refeições de hoje** e **21/21 refeições da semana**, com estado “Dia planejado” | Aprovado visualmente |
+| Compras | Lista consolidada com nomes e quantidades legíveis, sem a legenda redundante | Aprovado visualmente |
+| Perfil | Preferências exibidas, conta autenticada | Aprovado visualmente |
+| Evolução | Histórico privado e filtros de percepção/período exibidos | Aprovado visualmente |
+| Administração | Painel de triagem nutricional N2, totais e opções de revisão carregados | Aprovado visualmente |
+
+**O que essas imagens ainda NÃO provam:** funcionamento de `Recarregar semana salva`, tratamento de uma falha de consulta em modo offline, recuperação com `Tentar novamente`, persistência de marcação de Compras ou operação em celular. As capturas não incluem o botão novo nem mostram a sequência de recarga.
+
+**Próxima homologação recomendada:** na prévia, abrir `Cardápio` da semana 02–08/11, conferir 3/3 nos sete dias, clicar `Recarregar semana salva` e confirmar que continuam 21 refeições sem alteração. Opcionalmente, simular `Offline` no DevTools, tentar recarregar, verificar aviso explícito, voltar a `Online` e usar `Tentar novamente`. Não utilizar o botão `Sugerir refeições da semana` durante esses testes.
+
+O PR #64 segue **draft**, sem merge. A produção permanece na Fase 53. Nenhum dado do Supabase foi alterado em resposta às capturas.
