@@ -97,3 +97,10 @@ O responsável enviou uma captura do **domínio oficial** `alimentacaoforte.epsa
 Na branch de prévia da Fase 53, o markup da linha consolidada foi simplificado para mostrar **somente nome do alimento e quantidade**. A legenda foi removida, com CSS e teste estático atualizados. As chaves, botões e estados de compras não foram alterados; nenhuma atualização no Supabase foi necessária. A observação visual anterior de concatenação torna-se resolvida pela **eliminação integral da legenda**, condicionada à homologação visual da nova prévia.
 
 A captura original foi tirada da **produção**, não da prévia; por isso não deve ser interpretada como falha de implantação do PR #62. Este PR segue draft, sem merge nem publicação no domínio oficial.
+
+
+### Evidência visual recebida — 03/11/2026
+
+O responsável enviou captura da **prévia Vercel** `costa-costa-alimentacao-n47tmskn0-myclever607-7251s-projects.vercel.app`, seção **Compras**, em janela desktop. A lista consolidada apresenta nomes e quantidades legíveis, marcadores à esquerda e valores à direita (ex.: `Abobrinha — 800 g`, `Alface — 400 g`, `Arroz — 640 g`). O texto redundante `Quantidade estruturada` não aparece nas linhas visíveis. **Correção visual desktop homologada por imagem.**
+
+**Pendente:** verificar navegação e exibição em celular/larguras de 360 e 390 pixels, bem como ações de marcação de compras em sessão real. A captura é evidência de apresentação, não de persistência ou usabilidade móvel. O PR continua draft sem merge/produção.
