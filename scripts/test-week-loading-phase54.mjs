@@ -33,6 +33,9 @@ const retry = app.match(/const reloadSavedWeek=\(\)=>\{([^}]+)\};/);
 assert.ok(retry,"Ação de recarga deve ter corpo isolável.");
 assert.doesNotMatch(retry[1],/(replaceWeekMainMeals|saveMeal|savePurchasedItem|setPlan\(|delete|upsert|insert|update)/);
 assert.match(app,/disabled=\{loading\|\|saving\|\|!weekReady\|\|!recipesReady\|\|!preferencesReady\} onClick=\{\(\)=>void suggestWeek\(\)\}/);
-assert.ok(pkg.scripts.build.includes("npm run test:week-loading-phase54 && tsc -b"),
- "Teste da Fase 54 deve participar de todos os builds.");
+const buildSteps=pkg.scripts.build.split(" && ");
+const step54=buildSteps.indexOf("npm run test:week-loading-phase54");
+const typecheckStep=buildSteps.indexOf("tsc -b");
+assert.ok(step54>=0 && typecheckStep>step54,
+ "Teste da Fase 54 deve executar antes da checagem TypeScript em todos os builds.");
 console.log("PASS F54: distingue semana pendente/erro/vazia; recarregamento somente leitura; controles de escrita preservados.");
