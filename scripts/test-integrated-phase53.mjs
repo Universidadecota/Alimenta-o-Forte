@@ -29,12 +29,11 @@ assert.match(css,/\.sidebar nav button:focus-visible,\.mobile-nav button:focus-v
 assert.match(css,/\.mobile-nav button\[aria-current="page"\]/);
 assert.match(css,/@media\(max-width:800px\)/);
 assert.match(css,/\.mobile-nav\{overflow-x:auto/,"As abas devem continuar roláveis em telas estreitas.");
-assert.match(shopping,/<span className="cc-shopping-structured-text"><span className="cc-shopping-ingredient-name">\{item\.name\}<\/span><small>Quantidade estruturada<\/small><\/span>/,
- "Nome do ingrediente e legenda precisam de elementos distintos.");
-assert.doesNotMatch(shopping,/<span>\{item\.name\}<small>Quantidade estruturada<\/small><\/span>/,
- "A legenda nao deve ficar concatenada ao nome.");
-assert.match(css,/\.cc-shopping-structured-text\{display:flex;flex-direction:column/);
-assert.match(css,/\.cc-shopping-structured-text small\{display:block/);
+assert.match(shopping,/<span className="cc-shopping-structured-text">\{item\.name\}<\/span>/,
+ "Nome do ingrediente deve aparecer sozinho na linha.");
+assert.doesNotMatch(shopping,/Quantidade estruturada/,
+ "Legenda redundante nao deve aparecer nos itens de Compras.");
+assert.match(css,/\.cc-shopping-structured-text\{display:block;min-width:0/);
 assert.match(css,/\.cc-pilot-shopping \.shopping-item \.cc-shopping-structured-text\{flex:1 1 auto/);
 assert.match(css,/\.mobile-nav\{scroll-padding-inline:12px/);
 assert.match(css,/\.mobile-nav button\{scroll-margin-inline:12px/);
