@@ -7,6 +7,7 @@ import PilotIngredientMeasureReview from "./PilotIngredientMeasureReview";
 import type {Ingredient} from "./lib/planner";
 import {formatRecipeIngredient} from "./lib/ingredientMeasures";
 import {buildOfficialIngredientWrites,type EditableOfficialIngredient} from "./lib/officialIngredientWrites";
+import {summarizeRecipeQuality,type PilotSourceReview} from "./lib/recipeQualityAudit";
 type Row={id:string;title:string;category:string;description:string|null;instructions:string|null;prep_minutes:number;servings:number;published:boolean;url:string|null;image_is_ai:boolean;recipe_ingredients:Array<{id:string;position:number;name:string;quantity:number|null;unit:string;measure_mode:string;is_optional:boolean}>};
 const initial:{title:string;category:string;description:string;instructions:string;prep_minutes:number;servings:number;published:boolean;url:string;image_is_ai:boolean;recipe_ingredients:EditableOfficialIngredient[]}={title:"",category:"lunch",description:"",instructions:"",prep_minutes:25,servings:1,published:false,url:"",image_is_ai:false,recipe_ingredients:[{name:"",quantity:1,unit:"g",measureMode:"measured",optional:false}]};
 export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
@@ -15,16 +16,20 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
  const [section,setSection]=useState<"official"|"mine">("official");
  const [mine,setMine]=useState<Array<{id:string;title:string;category:string;published:boolean}>>([]),[mineLoading,setMineLoading]=useState(false),[mineError,setMineError]=useState("");
  const [pilotRecipeIds,setPilotRecipeIds]=useState<string[]>([]);
+ const [pilotSourceReviews,setPilotSourceReviews]=useState<PilotSourceReview[]>([]);
+ const [qualityLoaded,setQualityLoaded]=useState(false);
  const [rows,setRows]=useState<Row[]>([]),[editing,setEditing]=useState<string|null>(null),[form,setForm]=useState({...initial}),[error,setError]=useState(""),[busy,setBusy]=useState(false),[search,setSearch]=useState("");
- const load=async()=>{if(!supabase)return;
+ const load=async()=>{if(!supabase)return;setQualityLoaded(false);
   const [recipeResult,pilotResult]=await Promise.all([
    supabase.from("recipes").select("id,title,category,description,instructions,prep_minutes,servings,published,url,image_is_ai,recipe_ingredients(id,position,name,quantity,unit,measure_mode,is_optional)").is("owner_user_id",null).is("archived_at",null).order("title"),
-   supabase.from("cc_official_recipe_source_records").select("recipe_id").eq("use_stage","personal_pilot")
+   supabase.from("cc_official_recipe_source_records").select("recipe_id,ingredient_review_status,commercial_rights_status").eq("use_stage","personal_pilot")
   ]);
   if(recipeResult.error)throw recipeResult.error;
   if(pilotResult.error)throw pilotResult.error;
   setRows((recipeResult.data??[]).map(row=>({...row,recipe_ingredients:[...row.recipe_ingredients].sort((a,b)=>a.position-b.position)})));
   setPilotRecipeIds((pilotResult.data??[]).map(row=>row.recipe_id));
+  setPilotSourceReviews((pilotResult.data??[]) as PilotSourceReview[]);
+  setQualityLoaded(true);
  };
  useEffect(()=>{void load().catch(e=>setError(e instanceof Error?e.message:"Erro ao carregar catálogo"));},[]);
  const loadMine=async()=>{
@@ -100,9 +105,27 @@ export default function AdminRecipes({onRefresh}:{onRefresh:()=>Promise<void>}){
  };
  const field=(key:"title"|"description"|"instructions"|"url",value:string)=>setForm(v=>({...v,[key]:value}));
  const pilotEditing=Boolean(editing&&pilotRecipeIds.includes(editing));
+ const quality=summarizeRecipeQuality(rows,pilotSourceReviews);
   return <section className="cc-admin"><h2>Gestão do catálogo de receitas</h2><p>Organização culinária das receitas autorais Costa&Costa. As receitas do piloto estão disponíveis apenas para leitura interna por contas autorizadas. Não são publicações comerciais: direitos, medidas, alergênicos e segurança ainda exigem revisão.</p>
  <div className="cc-admin-tabs" role="group" aria-label="Área de receitas"><button type="button" className={section==="official"?"selected":""} aria-pressed={section==="official"} onClick={()=>setSection("official")}>Receitas oficiais</button><button type="button" className={section==="mine"?"selected":""} aria-pressed={section==="mine"} onClick={()=>setSection("mine")}>Minhas receitas particulares</button></div>
  {section==="mine"?<div className="cc-admin-private"><h3>Minhas receitas particulares</h3><p>Esta seção exibe somente as receitas vinculadas à sua própria conta. Receitas de outros usuários permanecem privadas e não são disponibilizadas aos administradores por este painel.</p><p>Para editar ou arquivar suas receitas particulares, use a área <strong>Receitas</strong> do aplicativo. Nenhuma receita particular é publicada como oficial automaticamente.</p>{mineLoading?<p role="status">Carregando suas receitas…</p>:mineError?<p role="alert">{mineError}</p>:mine.length?<ul>{mine.map(r=><li key={r.id}><strong>{r.title}</strong><span>Receita pessoal · {r.category==="breakfast"?"Café da manhã":r.category==="lunch"?"Almoço":r.category==="dinner"?"Jantar":r.category==="snack"?"Lanche":r.category}</span></li>)}</ul>:<p>Você não possui receitas particulares ativas nesta conta.</p>}</div>:<>
+ <section className="cc-quality-audit" aria-label="Qualidade editorial das receitas">
+   <div className="cc-quality-audit-heading"><h3>Qualidade das receitas · conferência editorial</h3><span>Somente leitura</span></div>
+   <p>Este resumo separa o acervo piloto, que mantém medidas no texto original, das demais receitas. Nenhum aviso significa aprovação nutricional, de alergênicos ou de direitos comerciais.</p>
+   {!qualityLoaded?<p role={error?"alert":"status"}>{error?"Não foi possível atualizar a conferência editorial.":"Carregando indicadores do catálogo..."}</p>:<>
+    <div className="cc-quality-audit-grid">
+     <div><strong>{quality.total}</strong><span>Receitas oficiais cadastradas</span></div>
+     <div><strong>{quality.pilotNeedsMeasures}</strong><span>Piloto aguardando estruturação das medidas</span></div>
+     <div><strong>{quality.pilotRightsPending}</strong><span>Piloto com direitos comerciais em análise</span></div>
+     <div><strong>{quality.attention.length}</strong><span>Outras receitas a conferir</span></div>
+    </div>
+    <p className="cc-quality-audit-footnote">O piloto possui {quality.pilot} fichas de origem preservadas, sem conversão automática. Nas outras {quality.other} receitas, há {quality.nonpilotUnquantifiedIngredients} ingrediente(s) sem quantidade numérica estruturada. Isso pode ser intencional, como em medidas “a gosto”.</p>
+    <details className="cc-quality-audit-details">
+     <summary>Ver receitas a conferir ({quality.attention.length})</summary>
+     {quality.attention.length?<ul>{quality.attention.map(item=><li key={item.id}><div><strong>{item.title}</strong><ul>{item.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul></div><button type="button" className="secondary" onClick={()=>{const recipe=rows.find(r=>r.id===item.id);if(recipe)choose(recipe);}}>Abrir ficha</button></li>)}</ul>:<p>Nenhuma pendência estrutural identificada nas receitas fora do piloto. Revisão humana de ingredientes e direitos continua necessária.</p>}
+    </details>
+   </>}
+ </section>
  <details className="cc-food-nutrition-section"><summary>Medidas das receitas autorais · inventário e revisão</summary><PilotIngredientMeasureReview/></details>
  <details className="cc-food-nutrition-section"><summary>Base nutricional dos alimentos · revisão administrativa</summary><FoodNutritionAdmin/></details>
  <div className="cc-admin-list"><input placeholder="Buscar receita oficial" aria-label="Buscar receita" value={search} onChange={e=>setSearch(e.target.value)}/><button type="button" className="secondary" onClick={()=>{setFile(null);setRemovePhoto(false);setEditing(null);setForm({...initial,recipe_ingredients:[{name:"",quantity:1,unit:"g"}]});}}>Nova receita oficial</button></div>
