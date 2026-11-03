@@ -22,7 +22,7 @@ import {formatPilotRecipeTime} from "./lib/pilotRecipeTime.mjs";
 import PersonalRecipeForm from "./PersonalRecipeForm";
 import RecipeDetails from "./RecipeDetails";
 import { supabase } from "./lib/supabase";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { type Meal, type Slot, type Plan, slots, daySlots, optionalSlots, recipeFitsSlot, dateKey, startOfWeek, loadRecipes, loadWeek, loadPreliminaryAllergyCandidates, saveMeal, setMealLocked, replaceWeekMainMeals, removeMeal, moveMeal } from "./lib/planner";
 import { CalendarDays, ChefHat, ShoppingBasket, Leaf, LayoutDashboard, Plus, ChevronLeft, ChevronRight, LogOut, Apple, Printer, Heart, LockKeyhole, LockKeyholeOpen, UserRound, Activity } from "lucide-react";
 function safeLoad():Plan{if(supabase)return {};try{return JSON.parse(localStorage.getItem("cc_demo_plan")||"{}") as Plan;}catch{return {};}}
@@ -37,7 +37,15 @@ export default function App(){
  const [preferencesLoadedFor,setPreferencesLoadedFor]=useState<string|null>(null);
  const [weekLoadedScope,setWeekLoadedScope]=useState<string|null>(null);
  const [weekSuggestionProgress,setWeekSuggestionProgress]=useState("");
- const [page,setPage]=useState("Início"); const [week,setWeek]=useState(()=>startOfWeek(new Date())); const [selected,setSelected]=useState(()=>dateKey(new Date())); const [plan,setPlan]=useState<Plan>(safeLoad);const [done,setDone]=useState<string[]>([]);
+ const [page,setPage]=useState("Início");
+ const pageHeadingRef=useRef<HTMLHeadingElement>(null);
+ const hasNavigatedRef=useRef(false);
+ useEffect(()=>{
+  if(!hasNavigatedRef.current){hasNavigatedRef.current=true;return;}
+  window.scrollTo(0,0);
+  pageHeadingRef.current?.focus({preventScroll:true});
+ },[page]);
+ const [week,setWeek]=useState(()=>startOfWeek(new Date())); const [selected,setSelected]=useState(()=>dateKey(new Date())); const [plan,setPlan]=useState<Plan>(safeLoad);const [done,setDone]=useState<string[]>([]);
  const [recipeSearch,setRecipeSearch]=useState("");
  const [recipeGroup,setRecipeGroup]=useState("Todos");
  const [recipePage,setRecipePage]=useState(1);
@@ -526,7 +534,7 @@ export default function App(){
  const recipeTargetLong=recipeTargetDate.toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
  const recipeTargetShort=recipeTargetDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
  const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Alimentos",Apple],["Compras",ShoppingBasket],["Perfil",UserRound],["Evolução",Activity],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
- return <div className="shell"><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav>{nav.map(([name,Icon])=><button className={page===name?"active":""} key={name} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={19}/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1>{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div>{supabase?<div className="cc-account-controls"><span className="cc-account-email" title={userEmail??"Minha conta"}>{userEmail??"Minha conta"}</span><button type="button" onClick={()=>void supabase?.auth.signOut()} aria-label="Sair da conta"><LogOut size={16}/> Sair</button></div>:<div className="avatar">C&C</div>}</header><div className="notice"><Leaf size={15}/> {isAdmin?"Piloto pessoal · Receitas autorais para organizar seu cardápio e suas compras. Confira ingredientes e rótulos: alergênicos e composição nutricional ainda não foram verificados.":"Biblioteca culinária em testes · Organize receitas e compras; nenhuma sugestão constitui prescrição de dieta."}</div>
+ return <div className="shell"><a className="cc-skip-link" href="#cc-main-content">Pular para o conteúdo principal</a><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav aria-label="Navegação principal">{nav.map(([name,Icon])=><button type="button" aria-current={page===name?"page":undefined} className={page===name?"active":""} key={name} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={19} aria-hidden="true"/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main id="cc-main-content" tabIndex={-1}><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1 ref={pageHeadingRef} tabIndex={-1} className="cc-page-heading">{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div>{supabase?<div className="cc-account-controls"><span className="cc-account-email" title={userEmail??"Minha conta"}>{userEmail??"Minha conta"}</span><button type="button" onClick={()=>void supabase?.auth.signOut()} aria-label="Sair da conta"><LogOut size={16}/> Sair</button></div>:<div className="avatar">C&C</div>}</header><div className="notice"><Leaf size={15}/> {isAdmin?"Piloto pessoal · Receitas autorais para organizar seu cardápio e suas compras. Confira ingredientes e rótulos: alergênicos e composição nutricional ainda não foram verificados.":"Biblioteca culinária em testes · Organize receitas e compras; nenhuma sugestão constitui prescrição de dieta."}</div>
  {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
  {page==="Início"&&<HomeDashboard
   plan={plan} recipes={recipes} plannedInWeek={plannedCount} optionalInWeek={optionalCount}
@@ -664,5 +672,5 @@ export default function App(){
    ...groups.notes.map(x=>x.name+": "+x.description)
   ].join("\n");
  })())}>Copiar lista</button>}</>}
- </main><div className="mobile-nav">{nav.map(([name,Icon])=><button key={name} className={page===name?"active":""} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={21}/><small>{name}</small></button>)}</div></div>;
+ </main><nav className="mobile-nav" aria-label="Navegação móvel">{nav.map(([name,Icon])=><button type="button" key={name} aria-current={page===name?"page":undefined} className={page===name?"active":""} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={21} aria-hidden="true"/><small>{name}</small></button>)}</nav></div>;
 }
