@@ -71,3 +71,19 @@ Captura enviada pelo responsável da prévia `costa-costa-alimentacao-egb5xewfl-
 - Não há evidências de edição, publicação, alterações de alergênicos ou gravações em banco. Esta captura não valida comportamento móvel ou medidas na ficha.
 
 **Resultado:** apresentação desktop dos indicadores aprovada. **Pendente:** abrir `Ver receitas a conferir (2)` para confirmar as duas receitas e os avisos; testar abertura de uma ficha sem salvar e a visão em 390 px. A produção permanece na Fase 54, e o PR #65 segue sem merge.
+
+
+## Lista expandida homologada — 03/11/2026
+
+O responsável enviou uma nova captura da prévia Vercel no painel **Qualidade das receitas · conferência editorial**, desta vez com **Ver receitas a conferir (2)** expandido.
+
+A tela confirmou:
+- **Chá Cremoso De Cúrcuma**: `1 ingrediente(s) sem quantidade estruturada (conferir se é intencional)`; botão **Abrir ficha** visível.
+- **Iogurte Turbo**: `1 ingrediente(s) sem quantidade estruturada (conferir se é intencional)`; botão **Abrir ficha** visível.
+- Indicadores anteriores preservados: **127 / 119 / 119 / 2**.
+- Identificação **Somente leitura** preservada, sem publicação ou alterações de dados.
+- Apresentação da lista e expansão **homologadas visualmente no desktop**.
+
+**Limitação:** a captura não demonstra o resultado de pressionar **Abrir ficha**, a edição/salvamento de conteúdo, nem o comportamento móvel a 390 px. Próxima verificação: abrir a ficha de Chá Cremoso de Cúrcuma (sem salvar), identificar qual ingrediente está sinalizado e confirmar que o atalho leva à receita correta. Repetir para Iogurte Turbo se necessário. Sem inferir quantidades para ingredientes opcionais ou “a gosto”.
+
+O PR #65 permanece draft e sem publicação no site oficial.
