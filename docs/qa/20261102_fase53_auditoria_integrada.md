@@ -104,3 +104,18 @@ A captura original foi tirada da **produção**, não da prévia; por isso não 
 O responsável enviou captura da **prévia Vercel** `costa-costa-alimentacao-n47tmskn0-myclever607-7251s-projects.vercel.app`, seção **Compras**, em janela desktop. A lista consolidada apresenta nomes e quantidades legíveis, marcadores à esquerda e valores à direita (ex.: `Abobrinha — 800 g`, `Alface — 400 g`, `Arroz — 640 g`). O texto redundante `Quantidade estruturada` não aparece nas linhas visíveis. **Correção visual desktop homologada por imagem.**
 
 **Pendente:** verificar navegação e exibição em celular/larguras de 360 e 390 pixels, bem como ações de marcação de compras em sessão real. A captura é evidência de apresentação, não de persistência ou usabilidade móvel. O PR continua draft sem merge/produção.
+
+
+### Homologação móvel em 390 px — 03/11/2026
+
+O responsável enviou **nove capturas** da prévia `costa-costa-alimentacao-n47tmskn0-myclever607-7251s-projects.vercel.app` pelo Chrome DevTools em modo responsivo **390×545 px**:
+
+- Início, Cardápio, Receitas, Alimentos, Compras, Perfil, Evolução e Administração: **acesso visual confirmado**, com título e conteúdo de cada seção no viewport.
+- Barra inferior: **rolagem horizontal funcionando**; itens ativos evidenciados e acesso aos destinos mais à direita (Perfil, Evolução e Administração).
+- Compras: **nome e quantidade separados corretamente**, sem a legenda redundante "Quantidade estruturada"; conteúdo legível na largura de 390 px.
+- Cardápio: alerta de alergia e seleção da semana visíveis; não foram feitas ações que modifiquem refeições.
+- Em vários prints aparece um botão circular preto que pode cobrir o conteúdo. Identificado como **Vercel Toolbar** (ícone da Vercel sobre menu), injetado pela plataforma para colaboração e auditorias; não pertence ao JSX/CSS do produto. A própria Vercel documenta que pode ser ocultado nesta sessão por `Ctrl + .` ou `Disable for Session`. Não criar hacks CSS para esconder controles externos nem modificar regras do produto para contornar a toolbar. Fontes: https://vercel.com/docs/vercel-toolbar/managing-toolbar e https://vercel.com/docs/vercel-toolbar .
+- Os números do painel **"Problemas"** do DevTools (109–151) não são, por si só, erros reproduzidos de JavaScript ou falhas na aplicação; para uma auditoria de console/qualidade são necessários registros detalhados. Não declarar essa auditoria concluída com base nas contagens.
+- **Escopo da aprovação:** homologação **visual** do layout e da navegação móvel em 390 px, e da lista de Compras em desktop e celular. Não equivale a teste em dispositivo físico, leitura por leitor de tela nem validação de persistência de uma marcação de compra.
+
+Com os cenários observados e a suíte automatizada já aprovada no commit anterior, a Fase 53 fica candidata a revisão/publicação após CI verde no último HEAD. **Não fazer merge sem autorização explícita; produção segue Fase 52.**
