@@ -61,3 +61,14 @@ O responsável enviou **cinco capturas da prévia** `costa-costa-alimentacao-2oy
 **Próxima homologação recomendada:** na prévia, abrir `Cardápio` da semana 02–08/11, conferir 3/3 nos sete dias, clicar `Recarregar semana salva` e confirmar que continuam 21 refeições sem alteração. Opcionalmente, simular `Offline` no DevTools, tentar recarregar, verificar aviso explícito, voltar a `Online` e usar `Tentar novamente`. Não utilizar o botão `Sugerir refeições da semana` durante esses testes.
 
 O PR #64 segue **draft**, sem merge. A produção permanece na Fase 53. Nenhum dado do Supabase foi alterado em resposta às capturas.
+
+
+## Segunda rodada de homologação visual — 03/11/2026
+
+O responsável enviou **nove capturas adicionais** da prévia Vercel da Fase 54. O botão `Recarregar semana salva` está visível na página Cardápio. As telas mostram os dias **02, 03, 04, 05, 06, 07 e 08/11/2026**, cada um com **3/3 refeições**, incluindo nomes, categorias e porções. Não há erros de consulta exibidos, nem qualquer evidência de substituição das refeições.
+
+**Verificação independente no Supabase (somente leitura):** a conta de homologação possui **21 refeições na semana**, distribuídas em **sete dias com três refeições**; **0 referências a receitas ausentes** e **0 registros associados a planos de outra semana**. A estrutura de assinaturas e revisão nutricional profissional segue preservada.
+
+**Limites da evidência:** as capturas não mostram o instante do clique ou a sequência antes/depois da recarga. Assim, confirmam que o **resultado final continua íntegro**, mas não provam isoladamente que `Recarregar semana salva` foi acionado. Tampouco foi demonstrada a recuperação após falha offline. A inspeção estática de código e os testes da CI cobrem o fluxo de recarga sem escrita, mas não substituem um teste manual de falha.
+
+**Conclusão da rodada:** aprovado visualmente o preenchimento completo dos sete dias e o estado sem falso vazio; teste de falha de conexão fica documentado como **pendente, não bloqueador por si só para revisão de código**, a critério do responsável. **PR #64 ainda sem autorização de merge/publicação.**
