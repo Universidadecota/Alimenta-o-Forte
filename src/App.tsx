@@ -36,6 +36,8 @@ export default function App(){
  const [recipesLoadedFor,setRecipesLoadedFor]=useState<string|null>(null);
  const [preferencesLoadedFor,setPreferencesLoadedFor]=useState<string|null>(null);
  const [weekLoadedScope,setWeekLoadedScope]=useState<string|null>(null);
+ const [weekLoadError,setWeekLoadError]=useState<string|null>(null);
+ const [weekReloadToken,setWeekReloadToken]=useState(0);
  const [weekSuggestionProgress,setWeekSuggestionProgress]=useState("");
  const [page,setPage]=useState("Início");
  const pageHeadingRef=useRef<HTMLHeadingElement>(null);
@@ -71,6 +73,7 @@ export default function App(){
  const recipesReady=!supabase||dataReadyForUser(recipesLoadedFor,userId);
  const preferencesReady=!supabase||dataReadyForUser(preferencesLoadedFor,userId);
  const weekReady=!supabase||weekLoadedScope===(userId+"|"+weekStart);
+ const reloadSavedWeek=()=>{if(!supabase||!userId||saving||loading)return;setWeekReloadToken(value=>value+1);};
  const favoritesReady=!supabase||Boolean(userId&&favoritesLoadedFor===userId);
  const reloadRecipes=async()=>{const data=await loadRecipes();setRecipes(data);setRecipeForm(false);setEditingId(null);setDetailId(null);};
  const toggleFavorite=async(recipeId:string)=>{
@@ -179,10 +182,14 @@ export default function App(){
  },[userId]);
  useEffect(()=>{
   if(!supabase||!userId)return;
-  let alive=true;setLoading(true);setError("");setPlan({});setWeekLoadedScope(null);
-  void loadWeek(userId,weekStart).then(data=>{if(alive){setPlan(data);setWeekLoadedScope(userId+"|"+weekStart);}}).catch(err=>{if(alive)setError(err instanceof Error?err.message:"Erro ao carregar cardápio.");}).finally(()=>{if(alive)setLoading(false);});
+  let alive=true;
+  setLoading(true);setWeekLoadError(null);setPlan({});setWeekLoadedScope(null);
+  void loadWeek(userId,weekStart)
+   .then(data=>{if(alive){setPlan(data);setWeekLoadedScope(userId+"|"+weekStart);}})
+   .catch(()=>{if(alive)setWeekLoadError("Não foi possível consultar as refeições salvas. Confira sua conexão e tente recarregar a semana.");})
+   .finally(()=>{if(alive)setLoading(false);});
   return ()=>{alive=false;};
- },[userId,weekStart]);
+ },[userId,weekStart,weekReloadToken]);
  // Cada entrada na tela de Compras recarrega as marcacoes do servidor.
  // Nao reutilizar marcacoes entre contas ou semanas.
  useEffect(()=>{
@@ -535,7 +542,9 @@ export default function App(){
  const recipeTargetShort=recipeTargetDate.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
  const fmt=(d:Date)=>d.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}); const nav=[["Início",LayoutDashboard],["Cardápio",CalendarDays],["Receitas",ChefHat],["Alimentos",Apple],["Compras",ShoppingBasket],["Perfil",UserRound],["Evolução",Activity],...(isAdmin?[["Administração",ChefHat] as const]:[])] as const;
  return <div className="shell"><a className="cc-skip-link" href="#cc-main-content">Pular para o conteúdo principal</a><aside className="sidebar"><div className="brand"><div className="brand-mark"><Leaf/></div><div><strong>Costa&Costa</strong><small>ALIMENTAÇÃO FORTE</small></div></div><nav aria-label="Navegação principal">{nav.map(([name,Icon])=><button type="button" aria-current={page===name?"page":undefined} className={page===name?"active":""} key={name} onClick={()=>name==="Início"?openHome():setPage(name)}><Icon size={19} aria-hidden="true"/>{name}</button>)}</nav><div className="sidebar-foot">Sua alimentação.<br/>Seu ritmo. Sua evolução.</div></aside><main id="cc-main-content" tabIndex={-1}><header><div><span className="eyebrow">SUA ROTINA, MAIS LEVE</span><h1 ref={pageHeadingRef} tabIndex={-1} className="cc-page-heading">{page==="Início"?"Bem-vindo à Costa&Costa":page}</h1></div>{supabase?<div className="cc-account-controls"><span className="cc-account-email" title={userEmail??"Minha conta"}>{userEmail??"Minha conta"}</span><button type="button" onClick={()=>void supabase?.auth.signOut()} aria-label="Sair da conta"><LogOut size={16}/> Sair</button></div>:<div className="avatar">C&C</div>}</header><div className="notice"><Leaf size={15}/> {isAdmin?"Piloto pessoal · Receitas autorais para organizar seu cardápio e suas compras. Confira ingredientes e rótulos: alergênicos e composição nutricional ainda não foram verificados.":"Biblioteca culinária em testes · Organize receitas e compras; nenhuma sugestão constitui prescrição de dieta."}</div>
- {error&&<div className="notice" role="alert">{error}</div>}{loading&&<div className="notice">Carregando cardápio...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
+ {error&&<div className="notice" role="alert">{error}</div>}
+  {weekLoadError&&<div className="notice" role="alert">{weekLoadError} <button type="button" className="secondary" disabled={loading||saving||!userId} onClick={reloadSavedWeek}>Tentar novamente</button></div>}
+  {loading&&<div className="notice" role="status">Consultando cardápio salvo...</div>}{saving&&<div className="notice">Salvando alterações...</div>}
  {page==="Início"&&<HomeDashboard
   plan={plan} recipes={recipes} plannedInWeek={plannedCount} optionalInWeek={optionalCount}
   loading={loading||!weekReady||weekStart!==dateKey(startOfWeek(new Date()))}
@@ -550,7 +559,8 @@ export default function App(){
  <button disabled={loading||saving} className="icon-button" aria-label="Semana anterior" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()-7);setWeek(d);setSelected(dateKey(d));}}><ChevronLeft/></button>
  <strong>{fmt(days[0])} — {fmt(days[6])}</strong>
  <button disabled={loading||saving} className="icon-button" aria-label="Próxima semana" onClick={()=>{const d=new Date(week);d.setDate(d.getDate()+7);setWeek(d);setSelected(dateKey(d));}}><ChevronRight/></button>
- <button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady||!preferencesReady} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button>
+ <button type="button" className="secondary" disabled={loading||saving||!userId||!supabase} onClick={reloadSavedWeek}>Recarregar semana salva</button>
+  <button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady||!preferencesReady} onClick={()=>void suggestWeek()}>Sugerir refeições da semana</button>
  <button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("fridge")}><Printer size={16}/> Imprimir só o cardápio</button>
  <button type="button" className="secondary" disabled={loading||saving||!weekReady||!recipesReady} onClick={()=>printWeek("week")}><Printer size={16}/> Imprimir cardápio e receitas / Salvar PDF</button>
  {weekSuggestionProgress&&<span role="status" className="cc-manual-planning-notice">{weekSuggestionProgress}</span>}
@@ -566,7 +576,7 @@ export default function App(){
  onClick={()=>void confirmPlacement()}>Adicionar ao cardápio</button>
  <button type="button" className="secondary" disabled={saving} onClick={()=>{setPendingPlacement(null);setPlacementTarget("");}}>Cancelar</button>
  </section>}
- <div className="week-grid">{days.map(d=><button key={dateKey(d)} className={selected===dateKey(d)?"day selected":"day"} disabled={loading||saving} onClick={()=>setSelected(dateKey(d))}><small>{d.toLocaleDateString("pt-BR",{weekday:"short"})}</small><strong>{d.getDate()}</strong><span>{slots.filter(s=>plan[dateKey(d)]?.[s]?.id).length}/3{optionalSlots.some(s=>plan[dateKey(d)]?.[s]?.id)?" +"+optionalSlots.filter(s=>plan[dateKey(d)]?.[s]?.id).length+" opc.":""}</span></button>)}</div><div className="cc-optional-toolbar">
+ {weekReady&&!loading?<><div className="week-grid">{days.map(d=><button key={dateKey(d)} className={selected===dateKey(d)?"day selected":"day"} disabled={loading||saving} onClick={()=>setSelected(dateKey(d))}><small>{d.toLocaleDateString("pt-BR",{weekday:"short"})}</small><strong>{d.getDate()}</strong><span>{slots.filter(s=>plan[dateKey(d)]?.[s]?.id).length}/3{optionalSlots.some(s=>plan[dateKey(d)]?.[s]?.id)?" +"+optionalSlots.filter(s=>plan[dateKey(d)]?.[s]?.id).length+" opc.":""}</span></button>)}</div><div className="cc-optional-toolbar">
  <div><strong>Refeições opcionais</strong><span>Lanches e ceia só aparecem se você desejar incluí-los.</span></div>
  <button type="button" className="secondary" disabled={loading||saving}
  aria-expanded={optionalOpen} onClick={()=>setOptionalOpen(value=>!value)}>
@@ -598,7 +608,7 @@ export default function App(){
    </select>
   </div>;
  })}</div>
- <button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>}
+ <button className="secondary" onClick={()=>setPage("Compras")}><ShoppingBasket size={17}/> Ver lista de compras</button></>:<div className="notice" role={weekLoadError?"alert":"status"}>{weekLoadError?"O cardápio não foi carregado; nenhuma refeição foi substituída. Use Recarregar semana salva.":"Aguardando a leitura do cardápio salvo..."}</div>}</>}
  {page==="Alimentos"&&<FoodLibrary/>}
  {page==="Perfil"&&(userId&&preferencesReady
   ?<UserProfile key={userId} userId={userId} email={userEmail??""} initial={preferences}
