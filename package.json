@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && npm run test:pilot-history-delete-guard && npm run test:official-ingredient-writes && npm run test:jwt-rls-diagnostics && npm run test:two-role-transition && npm run test:pilot-flow && npm run test:legacy-week-access && npm run test:internal-catalog && npm run test:shopping-review-groups && npm run test:shopping-precision-print && npm run test:shopping-decisions && npm run test:shopping-purchase-readonly && npm run test:shopping-phase46 && npm run test:shopping-phase47 && npm run test:profile-phase50 && npm run test:evolution-phase51 && npm run test:evolution-phase52 && npm run test:integrated-phase53 && npm run test:week-loading-phase54 && tsc -b && vite build",
+    "build": "npm run test:sauce-safety && npm run test:sauce-audit && npm run test:preparation-partition && npm run test:auxiliary-consumption && npm run test:auxiliary-review-draft && npm run test:auxiliary-editorial-workflow && npm run test:auxiliary-authorization-blueprint && npm run test:auxiliary-migration-runbook && npm run test:isolated-preflight && npm run test:beta-membership-guard && npm run test:pilot-history-delete-guard && npm run test:official-ingredient-writes && npm run test:jwt-rls-diagnostics && npm run test:two-role-transition && npm run test:pilot-flow && npm run test:legacy-week-access && npm run test:internal-catalog && npm run test:shopping-review-groups && npm run test:shopping-precision-print && npm run test:shopping-decisions && npm run test:shopping-purchase-readonly && npm run test:shopping-phase46 && npm run test:shopping-phase47 && npm run test:profile-phase50 && npm run test:evolution-phase51 && npm run test:evolution-phase52 && npm run test:integrated-phase53 && npm run test:week-loading-phase54 && npm run test:recipe-quality-phase55 && tsc -b && vite build",
     "preview": "vite preview",
     "test:ingredients": "node scripts/test-pilot-ingredients.mjs",
     "test:measure-batch": "node scripts/test-pilot-measure-batch.mjs",
@@ -38,7 +38,8 @@
     "test:evolution-phase51": "node scripts/test-evolution-phase51.mjs",
     "test:evolution-phase52": "node scripts/test-evolution-phase52.mjs",
     "test:integrated-phase53": "node scripts/test-integrated-phase53.mjs",
-    "test:week-loading-phase54": "node scripts/test-week-loading-phase54.mjs"
+    "test:week-loading-phase54": "node scripts/test-week-loading-phase54.mjs",
+    "test:recipe-quality-phase55": "node scripts/test-recipe-quality-phase55.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
