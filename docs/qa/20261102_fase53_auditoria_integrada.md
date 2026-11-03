@@ -88,3 +88,12 @@ Captura da produção demonstrou que o ingrediente aparecia concatenado à legen
 - Testes automatizados de fonte/CSS/build não substituem um ensaio visual em navegador real.
 
 **Publicação:** PR #62 ainda em homologação (não mesclar sem aprovação); produção permanece na Fase 52.
+
+
+### Ajuste de homologação — 03/11/2026: retirar legenda redundante
+
+O responsável enviou uma captura do **domínio oficial** `alimentacaoforte.epsacore.com.br`, que permanece na Fase 52, e observou que **“Quantidade estruturada”** não precisa ser repetida em cada item da lista de Compras. O cabeçalho **“Medidas consolidadas”** já dá o contexto e a quantidade numérica continua à direita.
+
+Na branch de prévia da Fase 53, o markup da linha consolidada foi simplificado para mostrar **somente nome do alimento e quantidade**. A legenda foi removida, com CSS e teste estático atualizados. As chaves, botões e estados de compras não foram alterados; nenhuma atualização no Supabase foi necessária. A observação visual anterior de concatenação torna-se resolvida pela **eliminação integral da legenda**, condicionada à homologação visual da nova prévia.
+
+A captura original foi tirada da **produção**, não da prévia; por isso não deve ser interpretada como falha de implantação do PR #62. Este PR segue draft, sem merge nem publicação no domínio oficial.
