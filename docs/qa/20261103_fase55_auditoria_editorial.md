@@ -58,3 +58,16 @@ Os 128 registros apresentam ingredientes e instruções de preparo cadastrados; 
 - Somente após revisão documentada poderemos avaliar mudanças nos dados originais, sem inferir massas ou composições nutricionais.
 
 **Publicação:** criar PR rascunho e Vercel Preview; não fazer merge sem autorização.
+
+
+## Primeira homologação visual recebida — 03/11/2026
+
+Captura enviada pelo responsável da prévia `costa-costa-alimentacao-egb5xewfl-myclever607-7251s-projects.vercel.app`, na seção **Administração → Gestão do catálogo de receitas**, desktop.
+
+- O painel **Qualidade das receitas · conferência editorial** aparece no lugar previsto, com marcação **Somente leitura**.
+- Os quatro indicadores visíveis são **127** receitas oficiais, **119** piloto aguardando estruturação das medidas, **119** piloto com direitos comerciais em análise e **2** outras receitas a conferir. Conferem com o levantamento SQL de 03/11/2026.
+- A explicação do acervo piloto e a nota sobre as outras 8 receitas e 2 ingredientes sem quantidade estruturada aparecem completas e legíveis.
+- O controle **Ver receitas a conferir (2)** está visível, mas **fechado** na captura: sua lista e o botão **Abrir ficha** ainda não foram homologados visualmente.
+- Não há evidências de edição, publicação, alterações de alergênicos ou gravações em banco. Esta captura não valida comportamento móvel ou medidas na ficha.
+
+**Resultado:** apresentação desktop dos indicadores aprovada. **Pendente:** abrir `Ver receitas a conferir (2)` para confirmar as duas receitas e os avisos; testar abertura de uma ficha sem salvar e a visão em 390 px. A produção permanece na Fase 54, e o PR #65 segue sem merge.
